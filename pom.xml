@@ -7,15 +7,17 @@
     <groupId>ru.gafarov</groupId>
     <artifactId>BetBot</artifactId>
     <packaging>pom</packaging>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0</version>
     <modules>
         <module>TelegramBot</module>
         <module>BetService</module>
+        <module>BetGrpcInterface</module>
     </modules>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
+        <spring.boot.version>2.4.2</spring.boot.version>
     </properties>
 
 </project>

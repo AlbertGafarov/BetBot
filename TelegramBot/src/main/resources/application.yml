@@ -1,0 +1,6 @@
+service:
+  host: localhost
+  port: 5454
+  bot:
+    name: AlbertGafarovBetBot
+    token: 6521471388:AAGP25xpwPlMzoExAe_XTrUtweUl9U2cgUk

@@ -1,0 +1,56 @@
+syntax = "proto3";
+package ru.gafarov.bet.grpcInterface;
+
+import "google/protobuf/timestamp.proto";
+
+message Bet {
+  int64 id = 1;
+  string wager = 2;
+  google.protobuf.Timestamp finishDate = 3;
+  User initiator = 4;
+  User opponent = 5;
+  string definition = 6;
+  BetStatus initiatorStatus = 7;
+  BetStatus opponentStatus = 8;
+}
+
+message User {
+  string name = 1;
+  int64 chatId = 2;
+}
+
+message ChangeStatusBetMessage {
+  User user = 1;
+  Bet bet = 2;
+  BetStatus newStatus = 3;
+}
+
+message ResponseMessage {
+  string message = 1;
+  RequestStatus requestStatus = 2;
+  User user = 3;
+  Bet bet = 4;
+}
+
+enum RequestStatus {
+  SUCCESS = 0;
+  NOT_SUCCESS = 1;
+  ERROR = 2;
+}
+
+enum BetStatus {
+  OFFERED = 0; // Предложен
+  CANCEL = 1;  // Спор отклонен
+  ACCEPTED = 2; // Принят
+  WIN = 3;    // Победил
+  LOSE = 4;   // Проиграл
+  STANDOFF = 5;   // Ничья
+  WAGERPAID = 6;  // Выигрыш оплатил
+  WAGERRECIEVED = 7;  // Выигрыш получил
+}
+
+service BetService {
+  rpc addUser(User) returns (ResponseMessage);
+  rpc addBet(Bet) returns (ResponseMessage);
+  rpc changeStatusBet(ChangeStatusBetMessage) returns (ResponseMessage);
+}

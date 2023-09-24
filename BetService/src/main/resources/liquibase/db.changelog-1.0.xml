@@ -1,0 +1,163 @@
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
+    <changeSet id="0.0.1" author="albert.gafarov">
+        <sqlFile path="liquibase/schema.sql"/>
+    </changeSet>
+
+    <changeSet id="1.0.0" author="albert.gafarov">
+        <createTable tableName="users">
+            <column name="id" type="serial" >
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="username" type="varchar(100)" >
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="chat_id" type="integer" >
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="created" type="timestamp" defaultValueDate="current_timestamp" >
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated" type="timestamp" defaultValueDate="current_timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="varchar(25)" defaultValue="ACTIVE" >
+                <constraints nullable="false"/>
+            </column>
+
+        </createTable>
+    </changeSet>
+    <changeSet id="1.0.10" author="albert.gafarov">
+        <createTable tableName="bets">
+            <column name="id" type="serial" >
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="message_id" type="integer" >
+                <constraints nullable="false"/>
+            </column>
+            <column name="initiator_id" type="integer" >
+                <constraints nullable="false"/>
+            </column>
+            <column name="opponent_id" type="integer" >
+                <constraints nullable="false"/>
+            </column>
+            <column name="definition" type="text" >
+                <constraints nullable="false"/>
+            </column>
+            <column name="wager" type="text" >
+                <constraints nullable="false"/>
+            </column>
+            <column name="finish_date" type="timestamp" >
+                <constraints nullable="true"/>
+            </column>
+            <column name="created" type="timestamp" defaultValueDate="current_timestamp" >
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated" type="timestamp" defaultValueDate="current_timestamp">
+                <constraints nullable="true"/>
+            </column>
+            <column name="initiator_bet_status" type="varchar(25)" defaultValue="NOT_READ" >
+                <constraints nullable="false"/>
+            </column>
+            <column name="opponent_bet_status" type="varchar(25)" defaultValue="NOT_READ" >
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="varchar(25)" defaultValue="NOT_READ" >
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="1.0.14" author="albert.gafarov">
+        <addForeignKeyConstraint baseTableName="bets"
+                                 baseColumnNames="initiator_id"
+                                 constraintName="fk_bets_initiator"
+                                 referencedTableName="users"
+                                 referencedColumnNames="id"/>
+    </changeSet>
+    <changeSet id="1.0.15" author="albert.gafarov">
+        <addForeignKeyConstraint baseTableName="bets"
+                                 baseColumnNames="opponent_id"
+                                 constraintName="fk_bets_opponent"
+                                 referencedTableName="users"
+                                 referencedColumnNames="id"/>
+    </changeSet>
+    <changeSet id="1.0.16" author="albert.gafarov">
+        <createTable tableName="status">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="current_bet_status" type="varchar(25)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="new_bet_status" type="varchar(25)">
+            </column>
+            <column name="message" type="text">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="1.0.17" author="albert.gafarov">
+        <insert tableName="status">
+            <column name="current_bet_status" value="OFFERED"/>
+            <column name="new_bet_status" value="CANCEL"/>
+            <column name="message" value="Your status is OFFERED. You can change status only on CANCEL or ACCEPTED"/>
+        </insert>
+    </changeSet>
+    <changeSet id="1.0.18" author="albert.gafarov">
+        <insert tableName="status">
+            <column name="current_bet_status" value="OFFERED"/>
+            <column name="new_bet_status" value="ACCEPTED"/>
+            <column name="message" value="Your status is OFFERED. You can change status only on CANCEL or ACCEPTED"/>
+        </insert>
+    </changeSet>
+    <changeSet id="1.0.19" author="albert.gafarov">
+        <insert tableName="status">
+            <column name="current_bet_status" value="ACCEPTED"/>
+            <column name="new_bet_status" value="WIN"/>
+            <column name="message" value="Your status is ACCEPTED. You can change status only on WIN or LOSE or STANDOFF"/>
+        </insert>
+    </changeSet>
+    <changeSet id="1.0.20" author="albert.gafarov">
+        <insert tableName="status">
+            <column name="current_bet_status" value="ACCEPTED"/>
+            <column name="new_bet_status" value="LOSE"/>
+            <column name="message" value="Your status is ACCEPTED. You can change status only on WIN or LOSE or STANDOFF"/>
+        </insert>
+    </changeSet>
+    <changeSet id="1.0.21" author="albert.gafarov">
+        <insert tableName="status">
+            <column name="current_bet_status" value="ACCEPTED"/>
+            <column name="new_bet_status" value="STANDOFF"/>
+            <column name="message" value="Your status is ACCEPTED. You can change status only on WIN or LOSE or STANDOFF"/>
+        </insert>
+    </changeSet>
+    <changeSet id="1.0.22" author="albert.gafarov">
+        <insert tableName="status">
+            <column name="current_bet_status" value="WIN"/>
+            <column name="new_bet_status" value="WAGERRECIEVED"/>
+            <column name="message" value="Your status is WIN. You can change status only on WAGERRECIEVED"/>
+        </insert>
+    </changeSet>
+    <changeSet id="1.0.23" author="albert.gafarov">
+        <insert tableName="status">
+            <column name="current_bet_status" value="LOSE"/>
+            <column name="new_bet_status" value="WAGERPAID"/>
+            <column name="message" value="Your status is LOSE. You can change status only on WAGERPAID"/>
+        </insert>
+    </changeSet>
+    <changeSet id="1.0.24" author="albert.gafarov">
+        <insert tableName="status">
+            <column name="current_bet_status" value="WAGERPAID"/>
+            <column name="message" value="Your status is WAGERPAID. It is finish status"/>
+        </insert>
+    </changeSet>
+    <changeSet id="1.0.25" author="albert.gafarov">
+        <insert tableName="status">
+            <column name="current_bet_status" value="WAGERRECIEVED"/>
+            <column name="message" value="Your status is WAGERRECIEVED. It is finish status"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>
