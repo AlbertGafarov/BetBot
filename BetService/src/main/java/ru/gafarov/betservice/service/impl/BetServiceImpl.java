@@ -2,8 +2,10 @@ package ru.gafarov.betservice.service.impl;
 
 import com.google.protobuf.Timestamp;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.gafarov.bet.grpcInterface.Proto;
+import ru.gafarov.betservice.converter.Converter;
 import ru.gafarov.betservice.model.Bet;
 import ru.gafarov.betservice.model.ChangeStatusBetRules;
 import ru.gafarov.betservice.model.Status;
@@ -18,6 +20,7 @@ import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class BetServiceImpl implements BetService {
@@ -25,6 +28,7 @@ public class BetServiceImpl implements BetService {
     private final BetRepository betRepository;
     private final UserService userService;
     private final List<ChangeStatusBetRules> changeStatusBetRules;
+    private final Converter converter;
 
     @Override
     public Proto.ResponseMessage save(Proto.Bet protoBet) {
@@ -37,9 +41,11 @@ public class BetServiceImpl implements BetService {
         bet.setInitiatorBetStatus(Proto.BetStatus.OFFERED);
         bet.setOpponentBetStatus(Proto.BetStatus.OFFERED);
         bet.setWager(protoBet.getWager());
-        betRepository.save(bet);
-
-        return Proto.ResponseMessage.newBuilder().setBet(Proto.Bet.newBuilder(protoBet).build()).build();
+        bet.setDefinition(protoBet.getDefinition());
+        bet.setFinishDate(converter.toLocalDateTime(protoBet.getFinishDate()));
+        bet = betRepository.save(bet);
+        protoBet = converter.toProtoBet(bet);
+        return Proto.ResponseMessage.newBuilder().setBet(protoBet).build();
 
     }
 
@@ -53,8 +59,8 @@ public class BetServiceImpl implements BetService {
 
                     Proto.Bet.newBuilder(protoBet)
                             .setDefinition(bet.getDefinition())
-                            .setInitiator(Proto.User.newBuilder().setName(bet.getInitiator().getUsername()).build())
-                            .setOpponent(Proto.User.newBuilder().setName(bet.getOpponent().getUsername()).build())
+                            .setInitiator(Proto.User.newBuilder().setUsername(bet.getInitiator().getUsername()).build())
+                            .setOpponent(Proto.User.newBuilder().setUsername(bet.getOpponent().getUsername()).build())
                             .setFinishDate(Timestamp.newBuilder()
                                     .setSeconds(instant.getEpochSecond())
                                     .setNanos(instant.getNano())
@@ -81,9 +87,11 @@ public class BetServiceImpl implements BetService {
             Proto.BetStatus initiatorBetStatus = bet.getInitiatorBetStatus();
             Proto.BetStatus opponentBetStatus = bet.getOpponentBetStatus();
 
-            if (initiator.getUsername().equals(protoUser.getName())) {
+            if (initiator.getUsername().equals(protoUser.getUsername())) {
+                log.info("Статус меняет initiator");
                 ChangeStatusBetRules statusBet = new ChangeStatusBetRules(initiatorBetStatus, newBetStatus);
                 if (initiatorBetStatus.equals(Proto.BetStatus.OFFERED)) {
+                    log.info("You initiator and status OFFERED. You can only cancel the bet");
                     return Proto.ResponseMessage.newBuilder().setRequestStatus(Proto.RequestStatus.ERROR)
                             .setMessage("You initiator and status OFFERED. You can only cancel the bet").build();
                 }
@@ -98,8 +106,8 @@ public class BetServiceImpl implements BetService {
                     Instant instant = bet.getFinishDate().toInstant((ZoneOffset) ZoneOffset.systemDefault());
                     return Proto.ResponseMessage.newBuilder().setBet(Proto.Bet.newBuilder(protoBet)
                             .setDefinition(bet.getDefinition())
-                            .setInitiator(Proto.User.newBuilder().setName(bet.getInitiator().getUsername()).build())
-                            .setOpponent(Proto.User.newBuilder().setName(bet.getOpponent().getUsername()).build())
+                            .setInitiator(Proto.User.newBuilder().setUsername(bet.getInitiator().getUsername()).build())
+                            .setOpponent(Proto.User.newBuilder().setUsername(bet.getOpponent().getUsername()).build())
                             .setFinishDate(Timestamp.newBuilder()
                                     .setSeconds(instant.getEpochSecond())
                                     .setNanos(instant.getNano())
@@ -119,10 +127,13 @@ public class BetServiceImpl implements BetService {
                             .setMessage(message).build();
                 }
 
-            } else if (opponent.getUsername().equals(protoUser.getName())) {
+            } else if (opponent.getUsername().equals(protoUser.getUsername())) {
+                log.info("Статус меняет opponent");
                 ChangeStatusBetRules statusBet = new ChangeStatusBetRules(opponentBetStatus, newBetStatus);
                 if (changeStatusBetRules.contains(statusBet)) {
+                    log.info("Статусная модель найдена");
                     if (statusBet.getNewBetStatus().equals(Proto.BetStatus.CANCEL)) {
+                        log.info("Спор отклонен по желанию оппонента");
                         bet.setInitiatorBetStatus(Proto.BetStatus.CANCEL);
                         bet.setStatus(Status.NOT_ACTIVE);
                     }
@@ -143,8 +154,8 @@ public class BetServiceImpl implements BetService {
                     Instant instant = bet.getFinishDate().toInstant((ZoneOffset) ZoneOffset.systemDefault());
                     return Proto.ResponseMessage.newBuilder().setBet(Proto.Bet.newBuilder(protoBet)
                             .setDefinition(bet.getDefinition())
-                            .setInitiator(Proto.User.newBuilder().setName(bet.getInitiator().getUsername()).build())
-                            .setOpponent(Proto.User.newBuilder().setName(bet.getOpponent().getUsername()).build())
+                            .setInitiator(Proto.User.newBuilder().setUsername(bet.getInitiator().getUsername()).build())
+                            .setOpponent(Proto.User.newBuilder().setUsername(bet.getOpponent().getUsername()).build())
                             .setFinishDate(Timestamp.newBuilder()
                                     .setSeconds(instant.getEpochSecond())
                                     .setNanos(instant.getNano())

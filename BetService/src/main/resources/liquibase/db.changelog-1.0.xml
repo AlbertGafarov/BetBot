@@ -11,11 +11,20 @@
             <column name="id" type="serial" >
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="username" type="varchar(100)" >
-                <constraints nullable="false" unique="true"/>
+            <column name="username" type="varchar(128)" >
+                <constraints nullable="false"/>
             </column>
             <column name="chat_id" type="integer" >
                 <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="code" type="integer" >
+                <constraints nullable="false"/>
+            </column>
+            <column name="chat_status" type="varchar(128)" >
+                <constraints nullable="false"/>
+            </column>
+            <column name="draft_bet_id" type="integer" >
+                <constraints nullable="true"/>
             </column>
             <column name="created" type="timestamp" defaultValueDate="current_timestamp" >
                 <constraints nullable="false"/>
@@ -26,16 +35,55 @@
             <column name="status" type="varchar(25)" defaultValue="ACTIVE" >
                 <constraints nullable="false"/>
             </column>
-
         </createTable>
+    </changeSet>
+    <changeSet id="1.0.1" author="albert.gafarov">
+        <addUniqueConstraint tableName="users" columnNames="username, code"
+                       constraintName="pk_user"/>
+    </changeSet>
+    <changeSet id="1.0.2" author="albert.gafarov">
+        <createTable tableName="draft_bets">
+            <column name="id" type="serial" >
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="opponent_name" type="varchar(128)" >
+                <constraints nullable="true"/>
+            </column>
+            <column name="opponent_code" type="integer" >
+                <constraints nullable="true"/>
+            </column>
+            <column name="definition" type="text" >
+                <constraints nullable="true"/>
+            </column>
+            <column name="wager" type="text" >
+                <constraints nullable="true"/>
+            </column>
+            <column name="finish_date" type="timestamp" >
+                <constraints nullable="true"/>
+            </column>
+            <column name="created" type="timestamp" defaultValueDate="current_timestamp" >
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated" type="timestamp" defaultValueDate="current_timestamp">
+                <constraints nullable="true"/>
+            </column>
+            <column name="status" type="varchar(25)" defaultValue="DRAFT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+    </changeSet>
+    <changeSet id="1.0.3" author="albert.gafarov">
+        <addForeignKeyConstraint baseTableName="users"
+                                 baseColumnNames="draft_bet_id"
+                                 constraintName="fk_users_draft_bets"
+                                 referencedTableName="draft_bets"
+                                 referencedColumnNames="id"/>
     </changeSet>
     <changeSet id="1.0.10" author="albert.gafarov">
         <createTable tableName="bets">
             <column name="id" type="serial" >
                 <constraints primaryKey="true" nullable="false"/>
-            </column>
-            <column name="message_id" type="integer" >
-                <constraints nullable="false"/>
             </column>
             <column name="initiator_id" type="integer" >
                 <constraints nullable="false"/>

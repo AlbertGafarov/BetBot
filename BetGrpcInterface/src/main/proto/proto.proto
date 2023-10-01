@@ -14,9 +14,23 @@ message Bet {
   BetStatus opponentStatus = 8;
 }
 
+message DraftBet {
+  int64 id = 1;
+  string wager = 2;
+  int32 daysToFinish = 3;
+  string opponentName = 5;
+  int32 opponentCode = 6;
+  string definition = 7;
+  google.protobuf.Timestamp finishDate = 8;
+}
+
 message User {
-  string name = 1;
-  int64 chatId = 2;
+  int64 id = 1;
+  string username = 2;
+  int32 code = 3;
+  int64 chatId = 4;
+  ChatStatus chatStatus = 5;
+  DraftBet draftBet = 6;
 }
 
 message ChangeStatusBetMessage {
@@ -30,6 +44,7 @@ message ResponseMessage {
   RequestStatus requestStatus = 2;
   User user = 3;
   Bet bet = 4;
+  DraftBet draftBet = 5;
 }
 
 enum RequestStatus {
@@ -40,17 +55,37 @@ enum RequestStatus {
 
 enum BetStatus {
   OFFERED = 0; // Предложен
-  CANCEL = 1;  // Спор отклонен
+  NOT_READ = 1; // Не рассмотрен оппонентом
   ACCEPTED = 2; // Принят
   WIN = 3;    // Победил
   LOSE = 4;   // Проиграл
   STANDOFF = 5;   // Ничья
   WAGERPAID = 6;  // Выигрыш оплатил
   WAGERRECIEVED = 7;  // Выигрыш получил
+  CANCEL = 8;  // Спор отклонен
 }
+
+enum ChatStatus {
+  START = 0;
+  WAIT_OPPONENT_NAME = 1;
+  WAIT_OPPONENT_CODE = 5;
+  WAIT_DEFINITION = 2;
+  WAIT_WAGER = 3;
+  WAIT_FINISH_DATE = 4;
+  WAIT_APPROVE = 6;
+}
+
 
 service BetService {
   rpc addUser(User) returns (ResponseMessage);
+  rpc getUser(User) returns (ResponseMessage);
+  rpc changeChatStatus(User) returns (ResponseMessage);
   rpc addBet(Bet) returns (ResponseMessage);
+  rpc addDraftBet(DraftBet) returns (ResponseMessage);
+  rpc setOpponentName(DraftBet) returns (ResponseMessage);
+  rpc setOpponentCode(DraftBet) returns (ResponseMessage);
+  rpc setDefinition(DraftBet) returns (ResponseMessage);
+  rpc setWager(DraftBet) returns (ResponseMessage);
+  rpc setFinishDate(DraftBet) returns (ResponseMessage);
   rpc changeStatusBet(ChangeStatusBetMessage) returns (ResponseMessage);
 }
