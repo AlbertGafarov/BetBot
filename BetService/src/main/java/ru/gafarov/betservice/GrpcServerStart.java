@@ -8,6 +8,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 @EnableConfigurationProperties
 public class GrpcServerStart {
     public static void main(String[] args) {
+        System.setProperty("user.timezone", "MSK");
         new SpringApplicationBuilder().sources(GrpcServerStart.class).run(args);
     }
 }

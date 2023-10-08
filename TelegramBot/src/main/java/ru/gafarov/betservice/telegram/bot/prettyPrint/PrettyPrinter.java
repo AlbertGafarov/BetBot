@@ -6,7 +6,7 @@ import ru.gafarov.bet.grpcInterface.Proto;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
 @Component
@@ -22,31 +22,32 @@ public class PrettyPrinter {
 
     private String fromGoogleTimestampUTC(final Timestamp googleTimestamp) {
         LocalDateTime localDateTime = Instant.ofEpochSecond(googleTimestamp.getSeconds(), googleTimestamp.getNanos())
-                .atOffset(ZoneOffset.UTC)
+                .atZone(ZoneId.systemDefault())
                 .toLocalDateTime();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
         return localDateTime.format(formatter);
     }
 
     public String printOfferBet(Proto.Bet bet) {
-        return  bet.getInitiator().getUsername() +
+        return  "<b>Спор</b>\n" + bet.getInitiator().getUsername() +
                 "\ncode:" + bet.getInitiator().getCode() +
                 "\nсчитает что:\n" + bet.getDefinition() +
-                "\nи предлагет Вам оспорить это утверждение." +
-                "\nВознаграждение победителю спора:" + bet.getWager() +
+                "\nи предлагает Вам оспорить это утверждение." +
+                "\nВознаграждение победителю спора: " + bet.getWager() +
                 "\nДата окончания спора: " + fromGoogleTimestampUTC(bet.getFinishDate()) +
                 "\nГотовы оспорить?";
     }
 
     public String printBet(Proto.Bet bet) {
-        return "Инициатор: " + bet.getInitiator().getUsername() +
-                "\nКод инициатора: " + bet.getOpponent().getCode() +
+        return "<b>Спор</b>" +
+                "\nИнициатор: " + bet.getInitiator().getUsername() +
+                "\nКод инициатора: " + bet.getInitiator().getCode() +
                 "\nОппонент: " + bet.getOpponent().getUsername() +
                 "\nКод оппонента: " + bet.getOpponent().getCode() +
                 "\nСуть спора: " + bet.getDefinition() +
-                "\nВознаграждение победителю:" + bet.getWager() +
+                "\nВознаграждение победителю: " + bet.getWager() +
                 "\nДата окончания спора: " + fromGoogleTimestampUTC(bet.getFinishDate()) +
-                "\nСтатус инициатора:" + bet.getInitiatorStatus() +
-                "\nСтатус оппонента:" + bet.getOpponentStatus();
+                "\nСтатус инициатора: " + bet.getInitiatorStatus() +
+                "\nСтатус оппонента: " + bet.getOpponentStatus();
     }
 }

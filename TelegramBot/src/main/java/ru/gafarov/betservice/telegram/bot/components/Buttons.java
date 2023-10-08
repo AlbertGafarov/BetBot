@@ -2,8 +2,10 @@ package ru.gafarov.betservice.telegram.bot.components;
 
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+import ru.gafarov.bet.grpcInterface.Proto;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Buttons {
     private static final InlineKeyboardButton START_BUTTON = new InlineKeyboardButton("Start");
@@ -39,15 +41,13 @@ public class Buttons {
         return markupInline;
     }
 
-    public static InlineKeyboardMarkup approveAndDeclineButtons(long betId) {
-        InlineKeyboardButton APPROVE_BUTTON = new InlineKeyboardButton("Approve bet");
-        InlineKeyboardButton DECLINE_BUTTON = new InlineKeyboardButton("Decline bet");
-        APPROVE_BUTTON.setCallbackData("/approveBet " + betId);
-        DECLINE_BUTTON.setCallbackData("/declineBet" + betId);
-
-        List<InlineKeyboardButton> rowInline = List.of(APPROVE_BUTTON, DECLINE_BUTTON);
+    public static InlineKeyboardMarkup nextStatusesButtons(List<Proto.BetStatus> nextStatuses, long id) {
+        List<InlineKeyboardButton> rowInline = nextStatuses.stream().map(a -> {
+            InlineKeyboardButton button = new InlineKeyboardButton(a.name());
+            button.setCallbackData("/newStatus/" + a.name() + "/" + id);
+            return button;
+        }).collect(Collectors.toList());
         List<List<InlineKeyboardButton>> rowsInLine = List.of(rowInline);
-
         InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
         markupInline.setKeyboard(rowsInLine);
 

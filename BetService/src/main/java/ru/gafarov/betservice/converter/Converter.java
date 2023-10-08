@@ -9,7 +9,7 @@ import ru.gafarov.betservice.model.User;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.ZoneId;
 
 @Component
 public class Converter {
@@ -35,6 +35,7 @@ public class Converter {
 
         return builder.build();
     }
+
     public Proto.Bet toProtoBet(Bet bet) {
         Proto.Bet.Builder builder = Proto.Bet.newBuilder()
                 .setId(bet.getId())
@@ -44,7 +45,9 @@ public class Converter {
                 .setDefinition(bet.getDefinition())
                 .setFinishDate(toTimestamp(bet.getFinishDate()))
                 .setOpponentStatus(bet.getOpponentBetStatus())
-                .setInitiatorStatus(bet.getInitiatorBetStatus());
+                .setInitiatorStatus(bet.getInitiatorBetStatus())
+                .addAllInitiatorNextStatuses(bet.getNextInitiatorBetStatusList())
+                .addAllOpponentNextStatuses(bet.getNextOpponentBetStatusList());
         return builder.build();
     }
 
@@ -59,33 +62,21 @@ public class Converter {
         if (user.getDraftBet() != null) {
             builder.setDraftBet(toProtoDraftBet(user.getDraftBet()));
         }
-
         return builder.build();
-
     }
 
-    private User protoUserToUser(Proto.User protoUser) {
-        User user = new User();
-        user.setId(protoUser.getId());
-        user.setChatId(protoUser.getChatId());
-        user.setUsername(protoUser.getUsername());
-        user.setChatStatus(protoUser.getChatStatus());
-        user.setCode(protoUser.getCode());
-
-        return user;
-    }
-
-    private Timestamp toTimestamp(LocalDateTime localDateTime) {
-        Instant instant = localDateTime.toInstant(ZoneOffset.UTC);
+    public Timestamp toTimestamp(LocalDateTime localDateTime) {
+        Instant instant = localDateTime.atZone(ZoneId.systemDefault()).toInstant();
 
         return Timestamp.newBuilder()
                 .setSeconds(instant.getEpochSecond())
                 .setNanos(instant.getNano())
                 .build();
     }
+
     public LocalDateTime toLocalDateTime(Timestamp timestamp) {
         return Instant.ofEpochSecond(timestamp.getSeconds(), timestamp.getNanos())
-                .atOffset(ZoneOffset.UTC)
+                .atZone(ZoneId.systemDefault())
                 .toLocalDateTime();
     }
 }

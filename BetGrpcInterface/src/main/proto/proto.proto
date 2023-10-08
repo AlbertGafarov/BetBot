@@ -12,6 +12,8 @@ message Bet {
   string definition = 6;
   BetStatus initiatorStatus = 7;
   BetStatus opponentStatus = 8;
+  repeated BetStatus initiatorNextStatuses = 9;
+  repeated BetStatus opponentNextStatuses = 10;
 }
 
 message DraftBet {
@@ -40,11 +42,12 @@ message ChangeStatusBetMessage {
 }
 
 message ResponseMessage {
-  string message = 1;
-  RequestStatus requestStatus = 2;
-  User user = 3;
-  Bet bet = 4;
-  DraftBet draftBet = 5;
+  string messageForInitiator = 1;
+  string messageForOpponent = 2;
+  RequestStatus requestStatus = 3;
+  User user = 4;
+  Bet bet = 5;
+  DraftBet draftBet = 6;
 }
 
 enum RequestStatus {
@@ -62,7 +65,7 @@ enum BetStatus {
   STANDOFF = 5;   // Ничья
   WAGERPAID = 6;  // Выигрыш оплатил
   WAGERRECIEVED = 7;  // Выигрыш получил
-  CANCEL = 8;  // Спор отклонен
+  CANCELED = 8;  // Спор отклонен
 }
 
 enum ChatStatus {

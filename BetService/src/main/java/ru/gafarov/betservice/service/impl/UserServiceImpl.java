@@ -54,7 +54,7 @@ public class UserServiceImpl implements UserService {
             respProtoUser = converter.userToProto(userRepository.findByUsernameAndCode(protoUser.getUsername(), protoUser.getCode()));
         }
         if (respProtoUser == null) {
-            return Proto.ResponseMessage.newBuilder().setMessage("user not found").setRequestStatus(Proto.RequestStatus.NOT_SUCCESS).build();
+            return Proto.ResponseMessage.newBuilder().setRequestStatus(Proto.RequestStatus.NOT_SUCCESS).build();
         } else {
             return Proto.ResponseMessage.newBuilder().setUser(respProtoUser).setRequestStatus(Proto.RequestStatus.SUCCESS).build();
         }
@@ -62,7 +62,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Proto.ResponseMessage changeChatStatus(Proto.User protoUser) {
-        userRepository.changeChatStatus(protoUser.getChatId(), protoUser.getChatStatus().toString(), protoUser.getDraftBet().getId());
+        if (protoUser.getDraftBet().getId() != 0) {
+            userRepository.changeChatStatus(protoUser.getChatId(), protoUser.getChatStatus().toString(), protoUser.getDraftBet().getId());
+        }
         return Proto.ResponseMessage.newBuilder().setUser(converter.userToProto(getUser(protoUser))).build();
     }
 

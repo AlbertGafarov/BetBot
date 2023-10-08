@@ -29,12 +29,12 @@ public class BetService {
         return grpcStub.addBet(bet).getBet();
     }
 
-    public Proto.Bet setStatus(Proto.User user, long betId, Proto.BetStatus betStatus) {
+    public Proto.ResponseMessage setStatus(Proto.User user, long betId, Proto.BetStatus betStatus) {
         Proto.ChangeStatusBetMessage changeStatusBetMessage = Proto.ChangeStatusBetMessage.newBuilder()
                 .setUser(user)
                 .setNewStatus(betStatus)
                 .setBet(Proto.Bet.newBuilder().setId(betId).build())
                 .build();
-        return grpcStub.changeStatusBet(changeStatusBetMessage).getBet();
+        return grpcStub.changeStatusBet(changeStatusBetMessage);
     }
 }

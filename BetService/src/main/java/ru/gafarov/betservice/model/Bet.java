@@ -8,6 +8,7 @@ import ru.gafarov.bet.grpcInterface.Proto;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -46,4 +47,9 @@ public class Bet extends BaseEntity {
     @Column(name = "opponent_bet_status")
     private Proto.BetStatus opponentBetStatus; // Статус спора, по мнению оппонента
 
+    @Transient
+    private List<Proto.BetStatus> nextOpponentBetStatusList;
+
+    @Transient
+    private List<Proto.BetStatus> nextInitiatorBetStatusList;
 }

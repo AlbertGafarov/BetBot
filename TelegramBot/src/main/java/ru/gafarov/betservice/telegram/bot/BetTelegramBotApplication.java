@@ -10,6 +10,7 @@ import ru.gafarov.betservice.telegram.bot.config.ConfigMap;
 public class BetTelegramBotApplication {
 
     public static void main(String[] args) {
+        System.setProperty("user.timezone", "MSK");
         SpringApplication.run(BetTelegramBotApplication.class, args);
     }
 }

@@ -30,7 +30,7 @@ logging:
       hibernate:
         type:
           descriptor:
-            sql: trace
+            sql: info
 grpc:
   server:
     port: 5454
