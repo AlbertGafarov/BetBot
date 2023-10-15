@@ -14,4 +14,7 @@ service:
   port: 5454
   bot:
     name: AlbertGafarovBetBot
-
+    token:
+grpc:
+  server:
+    port: 5455
