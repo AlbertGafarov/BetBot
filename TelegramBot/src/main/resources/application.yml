@@ -1,5 +1,17 @@
+server:
+  port: 8081
+management:
+  endpoint:
+    shutdown:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: prometheus, health, refresh, shutdown
+
 service:
   host: localhost
   port: 5454
   bot:
     name: AlbertGafarovBetBot
+
