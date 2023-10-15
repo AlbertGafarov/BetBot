@@ -83,4 +83,10 @@ public class GrpcRequestHandler extends BetServiceGrpc.BetServiceImplBase {
         responseObserver.onNext(draftBetService.setFinishDate(request));
         responseObserver.onCompleted();
     }
+
+    @Override
+    public void getActiveBets(Proto.User request, StreamObserver<Proto.ResponseMessage> responseObserver) {
+        responseObserver.onNext(betService.getActiveBets(request));
+        responseObserver.onCompleted();
+    }
 }

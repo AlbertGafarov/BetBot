@@ -11,8 +11,6 @@ public class Buttons {
     private static final InlineKeyboardButton START_BUTTON = new InlineKeyboardButton("Start");
     private static final InlineKeyboardButton CODE_BUTTON = new InlineKeyboardButton("Code");
     private static final InlineKeyboardButton CREATE_BUTTON = new InlineKeyboardButton("Create");
-    private static final InlineKeyboardButton OK_BUTTON = new InlineKeyboardButton("Ok");
-    private static final InlineKeyboardButton CANCEL_BUTTON = new InlineKeyboardButton("Cancel");
 
     public static InlineKeyboardMarkup inlineMarkup() {
         START_BUTTON.setCallbackData("/start");
@@ -28,9 +26,11 @@ public class Buttons {
         return markupInline;
     }
 
-    public static InlineKeyboardMarkup okAndCancelButtons() {
-        OK_BUTTON.setCallbackData("/ok");
-        CANCEL_BUTTON.setCallbackData("/cancel");
+    public static InlineKeyboardMarkup approveDraftBetButtons() {
+        InlineKeyboardButton OK_BUTTON = new InlineKeyboardButton("Ok");
+        InlineKeyboardButton CANCEL_BUTTON = new InlineKeyboardButton("Cancel");
+        OK_BUTTON.setCallbackData("/draftBet/ok");
+        CANCEL_BUTTON.setCallbackData("/draftBet/cancel");
 
         List<InlineKeyboardButton> rowInline = List.of(OK_BUTTON, CANCEL_BUTTON);
         List<List<InlineKeyboardButton>> rowsInLine = List.of(rowInline);

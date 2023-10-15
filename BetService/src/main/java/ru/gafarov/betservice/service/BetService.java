@@ -9,4 +9,6 @@ public interface BetService {
     Proto.ResponseMessage showBet(Proto.Bet protoBet);
 
     Proto.ResponseMessage changeBetStatus(Proto.ChangeStatusBetMessage protoChangeStatusBetMessage);
+
+    Proto.ResponseMessage getActiveBets(Proto.User protoUser);
 }

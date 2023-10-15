@@ -52,18 +52,12 @@ public class AuthorizationService {
 
     }
 
-    public SendMessage getCode(long chatId) {
+    public String getCode(long chatId) {
         Proto.ResponseMessage responseMessage = grpcStub.getUser(Proto.User.newBuilder().setChatId(chatId).build());
         if (responseMessage.hasUser()) {
-            SendMessage sendMessage = new SendMessage();
-            sendMessage.setChatId(String.valueOf(chatId));
-            sendMessage.setText("Ваш код: " + responseMessage.getUser().getCode());
-            return sendMessage;
+            return "Ваш код: " + responseMessage.getUser().getCode();
         } else {
-            SendMessage sendMessage = new SendMessage();
-            sendMessage.setChatId(String.valueOf(chatId));
-            sendMessage.setText("Вашего кода еще не существует. Нажмите /start");
-            return sendMessage;
+            return"Вашего кода еще не существует. Нажмите /start";
         }
     }
 }

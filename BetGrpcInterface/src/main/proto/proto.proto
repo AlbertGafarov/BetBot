@@ -48,6 +48,7 @@ message ResponseMessage {
   User user = 4;
   Bet bet = 5;
   DraftBet draftBet = 6;
+  repeated Bet bets = 7;
 }
 
 enum RequestStatus {
@@ -91,4 +92,5 @@ service BetService {
   rpc setWager(DraftBet) returns (ResponseMessage);
   rpc setFinishDate(DraftBet) returns (ResponseMessage);
   rpc changeStatusBet(ChangeStatusBetMessage) returns (ResponseMessage);
+  rpc getActiveBets(User) returns (ResponseMessage);
 }

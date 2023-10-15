@@ -356,4 +356,12 @@
     <changeSet id="1.0.41" author="albert.gafarov">
         <addUniqueConstraint tableName="status" columnNames="bet_role,current_bet_status,new_bet_status"/>
     </changeSet>
+    <changeSet id="1.0.42" author="albert.gafarov">
+        <update tableName="status">
+            <column name="new_rival_bet_status" value="CANCELED"/>
+            <where>
+                current_bet_status ='OFFERED' AND new_bet_status = 'CANCELED' AND bet_role = 'INITIATOR'
+            </where>
+        </update>
+    </changeSet>
 </databaseChangeLog>

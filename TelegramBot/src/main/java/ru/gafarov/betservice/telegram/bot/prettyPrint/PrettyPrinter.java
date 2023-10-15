@@ -16,7 +16,7 @@ public class PrettyPrinter {
         return "Оппонент: " + draftBet.getOpponentName() +
                 "\nКод оппонента: " + draftBet.getOpponentCode() +
                 "\nСуть спора: " + draftBet.getDefinition() +
-                "\nВознаграждение победителю:" + draftBet.getWager() +
+                "\nВознаграждение победителю: " + draftBet.getWager() +
                 "\nДата окончания спора: " + fromGoogleTimestampUTC(draftBet.getFinishDate());
     }
 
