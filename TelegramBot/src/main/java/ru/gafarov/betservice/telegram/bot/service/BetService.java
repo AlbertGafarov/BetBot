@@ -4,13 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.api.methods.ParseMode;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import ru.gafarov.bet.grpcInterface.BetServiceGrpc;
 import ru.gafarov.bet.grpcInterface.Proto;
-import ru.gafarov.betservice.telegram.bot.components.Buttons;
-
-import java.util.List;
 
 @Slf4j
 @Service

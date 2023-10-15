@@ -1,5 +1,6 @@
 package ru.gafarov.betservice.telegram.bot.controller;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
@@ -13,28 +14,19 @@ import ru.gafarov.betservice.telegram.bot.components.BetCommands;
 import ru.gafarov.betservice.telegram.bot.config.ConfigMap;
 import ru.gafarov.betservice.telegram.bot.service.DraftBetService;
 
+import javax.annotation.PostConstruct;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class BetTelegramBot extends TelegramLongPollingBot {
 
     private final ConfigMap configMap;
     private final BetCommands betCommands;
     private final DraftBetService draftBetService;
-
-    public BetTelegramBot(ConfigMap configMap, BetCommands betCommands, DraftBetService draftBetService) {
-        this.configMap = configMap;
-        this.betCommands = betCommands;
-        this.draftBetService = draftBetService;
-        try {
-            this.execute(new SetMyCommands(betCommands.getBotCommandList(), new BotCommandScopeDefault(), null));
-        } catch (TelegramApiException e) {
-            log.error(e.getMessage());
-        }
-    }
 
     @Override
     public void onUpdateReceived(Update update) {
@@ -63,13 +55,22 @@ public class BetTelegramBot extends TelegramLongPollingBot {
         }
     }
 
-    private void send(List<SendMessage> sendMessages) {
+    public void send(List<SendMessage> sendMessages) {
         try {
             for (SendMessage sendMessage : sendMessages) {
                 execute(sendMessage);
+                Thread.sleep(50);
             }
-        } catch (TelegramApiException e) {
+        } catch (TelegramApiException | InterruptedException e) {
             e.printStackTrace();
+        }
+    }
+    @PostConstruct
+    private void setBetCommands(){
+        try {
+            this.execute(new SetMyCommands(betCommands.getBotCommandList(), new BotCommandScopeDefault(), null));
+        } catch (TelegramApiException e) {
+            log.error(e.getMessage());
         }
     }
 

@@ -30,20 +30,26 @@ public class ShowBetsAction implements Action {
         Proto.User user = userService.getUser(chatId);
         Proto.ResponseMessage response = betService.showActiveBets(user);
         List<Proto.Bet> bets = response.getBetsList();
-        return bets.stream().map(bet -> {
+        List<SendMessage> sendMessages = bets.stream().map(bet -> {
             SendMessage msgToUser = new SendMessage();
+            msgToUser.setChatId(chatId);
             if (bet.getInitiator().getUsername().equals(user.getUsername())
                     && bet.getInitiator().getCode() == user.getCode()) {
                 msgToUser.setReplyMarkup(Buttons.nextStatusesButtons(bet.getInitiatorNextStatusesList(), bet.getId()));
-                msgToUser.setChatId(bet.getInitiator().getChatId());
             } else {
                 msgToUser.setReplyMarkup(Buttons.nextStatusesButtons(bet.getOpponentNextStatusesList(), bet.getId()));
-                msgToUser.setChatId(bet.getOpponent().getChatId());
             }
             msgToUser.setText(prettyPrinter.printBet(bet));
             msgToUser.setParseMode(ParseMode.HTML);
             return msgToUser;
         }).collect(Collectors.toList());
+        if (sendMessages.isEmpty()) {
+            SendMessage msgToUser = new SendMessage();
+            msgToUser.setChatId(chatId);
+            msgToUser.setText("У Вас нет активных споров");
+            sendMessages.add(msgToUser);
+        }
+        return sendMessages;
     }
 
     @Override

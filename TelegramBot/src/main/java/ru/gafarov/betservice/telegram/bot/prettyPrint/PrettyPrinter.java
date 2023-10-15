@@ -14,7 +14,7 @@ public class PrettyPrinter {
 
     public String printDraftBet(Proto.DraftBet draftBet) {
         return "Оппонент: " + draftBet.getOpponentName() +
-                "\nКод оппонента: " + draftBet.getOpponentCode() +
+                " " + draftBet.getOpponentCode() +
                 "\nСуть спора: " + draftBet.getDefinition() +
                 "\nВознаграждение победителю: " + draftBet.getWager() +
                 "\nДата окончания спора: " + fromGoogleTimestampUTC(draftBet.getFinishDate());
@@ -29,8 +29,7 @@ public class PrettyPrinter {
     }
 
     public String printOfferBet(Proto.Bet bet) {
-        return  "<b>Спор</b>\n" + bet.getInitiator().getUsername() +
-                "\ncode:" + bet.getInitiator().getCode() +
+        return  "<b>Спор</b>\n" + bet.getInitiator().getUsername() + " " + bet.getInitiator().getCode() +
                 "\nсчитает что:\n" + bet.getDefinition() +
                 "\nи предлагает Вам оспорить это утверждение." +
                 "\nВознаграждение победителю спора: " + bet.getWager() +
@@ -39,15 +38,15 @@ public class PrettyPrinter {
     }
 
     public String printBet(Proto.Bet bet) {
-        return "<b>Спор</b>" +
-                "\nИнициатор: " + bet.getInitiator().getUsername() +
-                "\nКод инициатора: " + bet.getInitiator().getCode() +
-                "\nОппонент: " + bet.getOpponent().getUsername() +
-                "\nКод оппонента: " + bet.getOpponent().getCode() +
-                "\nСуть спора: " + bet.getDefinition() +
-                "\nВознаграждение победителю: " + bet.getWager() +
+        return "<b>Спор</b>\n" +
+                bet.getInitiator().getUsername() +
+                " " + bet.getInitiator().getCode() +
+                "\nСчитает что: " + bet.getDefinition() +
+                "\nОспаривает: " + bet.getOpponent().getUsername() +
+                " " + bet.getOpponent().getCode() +
                 "\nДата окончания спора: " + fromGoogleTimestampUTC(bet.getFinishDate()) +
-                "\nСтатус инициатора: " + bet.getInitiatorStatus() +
-                "\nСтатус оппонента: " + bet.getOpponentStatus();
+                "\nВознаграждение победителю: " + bet.getWager() +
+                "\nСтатус " + bet.getInitiator().getUsername() + ": " + bet.getInitiatorStatus() +
+                "\nСтатус " + bet.getOpponent().getUsername() + ": " + bet.getOpponentStatus();
     }
 }
