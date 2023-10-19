@@ -20,11 +20,10 @@ public class UserService {
         return null;
     }
 
-    public Proto.ChatStatus setChatStatus(Proto.User protoUser, Proto.ChatStatus chatStatus) {
+    public void setChatStatus(Proto.User protoUser, Proto.ChatStatus chatStatus) {
         protoUser = Proto.User.newBuilder(protoUser).setChatStatus(chatStatus).build();
         log.info("Меняем статус чата: \n{}", protoUser);
-        Proto.ResponseMessage responseMessage = grpcStub.changeChatStatus(protoUser);
-        return responseMessage.getUser().getChatStatus();
+        grpcStub.changeChatStatus(protoUser);
     }
 
     public Proto.User getUser(String username, int code) {

@@ -3,10 +3,10 @@ package ru.gafarov.betservice.telegram.bot.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.gafarov.bet.grpcInterface.BetServiceGrpc;
 import ru.gafarov.bet.grpcInterface.Proto;
+import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
 import ru.gafarov.betservice.telegram.bot.components.Buttons;
 import ru.gafarov.betservice.telegram.bot.prettyPrint.PrettyPrinter;
 
@@ -19,12 +19,13 @@ public class DraftBetService {
 
     private final UserService userService;
     private final BetServiceGrpc.BetServiceBlockingStub grpcStub;
-    public final PrettyPrinter prettyPrinter;
+    private final PrettyPrinter prettyPrinter;
+    private final DeleteService deleteService;
 
-    public List<SendMessage> createDraft(Update update) {
+    public List<BetSendMessage> createDraft(Update update) {
         long chatId = update.getMessage().getChatId();
         Proto.User user = userService.getUser(chatId);
-        SendMessage sendMessage = new SendMessage();
+        BetSendMessage sendMessage = new BetSendMessage();
         sendMessage.setChatId(chatId);
 
         if (Proto.ChatStatus.WAIT_OPPONENT_NAME.equals(user.getChatStatus())) {
@@ -82,6 +83,8 @@ public class DraftBetService {
                 sendMessage.setText("Введите количество дней до завершения спора. Это должно быть натуральное число");
             }
         }
+
+        deleteService.delete(update);
         return List.of(sendMessage);
     }
 

@@ -42,4 +42,9 @@ public class BetService {
         return grpcStub.getActiveBets(user);
     }
 
+    public Proto.ResponseMessage showBet(Proto.User user, long id) {
+        Proto.Bet bet = Proto.Bet.newBuilder().setId(id).setInitiator(user).build();
+        return grpcStub.getBet(bet);
+    }
+
 }

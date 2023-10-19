@@ -2,36 +2,53 @@ package ru.gafarov.betservice.telegram.bot.actions;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.gafarov.bet.grpcInterface.Proto;
+import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
 import ru.gafarov.betservice.telegram.bot.components.Buttons;
+import ru.gafarov.betservice.telegram.bot.controller.BetTelegramBot;
 import ru.gafarov.betservice.telegram.bot.prettyPrint.PrettyPrinter;
 import ru.gafarov.betservice.telegram.bot.service.BetService;
 import ru.gafarov.betservice.telegram.bot.service.UserService;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+
+import static ru.gafarov.betservice.telegram.bot.controller.BetTelegramBot.READ_ONE_CHAR_MS;
+import static ru.gafarov.betservice.telegram.bot.controller.BetTelegramBot.WAIT_NEXT_MESSAGE_MS;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
+@RequiredArgsConstructor(onConstructor_ = {@Lazy})
 public class ShowBetsAction implements Action {
 
     private final UserService userService;
     private final BetService betService;
     private final PrettyPrinter prettyPrinter;
 
+    @Lazy
+    private final BetTelegramBot bot;
+
     @Override
-    public List<SendMessage> handle(Update update) {
+    public List<BetSendMessage> handle(Update update) {
         long chatId = update.getMessage().getChatId();
         Proto.User user = userService.getUser(chatId);
         Proto.ResponseMessage response = betService.showActiveBets(user);
         List<Proto.Bet> bets = response.getBetsList();
-        List<SendMessage> sendMessages = bets.stream().map(bet -> {
-            SendMessage msgToUser = new SendMessage();
+        AtomicInteger i = new AtomicInteger();
+        i.set(0);
+        List<BetSendMessage> sendMessages = bets.stream().sorted((o1, o2) -> {
+            LocalDateTime time1 = prettyPrinter.fromGoogleTimestampUTC(o1.getFinishDate());
+            LocalDateTime time2 = prettyPrinter.fromGoogleTimestampUTC(o2.getFinishDate());
+            return time1.compareTo(time2);
+        }).map(bet -> {
+            BetSendMessage msgToUser = new BetSendMessage();
             msgToUser.setChatId(chatId);
             if (bet.getInitiator().getUsername().equals(user.getUsername())
                     && bet.getInitiator().getCode() == user.getCode()) {
@@ -39,21 +56,26 @@ public class ShowBetsAction implements Action {
             } else {
                 msgToUser.setReplyMarkup(Buttons.nextStatusesButtons(bet.getOpponentNextStatusesList(), bet.getId()));
             }
-            msgToUser.setText(prettyPrinter.printBet(bet));
+            String text = prettyPrinter.printBet(bet);
+            msgToUser.setText(text);
             msgToUser.setParseMode(ParseMode.HTML);
+            msgToUser.setDelTime(i.accumulateAndGet(READ_ONE_CHAR_MS * text.length() + WAIT_NEXT_MESSAGE_MS, Integer::sum));
             return msgToUser;
         }).collect(Collectors.toList());
         if (sendMessages.isEmpty()) {
-            SendMessage msgToUser = new SendMessage();
+            BetSendMessage msgToUser = new BetSendMessage();
             msgToUser.setChatId(chatId);
             msgToUser.setText("У Вас нет активных споров");
             sendMessages.add(msgToUser);
         }
+        //Удаление вызывающей команды
+        DeleteMessage deleteMessage = new DeleteMessage(String.valueOf(chatId), update.getMessage().getMessageId());
+        bot.delete(deleteMessage);
         return sendMessages;
     }
 
     @Override
-    public List<SendMessage> callback(Update update) {
+    public List<BetSendMessage> callback(Update update) {
         return null;
     }
 }

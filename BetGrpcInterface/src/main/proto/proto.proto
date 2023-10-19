@@ -96,5 +96,6 @@ service BetService {
   rpc setFinishDate(DraftBet) returns (ResponseMessage);
   rpc changeStatusBet(ChangeStatusBetMessage) returns (ResponseMessage);
   rpc getActiveBets(User) returns (ResponseMessage);
+  rpc getBet(Bet) returns (ResponseMessage);
   rpc notifyOfExpiredBets(Bets) returns (ResponseMessage);
 }

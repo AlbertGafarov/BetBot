@@ -4,6 +4,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import ru.gafarov.bet.grpcInterface.Proto;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -33,7 +34,12 @@ public class Buttons {
         CANCEL_BUTTON.setCallbackData("/draftBet/cancel");
 
         List<InlineKeyboardButton> rowInline = List.of(OK_BUTTON, CANCEL_BUTTON);
-        List<List<InlineKeyboardButton>> rowsInLine = List.of(rowInline);
+        List<InlineKeyboardButton> secondRowInline = new ArrayList<>() {{
+            InlineKeyboardButton closeButton = new InlineKeyboardButton("✖");
+            closeButton.setCallbackData("/closeBet");
+            add(closeButton);
+        }};
+        List<List<InlineKeyboardButton>> rowsInLine = List.of(rowInline,secondRowInline);
 
         InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
         markupInline.setKeyboard(rowsInLine);
@@ -47,7 +53,15 @@ public class Buttons {
             button.setCallbackData("/newStatus/" + a.name() + "/" + id);
             return button;
         }).collect(Collectors.toList());
-        List<List<InlineKeyboardButton>> rowsInLine = List.of(rowInline);
+        List<InlineKeyboardButton> secondRowInline = new ArrayList<>() {{
+            InlineKeyboardButton pauseButton = new InlineKeyboardButton("⬇");
+            pauseButton.setCallbackData("/showBet/" + id);
+            InlineKeyboardButton closeButton = new InlineKeyboardButton("✖");
+            closeButton.setCallbackData("/closeBet");
+            add(pauseButton);
+            add(closeButton);
+        }};
+        List<List<InlineKeyboardButton>> rowsInLine = List.of(rowInline, secondRowInline);
         InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
         markupInline.setKeyboard(rowsInLine);
 

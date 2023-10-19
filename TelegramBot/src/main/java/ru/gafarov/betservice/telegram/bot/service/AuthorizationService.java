@@ -3,10 +3,10 @@ package ru.gafarov.betservice.telegram.bot.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.gafarov.bet.grpcInterface.BetServiceGrpc;
 import ru.gafarov.bet.grpcInterface.Proto;
+import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
 import ru.gafarov.betservice.telegram.bot.components.Buttons;
 
 @Slf4j
@@ -17,7 +17,7 @@ public class AuthorizationService {
     private final BetServiceGrpc.BetServiceBlockingStub grpcStub;
     public final UserService userService;
 
-    public SendMessage authorization(Update update) {
+    public BetSendMessage authorization(Update update) {
         long chatId = update.getMessage().getChatId();
         Proto.ResponseMessage responseMessage = grpcStub.getUser(Proto.User.newBuilder().setChatId(chatId).build());
         if (!responseMessage.hasUser()) {
@@ -35,7 +35,7 @@ public class AuthorizationService {
             Proto.ResponseMessage responseMessage1 = grpcStub.addUser(protoUser);
 
             if (responseMessage1.hasUser()) {
-                SendMessage sendMessage = new SendMessage();
+                BetSendMessage sendMessage = new BetSendMessage();
                 sendMessage.setChatId(String.valueOf(chatId));
                 sendMessage.setText("Привет! \nВаш username: " + responseMessage1.getUser().getUsername() +
                         "\nВаш код: " + responseMessage1.getUser().getCode() +
@@ -43,7 +43,7 @@ public class AuthorizationService {
                 return sendMessage;
             }
         }
-        SendMessage sendMessage = new SendMessage();
+        BetSendMessage sendMessage = new BetSendMessage();
         sendMessage.setChatId(String.valueOf(chatId));
         sendMessage.setText("Привет " + responseMessage.getUser().getUsername() + "!");
         userService.setChatStatus(responseMessage.getUser(), Proto.ChatStatus.START);

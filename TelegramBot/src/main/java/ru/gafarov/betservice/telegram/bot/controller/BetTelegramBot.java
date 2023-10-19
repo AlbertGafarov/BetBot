@@ -5,17 +5,20 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.commands.scope.BotCommandScopeDefault;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.gafarov.betservice.telegram.bot.actions.Action;
 import ru.gafarov.betservice.telegram.bot.components.BetCommands;
+import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
 import ru.gafarov.betservice.telegram.bot.config.ConfigMap;
+import ru.gafarov.betservice.telegram.bot.service.DeleteService;
 import ru.gafarov.betservice.telegram.bot.service.DraftBetService;
 
 import javax.annotation.PostConstruct;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -24,9 +27,12 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class BetTelegramBot extends TelegramLongPollingBot {
 
+    public final static int READ_ONE_CHAR_MS = 50;
+    public final static int WAIT_NEXT_MESSAGE_MS = 50;
     private final ConfigMap configMap;
     private final BetCommands betCommands;
     private final DraftBetService draftBetService;
+    private final DeleteService deleteService;
 
     @Override
     public void onUpdateReceived(Update update) {
@@ -36,10 +42,10 @@ public class BetTelegramBot extends TelegramLongPollingBot {
             log.info("text: {}", msgCommand);
             if (actions.containsKey(msgCommand)) {
                 log.info("Команда {} найдена", msgCommand);
-                List<SendMessage> sendMessages = actions.get(msgCommand).handle(update);
+                List<BetSendMessage> sendMessages = actions.get(msgCommand).handle(update);
                 send(sendMessages);
             } else {
-                List<SendMessage> sendMessages = draftBetService.createDraft(update);
+                List<BetSendMessage> sendMessages = draftBetService.createDraft(update);
                 send(sendMessages);
             }
 
@@ -49,19 +55,33 @@ public class BetTelegramBot extends TelegramLongPollingBot {
             String[] command = update.getCallbackQuery().getData().split("/");
             log.info("Команда разбита на части: {}", Arrays.toString(command));
             if (actions.containsKey(command[1])) {
-                List<SendMessage> sendMessages = actions.get(command[1]).callback(update);
+                List<BetSendMessage> sendMessages = actions.get(command[1]).callback(update);
                 send(sendMessages);
             }
         }
     }
 
-    public void send(List<SendMessage> sendMessages) {
+    public void send(Collection<BetSendMessage> sendMessages) {
         try {
-            for (SendMessage sendMessage : sendMessages) {
-                execute(sendMessage);
-                Thread.sleep(50);
+            for (BetSendMessage sendMessage : sendMessages) {
+                int id = execute(sendMessage).getMessageId();
+                if(sendMessage.getDelTime() > 0) {
+                    DeleteMessage deleteMessage = new DeleteMessage();
+                    deleteMessage.setMessageId(id);
+                    deleteMessage.setChatId(sendMessage.getChatId());
+                    deleteService.delete(deleteMessage, sendMessage.getDelTime());
+                }
+                Thread.sleep(WAIT_NEXT_MESSAGE_MS);
             }
         } catch (TelegramApiException | InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void delete(DeleteMessage deleteMessage) {
+        try {
+            execute(deleteMessage);
+        } catch (TelegramApiException e) {
             e.printStackTrace();
         }
     }

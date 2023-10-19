@@ -21,6 +21,8 @@ public class BetCommands {
     private final Action showBetsAction;
     private final Action approveDraftBetAction;
     private final Action newStatusBetAction;
+    private final Action showBetAction;
+    private final Action closeBetAction;
     @Getter
     private final Map<String, String> botCommands = new HashMap<>(){{
         put("/start", "start bot");
@@ -43,6 +45,8 @@ public class BetCommands {
             put("code", codeAction);
             put("draftBet", approveDraftBetAction);
             put("newStatus", newStatusBetAction);
+            put("showBet", showBetAction);
+            put("closeBet", closeBetAction);
         }};
     }
 }

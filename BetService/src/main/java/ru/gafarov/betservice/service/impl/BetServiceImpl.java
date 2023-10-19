@@ -1,6 +1,5 @@
 package ru.gafarov.betservice.service.impl;
 
-import com.google.protobuf.Timestamp;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -15,9 +14,7 @@ import ru.gafarov.betservice.repository.ChangeStatusBetRulesRepository;
 import ru.gafarov.betservice.service.BetService;
 import ru.gafarov.betservice.service.UserService;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -71,23 +68,10 @@ public class BetServiceImpl implements BetService {
 
     @Override
     public Proto.ResponseMessage showBet(Proto.Bet protoBet) {
-        Optional<Bet> optionalBet = betRepository.findById(protoBet.getId());
-        if (optionalBet.isPresent()) {
-            Bet bet = optionalBet.get();
-            Instant instant = bet.getFinishDate().toInstant((ZoneOffset) ZoneOffset.systemDefault());
-            return Proto.ResponseMessage.newBuilder().setBet(
-
-                    Proto.Bet.newBuilder(protoBet)
-                            .setDefinition(bet.getDefinition())
-                            .setInitiator(Proto.User.newBuilder().setUsername(bet.getInitiator().getUsername()).build())
-                            .setOpponent(Proto.User.newBuilder().setUsername(bet.getOpponent().getUsername()).build())
-                            .setFinishDate(Timestamp.newBuilder()
-                                    .setSeconds(instant.getEpochSecond())
-                                    .setNanos(instant.getNano())
-                                    .build())
-                            .setInitiatorStatus(bet.getInitiatorBetStatus())
-                            .setOpponentStatus(bet.getOpponentBetStatus())
-                            .build()).build();
+        Bet bet = betRepository.getBet(protoBet.getInitiator().getId(), protoBet.getId());
+        if (bet != null) {
+            setNextStatuses(bet);
+            return Proto.ResponseMessage.newBuilder().setBet(converter.toProtoBet(bet)).build();
         }
         return Proto.ResponseMessage.newBuilder().setRequestStatus(Proto.RequestStatus.ERROR).build();
     }
@@ -165,8 +149,9 @@ public class BetServiceImpl implements BetService {
         log.info("Возможные статусы для оппонента: {}", bet.getNextOpponentBetStatusList());
 
     }
+
     private void setFinalStatus(Bet bet) {
-        if(bet.getNextOpponentBetStatusList().isEmpty() && bet.getNextInitiatorBetStatusList().isEmpty()) {
+        if (bet.getNextOpponentBetStatusList().isEmpty() && bet.getNextInitiatorBetStatusList().isEmpty()) {
             bet.setStatus(Status.NOT_ACTIVE);
             bet.setUpdated(LocalDateTime.now());
             betRepository.save(bet);
