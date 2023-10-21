@@ -32,7 +32,7 @@ public class DraftAction implements Action {
         BetSendMessage sendMessage = new BetSendMessage();
         sendMessage.setChatId(chatId);
         if (Proto.ChatStatus.WAIT_APPROVE.equals(user.getChatStatus())) {
-            Proto.DraftBet draftBet = user.getDraftBet().toBuilder().build();
+            Proto.DraftBet draftBet = userService.getLastDraftBet(user).toBuilder().build();
             String stringBuilder = "Новый спор:\n" + prettyPrinter.printDraftBet(draftBet) +
                     "\nПодтверждаете?";
             sendMessage.setText(stringBuilder);

@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
 import ru.gafarov.betservice.telegram.bot.service.AuthorizationService;
-import ru.gafarov.betservice.telegram.bot.service.DeleteService;
+import ru.gafarov.betservice.telegram.bot.service.BotService;
 
 import java.util.List;
 
@@ -14,7 +14,7 @@ import java.util.List;
 public class CodeAction implements Action {
 
     private final AuthorizationService authorizationService;
-    private final DeleteService deleteService;
+    private final BotService botService;
 
     @Override
     public List<BetSendMessage> handle(Update update) {
@@ -34,7 +34,7 @@ public class CodeAction implements Action {
         sendMessage.setChatId(chatId);
         sendMessage.setText(text);
 
-        deleteService.delete(update);
+        botService.delete(update);
         return List.of(sendMessage);
     }
 }

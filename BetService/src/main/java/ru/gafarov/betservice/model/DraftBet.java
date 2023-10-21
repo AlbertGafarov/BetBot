@@ -3,6 +3,7 @@ package ru.gafarov.betservice.model;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -12,6 +13,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "draft_bets")
 @NoArgsConstructor
+@ToString(callSuper = true)
 public class DraftBet extends BaseEntity {
 
     @Column(name = "opponent_name")
@@ -28,4 +30,9 @@ public class DraftBet extends BaseEntity {
 
     @Column(name = "finish_date")
     private LocalDateTime finishDate; // Дата, после которой будет очевиден результат спора
+
+    @ManyToOne
+    @JoinColumn(name = "initiator_id")
+    private User initiator; // Инициатор спора
+
 }

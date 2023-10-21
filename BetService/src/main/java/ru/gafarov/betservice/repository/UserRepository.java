@@ -15,6 +15,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Modifying
     @Transactional
-    @Query(value = "update users set chat_status = ?2, draft_bet_id = ?3 where chat_id = ?1", nativeQuery = true)
-    void changeChatStatus(long chatId, String chatStatus, long draftBetId);
+    @Query(value = "update users set chat_status = ?2 where chat_id = ?1", nativeQuery = true)
+    void changeChatStatus(long chatId, String chatStatus);
 }

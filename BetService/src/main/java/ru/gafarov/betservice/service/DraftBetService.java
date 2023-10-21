@@ -15,4 +15,8 @@ public interface DraftBetService {
     Proto.ResponseMessage setWager(Proto.DraftBet request);
 
     Proto.ResponseMessage setFinishDate(Proto.DraftBet request);
+
+    Proto.ResponseMessage getLastDraftBet(Proto.User request);
+
+    Proto.ResponseMessage delete(Proto.DraftBet request);
 }

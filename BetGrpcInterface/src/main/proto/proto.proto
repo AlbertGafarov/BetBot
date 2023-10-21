@@ -24,6 +24,7 @@ message DraftBet {
   int32 opponentCode = 6;
   string definition = 7;
   google.protobuf.Timestamp finishDate = 8;
+  User initiator = 9;
 }
 
 message User {
@@ -32,13 +33,20 @@ message User {
   int32 code = 3;
   int64 chatId = 4;
   ChatStatus chatStatus = 5;
-  DraftBet draftBet = 6;
 }
 
 message ChangeStatusBetMessage {
   User user = 1;
   Bet bet = 2;
   BetStatus newStatus = 3;
+}
+
+message BotMessage {
+  int64 id = 1;
+  int32 tgMessageId = 2;
+  User user = 3;
+  BotMessageType type = 4;
+  DraftBet draftBet = 5;
 }
 
 message ResponseMessage {
@@ -50,6 +58,12 @@ message ResponseMessage {
   DraftBet draftBet = 6;
   repeated Bet bets = 7;
 }
+
+message ResponseBotMessage {
+  RequestStatus requestStatus = 1;
+  BotMessage botMessage = 2;
+}
+
 message Bets {
   repeated Bet bets = 1;
 }
@@ -82,6 +96,15 @@ enum ChatStatus {
   WAIT_APPROVE = 6;
 }
 
+enum BotMessageType {
+  ENTER_USERNAME = 0;
+  ENTER_CODE = 1;
+  ENTER_WAGER = 2;
+  ENTER_DEFINITION = 3;
+  ENTER_FINISH_DATE = 4;
+  CODE_WRONG_ENTER_USERNAME = 5;
+}
+
 
 service BetService {
   rpc addUser(User) returns (ResponseMessage);
@@ -89,6 +112,7 @@ service BetService {
   rpc changeChatStatus(User) returns (ResponseMessage);
   rpc addBet(Bet) returns (ResponseMessage);
   rpc addDraftBet(DraftBet) returns (ResponseMessage);
+  rpc deleteDraftBet(DraftBet) returns (ResponseMessage);
   rpc setOpponentName(DraftBet) returns (ResponseMessage);
   rpc setOpponentCode(DraftBet) returns (ResponseMessage);
   rpc setDefinition(DraftBet) returns (ResponseMessage);
@@ -96,6 +120,10 @@ service BetService {
   rpc setFinishDate(DraftBet) returns (ResponseMessage);
   rpc changeStatusBet(ChangeStatusBetMessage) returns (ResponseMessage);
   rpc getActiveBets(User) returns (ResponseMessage);
+  rpc getLastDraftBet(User) returns (ResponseMessage);
   rpc getBet(Bet) returns (ResponseMessage);
   rpc notifyOfExpiredBets(Bets) returns (ResponseMessage);
+  rpc saveBotMessage(BotMessage) returns (ResponseMessage);
+  rpc getBotMessage(BotMessage) returns (ResponseBotMessage);
+
 }

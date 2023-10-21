@@ -22,7 +22,9 @@ public class DraftBetServiceImpl implements DraftBetService {
     public Proto.ResponseMessage save(Proto.DraftBet protoDraftBet) {
 
         DraftBet draftBet = new DraftBet();
+        draftBet.setInitiator(converter.toUser(protoDraftBet.getInitiator()));
         draftBet.setCreated(LocalDateTime.now());
+        draftBet.setUpdated(LocalDateTime.now());
         draftBet.setOpponentName(protoDraftBet.getOpponentName());
         draftBet.setOpponentCode(protoDraftBet.getOpponentCode());
         draftBet.setStatus(Status.ACTIVE);
@@ -35,32 +37,51 @@ public class DraftBetServiceImpl implements DraftBetService {
 
     @Override
     public Proto.ResponseMessage setOpponentName(Proto.DraftBet draftBet) {
-        draftBetRepository.setOpponentName(draftBet.getId(), draftBet.getOpponentName());
+        LocalDateTime localDateTime = LocalDateTime.now();
+        draftBetRepository.setOpponentName(draftBet.getId(), draftBet.getOpponentName(), localDateTime);
         return null;
     }
 
     @Override
     public Proto.ResponseMessage setOpponentCode(Proto.DraftBet draftBet) {
-        draftBetRepository.setOpponentCode(draftBet.getId(), draftBet.getOpponentCode());
+        LocalDateTime localDateTime = LocalDateTime.now();
+        draftBetRepository.setOpponentCode(draftBet.getId(), draftBet.getOpponentCode(), localDateTime);
         return null;
     }
 
     @Override
     public Proto.ResponseMessage setDefinition(Proto.DraftBet draftBet) {
-        draftBetRepository.setDefinition(draftBet.getId(), draftBet.getDefinition());
+        LocalDateTime localDateTime = LocalDateTime.now();
+        draftBetRepository.setDefinition(draftBet.getId(), draftBet.getDefinition(), localDateTime);
         return null;
     }
 
     @Override
     public Proto.ResponseMessage setWager(Proto.DraftBet draftBet) {
-        draftBetRepository.setWager(draftBet.getId(), draftBet.getWager());
+        LocalDateTime localDateTime = LocalDateTime.now();
+        draftBetRepository.setWager(draftBet.getId(), draftBet.getWager(), localDateTime);
         return null;
     }
 
     @Override
     public Proto.ResponseMessage setFinishDate(Proto.DraftBet draftBet) {
         LocalDateTime finishDate = LocalDateTime.now().plusDays(draftBet.getDaysToFinish());
-        draftBetRepository.setFinishDate(draftBet.getId(), finishDate);
-        return Proto.ResponseMessage.newBuilder().setDraftBet(converter.toProtoDraftBet(draftBetRepository.findById(draftBet.getId()).get())).build();
+        LocalDateTime localDateTime = LocalDateTime.now();
+        draftBetRepository.setFinishDate(draftBet.getId(), finishDate, localDateTime);
+        return Proto.ResponseMessage.newBuilder()
+                .setDraftBet(converter.toProtoDraftBet(draftBetRepository.findById(draftBet.getId()).get())).build();
+    }
+
+    @Override
+    public Proto.ResponseMessage getLastDraftBet(Proto.User user) {
+        return Proto.ResponseMessage.newBuilder()
+                .setDraftBet(converter.toProtoDraftBet(draftBetRepository.getLastDraftBet(user.getId()))).build();
+    }
+
+    @Override
+    public Proto.ResponseMessage delete(Proto.DraftBet draftBet) {
+        LocalDateTime localDateTime = LocalDateTime.now();
+        draftBetRepository.setStatus(draftBet.getId(), Status.DELETED.toString(), localDateTime);
+        return Proto.ResponseMessage.newBuilder().setRequestStatus(Proto.RequestStatus.SUCCESS).build();
     }
 }

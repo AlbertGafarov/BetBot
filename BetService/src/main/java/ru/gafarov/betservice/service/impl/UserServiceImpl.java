@@ -48,10 +48,10 @@ public class UserServiceImpl implements UserService {
         Proto.User respProtoUser;
         // если известен chatId, то ищем по нему
         if (protoUser.getChatId() != 0) {
-            respProtoUser = converter.userToProto(userRepository.findByChatId(protoUser.getChatId()));
+            respProtoUser = converter.toProtoUser(userRepository.findByChatId(protoUser.getChatId()));
             // в противном случае ищем по имени и коду
         } else {
-            respProtoUser = converter.userToProto(userRepository.findByUsernameAndCode(protoUser.getUsername(), protoUser.getCode()));
+            respProtoUser = converter.toProtoUser(userRepository.findByUsernameAndCode(protoUser.getUsername(), protoUser.getCode()));
         }
         if (respProtoUser == null) {
             return Proto.ResponseMessage.newBuilder().setRequestStatus(Proto.RequestStatus.NOT_SUCCESS).build();
@@ -62,10 +62,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Proto.ResponseMessage changeChatStatus(Proto.User protoUser) {
-        if (protoUser.getDraftBet().getId() != 0) {
-            userRepository.changeChatStatus(protoUser.getChatId(), protoUser.getChatStatus().toString(), protoUser.getDraftBet().getId());
-        }
-        return Proto.ResponseMessage.newBuilder().setUser(converter.userToProto(getUser(protoUser))).build();
+
+            userRepository.changeChatStatus(protoUser.getChatId(), protoUser.getChatStatus().toString());
+        return Proto.ResponseMessage.newBuilder().setUser(converter.toProtoUser(getUser(protoUser))).build();
     }
 
     @Override

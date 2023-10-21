@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import ru.gafarov.bet.grpcInterface.BetServiceGrpc;
 import ru.gafarov.bet.grpcInterface.Proto;
 import ru.gafarov.betservice.service.BetService;
+import ru.gafarov.betservice.service.BotMessageService;
 import ru.gafarov.betservice.service.DraftBetService;
 import ru.gafarov.betservice.service.UserService;
 
@@ -18,6 +19,7 @@ public class GrpcRequestHandler extends BetServiceGrpc.BetServiceImplBase {
     private final UserService userService;
     private final BetService betService;
     private final DraftBetService draftBetService;
+    private final BotMessageService botMessageService;
 
     @Override
     public void addUser(Proto.User request, StreamObserver<Proto.ResponseMessage> responseObserver) {
@@ -93,6 +95,30 @@ public class GrpcRequestHandler extends BetServiceGrpc.BetServiceImplBase {
     @Override
     public void getBet(Proto.Bet request, StreamObserver<Proto.ResponseMessage> responseObserver) {
         responseObserver.onNext(betService.showBet(request));
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void getLastDraftBet(Proto.User request, StreamObserver<Proto.ResponseMessage> responseObserver) {
+        responseObserver.onNext(draftBetService.getLastDraftBet(request));
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void deleteDraftBet(Proto.DraftBet request, StreamObserver<Proto.ResponseMessage> responseObserver) {
+        responseObserver.onNext(draftBetService.delete(request));
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void saveBotMessage(Proto.BotMessage request, StreamObserver<Proto.ResponseMessage> responseObserver) {
+        responseObserver.onNext(botMessageService.save(request));
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void getBotMessage(Proto.BotMessage request, StreamObserver<Proto.ResponseBotMessage> responseObserver) {
+        responseObserver.onNext(botMessageService.get(request));
         responseObserver.onCompleted();
     }
 }

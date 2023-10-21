@@ -2,6 +2,7 @@ package ru.gafarov.betservice.model;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import ru.gafarov.bet.grpcInterface.Proto;
 
 import javax.persistence.*;
@@ -10,6 +11,7 @@ import javax.persistence.*;
 @Entity
 @Table(name = "users")
 @Data
+@ToString(callSuper = true)
 public class User extends BaseEntity{
 
     @Column(name = "username")
@@ -20,10 +22,6 @@ public class User extends BaseEntity{
 
     @Column(name = "chat_id")
     private long chatId;
-
-    @ManyToOne
-    @JoinColumn(name = "draft_bet_id")
-    private DraftBet draftBet; // Текущий черновик спора
 
     @Enumerated(EnumType.STRING)
     @Column(name = "chat_status")

@@ -5,10 +5,12 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.gafarov.bet.grpcInterface.Proto;
 import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
-import ru.gafarov.betservice.telegram.bot.service.DeleteService;
+import ru.gafarov.betservice.telegram.bot.service.BotMessageService;
+import ru.gafarov.betservice.telegram.bot.service.BotService;
 import ru.gafarov.betservice.telegram.bot.service.DraftBetService;
 import ru.gafarov.betservice.telegram.bot.service.UserService;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -17,22 +19,32 @@ public class CreateAction implements Action {
 
     private final DraftBetService draftBetService;
     private final UserService userService;
-    private final DeleteService deleteService;
+    private final BotService botService;
+    private final BotMessageService botMessageService;
 
     @Override
     public List<BetSendMessage> handle(Update update) {
         long chatId = update.getMessage().getChatId();
         Proto.User user = userService.getUser(chatId);
-        Proto.DraftBet draftBet = Proto.DraftBet.newBuilder().build();
+        Proto.DraftBet draftBet = Proto.DraftBet.newBuilder()
+                .setInitiator(user).build();
         draftBet = draftBetService.saveDraftBet(draftBet);
-        user = user.toBuilder().setDraftBet(draftBet).build();
         userService.setChatStatus(user, Proto.ChatStatus.WAIT_OPPONENT_NAME);
         BetSendMessage sendMessage = new BetSendMessage();
         sendMessage.setChatId(chatId);
         sendMessage.setText("Введите username оппонента");
 
-        deleteService.delete(update);
-        return List.of(sendMessage);
+        botService.delete(update);
+        int id = botService.send(sendMessage);
+
+        Proto.BotMessage botMessage = Proto.BotMessage.newBuilder()
+                .setType(Proto.BotMessageType.ENTER_USERNAME)
+                .setTgMessageId(id)
+                .setDraftBet(draftBet)
+                .setUser(user)
+                .build();
+        botMessageService.save(botMessage);
+        return new ArrayList<>();
     }
 
     @Override

@@ -388,4 +388,55 @@
     <changeSet id="1.0.44" author="albert.gafarov">
         <addUniqueConstraint tableName="notify_expired_status" columnNames="bet_id"/>
     </changeSet>
+    <changeSet id="1.0.46" author="albert.gafarov">
+        <dropColumn tableName="users" columnName="draft_bet_id"/>
+    </changeSet>
+    <changeSet id="1.0.45" author="albert.gafarov">
+        <comment>Очищаем таблицу черновиков</comment>
+        <sql splitStatements="true">
+            TRUNCATE TABLE draft_bets;
+        </sql>
+    </changeSet>
+    <changeSet id="1.0.47" author="albert.gafarov">
+        <addColumn tableName="draft_bets">
+            <column name="initiator_id" type="integer">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+    <changeSet id="1.0.48" author="albert.gafarov">
+    <createTable tableName="bot_message">
+        <column name="id" type="serial">
+            <constraints primaryKey="true" nullable="false"/>
+        </column>
+        <column name="tg_message_id" type="integer">
+            <constraints nullable="false"/>
+        </column>
+        <column name="user_id" type="integer">
+            <constraints nullable="false"/>
+        </column>
+        <column name="message_type" type="varchar(25)">
+        </column>
+        <column name="created" type="timestamp" defaultValueDate="current_timestamp">
+            <constraints nullable="false"/>
+        </column>
+        <column name="updated" type="timestamp" defaultValueDate="current_timestamp">
+            <constraints nullable="false"/>
+        </column>
+        <column name="status" type="varchar(25)" defaultValue="ACTIVE">
+            <constraints nullable="false"/>
+        </column>
+    </createTable>
+    </changeSet>
+    <changeSet id="1.0.49" author="albert.gafarov">
+        <addNotNullConstraint tableName="draft_bets" columnName="updated"/>
+    </changeSet>
+    <changeSet id="1.0.50" author="albert.gafarov">
+        <addColumn tableName="bot_message">
+            <column name="draft_bet_id" type="integer">
+                <constraints foreignKeyName="fk_botMessage_draft_bet" nullable="true"
+                             referencedTableName="draft_bets" referencedColumnNames="id"/>
+            </column>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

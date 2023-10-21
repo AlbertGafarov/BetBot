@@ -12,26 +12,35 @@ public interface DraftBetRepository extends JpaRepository<DraftBet, Long> {
 
     @Modifying
     @Transactional
-    @Query(value = "update draft_bets set opponent_name = ?2 where id = ?1", nativeQuery = true)
-    void setOpponentName(long id, String opponentName);
+    @Query(value = "update draft_bets set opponent_name = ?2, updated = ?3 where id = ?1", nativeQuery = true)
+    void setOpponentName(long id, String opponentName, LocalDateTime localDateTime);
 
     @Modifying
     @Transactional
-    @Query(value = "update draft_bets set opponent_code = ?2 where id = ?1", nativeQuery = true)
-    void setOpponentCode(long id, int opponentCode);
+    @Query(value = "update draft_bets set opponent_code = ?2, updated = ?3 where id = ?1", nativeQuery = true)
+    void setOpponentCode(long id, int opponentCode, LocalDateTime localDateTime);
 
     @Modifying
     @Transactional
-    @Query(value = "update draft_bets set definition = ?2 where id = ?1", nativeQuery = true)
-    void setDefinition(long id, String definition);
+    @Query(value = "update draft_bets set definition = ?2, updated = ?3 where id = ?1", nativeQuery = true)
+    void setDefinition(long id, String definition, LocalDateTime localDateTime);
 
     @Modifying
     @Transactional
-    @Query(value = "update draft_bets set wager = ?2 where id = ?1", nativeQuery = true)
-    void setWager(long id, String wager);
+    @Query(value = "update draft_bets set wager = ?2, updated = ?3 where id = ?1", nativeQuery = true)
+    void setWager(long id, String wager, LocalDateTime localDateTime);
 
     @Modifying
     @Transactional
-    @Query(value = "update draft_bets set finish_date = ?2 where id = ?1", nativeQuery = true)
-    void setFinishDate(long id, LocalDateTime finishDate);
+    @Query(value = "update draft_bets set finish_date = ?2, updated = ?3 where id = ?1", nativeQuery = true)
+    void setFinishDate(long id, LocalDateTime finishDate, LocalDateTime localDateTime);
+
+    @Modifying
+    @Transactional
+    @Query(value = "update draft_bets set status = ?2 where id = ?1", nativeQuery = true)
+    void setStatus(long id, String status, LocalDateTime localDateTime);
+
+    @Query(value = "SELECT * FROM draft_bets where initiator_id = ?1 and status = 'ACTIVE' order by updated desc limit 1", nativeQuery = true)
+    DraftBet getLastDraftBet(long userId);
+
 }

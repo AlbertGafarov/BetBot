@@ -35,4 +35,12 @@ public class UserService {
         }
         return null;
     }
+
+    public Proto.DraftBet getLastDraftBet(Proto.User user) {
+        Proto.ResponseMessage response = grpcStub.getLastDraftBet(user);
+        if (response.getRequestStatus().equals(Proto.RequestStatus.SUCCESS)) {
+            return response.getDraftBet();
+        }
+        return null;
+    }
 }

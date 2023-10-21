@@ -10,7 +10,7 @@ import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
 import ru.gafarov.betservice.telegram.bot.components.Buttons;
 import ru.gafarov.betservice.telegram.bot.prettyPrint.PrettyPrinter;
 import ru.gafarov.betservice.telegram.bot.service.BetService;
-import ru.gafarov.betservice.telegram.bot.service.DeleteService;
+import ru.gafarov.betservice.telegram.bot.service.BotService;
 import ru.gafarov.betservice.telegram.bot.service.UserService;
 
 import java.util.ArrayList;
@@ -24,7 +24,7 @@ public class NewStatusBetAction implements Action {
     private final BetService betService;
     private final PrettyPrinter prettyPrinter;
     private final UserService userService;
-    private final DeleteService deleteService;
+    private final BotService botService;
 
 
     @Override
@@ -73,7 +73,7 @@ public class NewStatusBetAction implements Action {
             sendMessageList.addAll(List.of(msgToInitiator, msgBetToInitiator));
         }
 
-        deleteService.delete(update);
+        botService.delete(update);
         return sendMessageList;
     }
 }

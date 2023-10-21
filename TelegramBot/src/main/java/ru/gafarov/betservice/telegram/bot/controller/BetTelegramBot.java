@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.commands.scope.BotCommandScopeDefault;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -13,7 +14,7 @@ import ru.gafarov.betservice.telegram.bot.actions.Action;
 import ru.gafarov.betservice.telegram.bot.components.BetCommands;
 import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
 import ru.gafarov.betservice.telegram.bot.config.ConfigMap;
-import ru.gafarov.betservice.telegram.bot.service.DeleteService;
+import ru.gafarov.betservice.telegram.bot.service.BotService;
 import ru.gafarov.betservice.telegram.bot.service.DraftBetService;
 
 import javax.annotation.PostConstruct;
@@ -32,7 +33,7 @@ public class BetTelegramBot extends TelegramLongPollingBot {
     private final ConfigMap configMap;
     private final BetCommands betCommands;
     private final DraftBetService draftBetService;
-    private final DeleteService deleteService;
+    private final BotService botService;
 
     @Override
     public void onUpdateReceived(Update update) {
@@ -45,8 +46,7 @@ public class BetTelegramBot extends TelegramLongPollingBot {
                 List<BetSendMessage> sendMessages = actions.get(msgCommand).handle(update);
                 send(sendMessages);
             } else {
-                List<BetSendMessage> sendMessages = draftBetService.createDraft(update);
-                send(sendMessages);
+                draftBetService.createDraft(update);
             }
 
         } else if (update.hasCallbackQuery()) {
@@ -69,7 +69,7 @@ public class BetTelegramBot extends TelegramLongPollingBot {
                     DeleteMessage deleteMessage = new DeleteMessage();
                     deleteMessage.setMessageId(id);
                     deleteMessage.setChatId(sendMessage.getChatId());
-                    deleteService.delete(deleteMessage, sendMessage.getDelTime());
+                    botService.delete(deleteMessage, sendMessage.getDelTime());
                 }
                 Thread.sleep(WAIT_NEXT_MESSAGE_MS);
             }
@@ -103,4 +103,5 @@ public class BetTelegramBot extends TelegramLongPollingBot {
     public String getBotToken() {
         return configMap.getBot().getToken();
     }
+
 }

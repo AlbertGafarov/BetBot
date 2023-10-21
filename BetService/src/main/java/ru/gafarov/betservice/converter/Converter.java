@@ -4,6 +4,7 @@ import com.google.protobuf.Timestamp;
 import org.springframework.stereotype.Component;
 import ru.gafarov.bet.grpcInterface.Proto;
 import ru.gafarov.betservice.model.Bet;
+import ru.gafarov.betservice.model.BotMessage;
 import ru.gafarov.betservice.model.DraftBet;
 import ru.gafarov.betservice.model.User;
 
@@ -39,8 +40,8 @@ public class Converter {
     public Proto.Bet toProtoBet(Bet bet) {
         Proto.Bet.Builder builder = Proto.Bet.newBuilder()
                 .setId(bet.getId())
-                .setOpponent(userToProto(bet.getOpponent()))
-                .setInitiator(userToProto(bet.getInitiator()))
+                .setOpponent(toProtoUser(bet.getOpponent()))
+                .setInitiator(toProtoUser(bet.getInitiator()))
                 .setWager(bet.getWager())
                 .setDefinition(bet.getDefinition())
                 .setFinishDate(toTimestamp(bet.getFinishDate()))
@@ -51,7 +52,7 @@ public class Converter {
         return builder.build();
     }
 
-    public Proto.User userToProto(User user) {
+    public Proto.User toProtoUser(User user) {
         if (user == null) return null;
         Proto.User.Builder builder = Proto.User.newBuilder()
                 .setId(user.getId())
@@ -59,9 +60,6 @@ public class Converter {
                 .setCode(user.getCode())
                 .setChatId(user.getChatId())
                 .setChatStatus(user.getChatStatus());
-        if (user.getDraftBet() != null) {
-            builder.setDraftBet(toProtoDraftBet(user.getDraftBet()));
-        }
         return builder.build();
     }
 
@@ -78,5 +76,45 @@ public class Converter {
         return Instant.ofEpochSecond(timestamp.getSeconds(), timestamp.getNanos())
                 .atZone(ZoneId.systemDefault())
                 .toLocalDateTime();
+    }
+
+    public User toUser(Proto.User protoUser) {
+        User user = new User();
+        user.setId(protoUser.getId());
+        user.setCode(protoUser.getCode());
+        user.setUsername(protoUser.getUsername());
+        user.setChatId(protoUser.getChatId());
+        return user;
+    }
+
+    public BotMessage toBotMessage(Proto.BotMessage protoBotMessage) {
+        BotMessage botMessage = new BotMessage();
+        botMessage.setDraftBet(toDraftBet(protoBotMessage.getDraftBet()));
+        botMessage.setTgMessageId(protoBotMessage.getTgMessageId());
+        botMessage.setUser(toUser(protoBotMessage.getUser()));
+        botMessage.setMessageType(protoBotMessage.getType());
+
+        return botMessage;
+    }
+    public DraftBet toDraftBet(Proto.DraftBet protoDraftBet) {
+        DraftBet draftBet = new DraftBet();
+        draftBet.setId(protoDraftBet.getId());
+        draftBet.setInitiator(toUser(protoDraftBet.getInitiator()));
+        draftBet.setOpponentCode(protoDraftBet.getOpponentCode());
+        draftBet.setDefinition(protoDraftBet.getDefinition());
+        draftBet.setWager(protoDraftBet.getWager());
+        draftBet.setFinishDate(toLocalDateTime(protoDraftBet.getFinishDate()));
+
+        return draftBet;
+    }
+
+    public Proto.BotMessage toProtoBotMessage(BotMessage botMessage) {
+        return Proto.BotMessage.newBuilder()
+                .setId(botMessage.getId())
+                .setTgMessageId(botMessage.getTgMessageId())
+                .setDraftBet(toProtoDraftBet(botMessage.getDraftBet()))
+                .setType(botMessage.getMessageType())
+                .setUser(toProtoUser(botMessage.getUser()))
+                .build();
     }
 }
