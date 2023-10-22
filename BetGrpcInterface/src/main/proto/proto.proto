@@ -52,7 +52,7 @@ message BotMessage {
 message ResponseMessage {
   string messageForInitiator = 1;
   string messageForOpponent = 2;
-  RequestStatus requestStatus = 3;
+  Status status = 3;
   User user = 4;
   Bet bet = 5;
   DraftBet draftBet = 6;
@@ -60,15 +60,21 @@ message ResponseMessage {
 }
 
 message ResponseBotMessage {
-  RequestStatus requestStatus = 1;
+  Status status = 1;
   BotMessage botMessage = 2;
+  repeated BotMessage botMessages = 3;
+}
+
+message ResponseDraftBet {
+  Status status = 1;
+  DraftBet draftBet = 2;
 }
 
 message Bets {
   repeated Bet bets = 1;
 }
 
-enum RequestStatus {
+enum Status {
   SUCCESS = 0;
   NOT_SUCCESS = 1;
   ERROR = 2;
@@ -102,9 +108,9 @@ enum BotMessageType {
   ENTER_WAGER = 2;
   ENTER_DEFINITION = 3;
   ENTER_FINISH_DATE = 4;
-  CODE_WRONG_ENTER_USERNAME = 5;
+  WRONG_FINISH_DATE = 5;
+  CODE_WRONG_ENTER_USERNAME = 6;
 }
-
 
 service BetService {
   rpc addUser(User) returns (ResponseMessage);
@@ -125,5 +131,6 @@ service BetService {
   rpc notifyOfExpiredBets(Bets) returns (ResponseMessage);
   rpc saveBotMessage(BotMessage) returns (ResponseMessage);
   rpc getBotMessage(BotMessage) returns (ResponseBotMessage);
-
+  rpc getBotMessages(DraftBet) returns (ResponseBotMessage);
+  rpc getDraftBet(DraftBet) returns (ResponseDraftBet);
 }

@@ -43,6 +43,6 @@ public class BetNotifier {
         ).collect(Collectors.toList());
         sendMessageList.addAll(sendMessageToOpponentList);
         bot.send(sendMessageList);
-        return Proto.ResponseMessage.newBuilder().setRequestStatus(Proto.RequestStatus.SUCCESS).build();
+        return Proto.ResponseMessage.newBuilder().setStatus(Proto.Status.SUCCESS).build();
     }
 }

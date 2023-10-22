@@ -9,11 +9,9 @@ import ru.gafarov.bet.grpcInterface.Proto;
 import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
 import ru.gafarov.betservice.telegram.bot.components.Buttons;
 import ru.gafarov.betservice.telegram.bot.prettyPrint.PrettyPrinter;
-import ru.gafarov.betservice.telegram.bot.service.BetService;
-import ru.gafarov.betservice.telegram.bot.service.BotService;
-import ru.gafarov.betservice.telegram.bot.service.DraftBetService;
-import ru.gafarov.betservice.telegram.bot.service.UserService;
+import ru.gafarov.betservice.telegram.bot.service.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -26,6 +24,7 @@ public class ApproveDraftBetAction implements Action {
     private final DraftBetService draftBetService;
     private final PrettyPrinter prettyPrinter;
     private final BotService botService;
+    private final BotMessageService botMessageService;
 
     @Override
     public List<BetSendMessage> handle(Update update) {
@@ -38,13 +37,17 @@ public class ApproveDraftBetAction implements Action {
         Proto.User user = userService.getUser(chatId);
         if (Proto.ChatStatus.WAIT_APPROVE.equals(user.getChatStatus())) {
             String[] command = update.getCallbackQuery().getData().split("/");
-            Proto.DraftBet draftBet = userService.getLastDraftBet(user);
+            Proto.DraftBet draftBet = draftBetService.getByIdAndUser(Long.valueOf(command[3]), user);
             log.info("Подготовленный спор: {}", draftBet);
+
+            botService.delete(update);
+            userService.setChatStatus(user, Proto.ChatStatus.START);
+            draftBetService.delete(draftBet);
+            botMessageService.delete(draftBet, user);
+
             switch (command[2]) {
                 case "ok":
                     Proto.Bet bet = betService.addBet(draftBet, user);
-                    userService.setChatStatus(user, Proto.ChatStatus.START);
-                    draftBetService.delete(draftBet);
 
                     // Предложение оппоненту нового спора
                     BetSendMessage offerToOpponent = new BetSendMessage();
@@ -60,21 +63,21 @@ public class ApproveDraftBetAction implements Action {
                     msgDeliveryToInitiator.setParseMode(ParseMode.HTML);
                     msgDeliveryToInitiator.setDelTime(10_000);
 
-                    botService.delete(update);
-                    return List.of(offerToOpponent, msgDeliveryToInitiator);
+                    botService.send(offerToOpponent);
+                    botService.send(msgDeliveryToInitiator);
+                    break;
+
                 case "cancel":
-                    draftBetService.delete(draftBet);
-                    userService.setChatStatus(user, Proto.ChatStatus.START);
                     BetSendMessage msgToInitiator = new BetSendMessage();
                     msgToInitiator.setChatId(chatId);
                     msgToInitiator.setText("Спор отклонен. Черновик удален");
                     msgToInitiator.setParseMode(ParseMode.HTML);
                     msgToInitiator.setDelTime(10_000);
 
-                    botService.delete(update);
-                    return List.of(msgToInitiator);
+                    botService.send(msgToInitiator);
+                    break;
             }
         }
-        return null;
+        return new ArrayList<>();
     }
 }

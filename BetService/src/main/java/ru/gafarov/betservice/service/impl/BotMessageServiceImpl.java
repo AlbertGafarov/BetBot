@@ -2,17 +2,20 @@ package ru.gafarov.betservice.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Service;
 import ru.gafarov.bet.grpcInterface.Proto;
 import ru.gafarov.betservice.converter.Converter;
+import ru.gafarov.betservice.model.BaseEntity;
 import ru.gafarov.betservice.model.BotMessage;
 import ru.gafarov.betservice.model.Status;
 import ru.gafarov.betservice.repository.BotMessageRepository;
 import ru.gafarov.betservice.service.BotMessageService;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -29,24 +32,38 @@ public class BotMessageServiceImpl implements BotMessageService {
         botMessage.setStatus(Status.ACTIVE);
         botMessage.setCreated(LocalDateTime.now());
         botMessage.setUpdated(LocalDateTime.now());
-        botMessageRepository.save(botMessage);
-
-        return Proto.ResponseMessage.newBuilder().setRequestStatus(Proto.RequestStatus.SUCCESS).build();
+        botMessage = botMessageRepository.save(botMessage);
+        if (botMessage.getId() > 0) {
+            return Proto.ResponseMessage.newBuilder().setStatus(Proto.Status.SUCCESS).build();
+        }
+        else {
+            return Proto.ResponseMessage.newBuilder().setStatus(Proto.Status.ERROR).build();
+        }
     }
 
     @Override
     public Proto.ResponseBotMessage get(Proto.BotMessage protoBotMessage) {
 
-        BotMessage botMessage = new BotMessage();
-        botMessage.setDraftBet(converter.toDraftBet(protoBotMessage.getDraftBet()));
-        botMessage.setUser(converter.toUser(protoBotMessage.getUser()));
-        botMessage.setMessageType(protoBotMessage.getType());
-        System.out.println(botMessage);
-        Optional<BotMessage> optionalBotMessage = botMessageRepository.findOne(Example.of(botMessage));
-        System.out.println(optionalBotMessage.isPresent());
-        return optionalBotMessage.map(message -> Proto.ResponseBotMessage.newBuilder()
-                .setBotMessage(converter.toProtoBotMessage(message))
-                .setRequestStatus(Proto.RequestStatus.SUCCESS).build()).orElseGet(() -> Proto.ResponseBotMessage.newBuilder()
-                .setRequestStatus(Proto.RequestStatus.ERROR).build());
+        Optional<BotMessage> optionalBotMessage = botMessageRepository.getMessage(protoBotMessage.getUser().getId()
+                , protoBotMessage.getDraftBet().getId(), protoBotMessage.getType().toString()).stream()
+                .max(Comparator.comparing(BaseEntity::getUpdated));
+
+        return optionalBotMessage.map(botMessage -> Proto.ResponseBotMessage.newBuilder()
+                .setBotMessage(converter.toProtoBotMessage(botMessage))
+                .setStatus(Proto.Status.SUCCESS).build()).orElseGet(() -> Proto.ResponseBotMessage.newBuilder()
+                .setStatus(Proto.Status.ERROR).build());
+    }
+
+    @Override
+    public Proto.ResponseBotMessage getAll(Proto.DraftBet draftBet) {
+        List<Proto.BotMessage> botMessageList = botMessageRepository
+                .getByDraftBet(draftBet.getInitiator().getId(), draftBet.getId())
+                .stream().map(converter::toProtoBotMessage).collect(Collectors.toList());
+        if (botMessageList.isEmpty()) {
+            log.info(draftBet.toString());
+            log.error("Не найдено ни одной записи botMessage по draftBet с id: {}", draftBet.getId());
+            return Proto.ResponseBotMessage.newBuilder().addAllBotMessages(botMessageList).setStatus(Proto.Status.ERROR).build();
+        }
+        return Proto.ResponseBotMessage.newBuilder().addAllBotMessages(botMessageList).setStatus(Proto.Status.SUCCESS).build();
     }
 }

@@ -54,9 +54,9 @@ public class UserServiceImpl implements UserService {
             respProtoUser = converter.toProtoUser(userRepository.findByUsernameAndCode(protoUser.getUsername(), protoUser.getCode()));
         }
         if (respProtoUser == null) {
-            return Proto.ResponseMessage.newBuilder().setRequestStatus(Proto.RequestStatus.NOT_SUCCESS).build();
+            return Proto.ResponseMessage.newBuilder().setStatus(Proto.Status.NOT_SUCCESS).build();
         } else {
-            return Proto.ResponseMessage.newBuilder().setUser(respProtoUser).setRequestStatus(Proto.RequestStatus.SUCCESS).build();
+            return Proto.ResponseMessage.newBuilder().setUser(respProtoUser).setStatus(Proto.Status.SUCCESS).build();
         }
     }
 

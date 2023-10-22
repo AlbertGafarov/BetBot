@@ -48,7 +48,7 @@ public class ExpiredBetsNotificator {
         if (!betList.isEmpty()) {
             Proto.Bets protoBets = Proto.Bets.newBuilder().addAllBets(protoBetList).build();
             Proto.ResponseMessage response = grpcStub.notifyOfExpiredBets(protoBets);
-            if (Proto.RequestStatus.SUCCESS.equals(response.getRequestStatus())) {
+            if (Proto.Status.SUCCESS.equals(response.getStatus())) {
                 for (Bet bet : betList) {
                     NotifyExpiredStatus notify = new NotifyExpiredStatus();
                     notify.setBet(bet);

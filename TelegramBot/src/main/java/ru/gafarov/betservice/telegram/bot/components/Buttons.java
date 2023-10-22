@@ -27,11 +27,11 @@ public class Buttons {
         return markupInline;
     }
 
-    public static InlineKeyboardMarkup approveDraftBetButtons() {
+    public static InlineKeyboardMarkup approveDraftBetButtons(long id) {
         InlineKeyboardButton OK_BUTTON = new InlineKeyboardButton("Ok");
         InlineKeyboardButton CANCEL_BUTTON = new InlineKeyboardButton("Cancel");
-        OK_BUTTON.setCallbackData("/draftBet/ok");
-        CANCEL_BUTTON.setCallbackData("/draftBet/cancel");
+        OK_BUTTON.setCallbackData("/draftBet/ok/" + id);
+        CANCEL_BUTTON.setCallbackData("/draftBet/cancel/" + id);
 
         List<InlineKeyboardButton> rowInline = List.of(OK_BUTTON, CANCEL_BUTTON);
         List<InlineKeyboardButton> secondRowInline = new ArrayList<>() {{

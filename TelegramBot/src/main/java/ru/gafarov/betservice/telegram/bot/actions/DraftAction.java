@@ -36,7 +36,7 @@ public class DraftAction implements Action {
             String stringBuilder = "Новый спор:\n" + prettyPrinter.printDraftBet(draftBet) +
                     "\nПодтверждаете?";
             sendMessage.setText(stringBuilder);
-            sendMessage.setReplyMarkup(Buttons.approveDraftBetButtons());
+            sendMessage.setReplyMarkup(Buttons.approveDraftBetButtons(draftBet.getId()));
 
         } else {
             sendMessage.setText("У вас нет черновиков спора");

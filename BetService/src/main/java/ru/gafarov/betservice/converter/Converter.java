@@ -18,6 +18,9 @@ public class Converter {
     public Proto.DraftBet toProtoDraftBet(DraftBet draftBet) {
         Proto.DraftBet.Builder builder = Proto.DraftBet.newBuilder()
                 .setId(draftBet.getId());
+        if (draftBet.getInitiator() != null) {
+            builder.setInitiator(toProtoUser(draftBet.getInitiator()));
+        }
         if (draftBet.getOpponentName() != null) {
             builder.setOpponentName(draftBet.getOpponentName());
         }
@@ -103,7 +106,9 @@ public class Converter {
         draftBet.setOpponentCode(protoDraftBet.getOpponentCode());
         draftBet.setDefinition(protoDraftBet.getDefinition());
         draftBet.setWager(protoDraftBet.getWager());
-        draftBet.setFinishDate(toLocalDateTime(protoDraftBet.getFinishDate()));
+        if (protoDraftBet.getFinishDate().getSeconds() != 0) {
+            draftBet.setFinishDate(toLocalDateTime(protoDraftBet.getFinishDate()));
+        }
 
         return draftBet;
     }

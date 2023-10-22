@@ -2,6 +2,7 @@ package ru.gafarov.betservice.telegram.bot.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -9,10 +10,7 @@ import ru.gafarov.bet.grpcInterface.BetServiceGrpc;
 import ru.gafarov.bet.grpcInterface.Proto;
 import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
 import ru.gafarov.betservice.telegram.bot.components.Buttons;
-import ru.gafarov.betservice.telegram.bot.controller.BetTelegramBot;
 import ru.gafarov.betservice.telegram.bot.prettyPrint.PrettyPrinter;
-
-import java.util.List;
 
 @Slf4j
 @Service
@@ -30,6 +28,10 @@ public class DraftBetService {
         Proto.User user = userService.getUser(chatId);
         BetSendMessage sendMessage = new BetSendMessage();
         sendMessage.setChatId(chatId);
+        EditMessageText editMessageText = new EditMessageText();
+        editMessageText.setChatId(chatId);
+        val botMessageBuilder = Proto.BotMessage.newBuilder()
+                .setUser(user);
 
         if (Proto.ChatStatus.WAIT_OPPONENT_NAME.equals(user.getChatStatus())) {
             String opponentName = update.getMessage().getText();
@@ -37,13 +39,9 @@ public class DraftBetService {
             setOpponentName(draftBet);
 
             // Заполняем поле ENTER_USERNAME
-            EditMessageText editMessageText = new EditMessageText();
-            editMessageText.setChatId(chatId);
-            editMessageText.setMessageId(botMessageService.getId(Proto.BotMessage.newBuilder()
+            editMessageText.setMessageId(botMessageService.getId(botMessageBuilder
                     .setType(Proto.BotMessageType.ENTER_USERNAME)
-                    .setDraftBet(draftBet)
-                    .setUser(user)
-                    .build()));
+                    .setDraftBet(draftBet).build()));
             editMessageText.setText("Введите username оппонента: " + opponentName);
             botService.edit(editMessageText);
 
@@ -52,9 +50,8 @@ public class DraftBetService {
             sendMessage.setText("Введите code оппонента");
             int id = botService.send(sendMessage);
 
-            botMessageService.save(Proto.BotMessage.newBuilder()
-                    .setType(Proto.BotMessageType.ENTER_CODE).setDraftBet(draftBet)
-                    .setTgMessageId(id).setUser(user).build());
+            botMessageService.save(botMessageBuilder.setType(Proto.BotMessageType.ENTER_CODE)
+                    .setDraftBet(draftBet).setTgMessageId(id).build());
 
         } else if (Proto.ChatStatus.WAIT_OPPONENT_CODE.equals(user.getChatStatus())) {
             Proto.User opponent = null;
@@ -69,20 +66,25 @@ public class DraftBetService {
                 userService.setChatStatus(user, Proto.ChatStatus.WAIT_OPPONENT_NAME);
                 sendMessage.setText(" Код не соответствует username. Введите username оппонента");
                 int id = botService.send(sendMessage);
-                botMessageService.save(Proto.BotMessage.newBuilder()
-                        .setType(Proto.BotMessageType.CODE_WRONG_ENTER_USERNAME).setDraftBet(draftBet)
-                        .setTgMessageId(id).setUser(user).build());
+                botMessageService.save(botMessageBuilder.setType(Proto.BotMessageType.CODE_WRONG_ENTER_USERNAME)
+                        .setDraftBet(draftBet).setTgMessageId(id).build());
 
             } else {
                 draftBet = draftBet.toBuilder().setOpponentCode(opponent.getCode()).build();
                 setOpponentCode(draftBet);
                 userService.setChatStatus(user, Proto.ChatStatus.WAIT_DEFINITION);
 
+                // Заполняем поле ENTER_CODE
+                editMessageText.setMessageId(botMessageService.getId(botMessageBuilder
+                        .setType(Proto.BotMessageType.ENTER_CODE)
+                        .setDraftBet(draftBet).build()));
+                editMessageText.setText("Введите code оппонента: " + opponent.getCode());
+                botService.edit(editMessageText);
+
                 sendMessage.setText("Введите суть спора");
                 int id = botService.send(sendMessage);
-                botMessageService.save(Proto.BotMessage.newBuilder()
-                        .setType(Proto.BotMessageType.ENTER_DEFINITION).setDraftBet(draftBet)
-                        .setTgMessageId(id).setUser(user).build());
+                botMessageService.save(botMessageBuilder.setType(Proto.BotMessageType.ENTER_DEFINITION)
+                        .setDraftBet(draftBet).setTgMessageId(id).build());
             }
         } else if (Proto.ChatStatus.WAIT_DEFINITION.equals(user.getChatStatus())) {
             String definition = update.getMessage().getText();
@@ -91,11 +93,17 @@ public class DraftBetService {
             setDefinition(draftBet);
             userService.setChatStatus(user, Proto.ChatStatus.WAIT_WAGER);
 
+            // Заполняем поле ENTER_DEFINITION
+            editMessageText.setMessageId(botMessageService.getId(botMessageBuilder
+                    .setType(Proto.BotMessageType.ENTER_DEFINITION)
+                    .setDraftBet(draftBet).build()));
+            editMessageText.setText("Введите суть спора: " + definition);
+            botService.edit(editMessageText);
+
             sendMessage.setText("Введите вознаграждение");
             int id = botService.send(sendMessage);
-            botMessageService.save(Proto.BotMessage.newBuilder()
-                    .setType(Proto.BotMessageType.ENTER_WAGER).setDraftBet(draftBet)
-                    .setTgMessageId(id).setUser(user).build());
+            botMessageService.save(botMessageBuilder.setType(Proto.BotMessageType.ENTER_WAGER)
+                    .setDraftBet(draftBet).setTgMessageId(id).build());
 
         } else if (Proto.ChatStatus.WAIT_WAGER.equals(user.getChatStatus())) {
             String wager = update.getMessage().getText();
@@ -104,26 +112,48 @@ public class DraftBetService {
             setWager(draftBet);
             userService.setChatStatus(user, Proto.ChatStatus.WAIT_FINISH_DATE);
 
+            // Заполняем поле WAIT_WAGER
+            editMessageText.setMessageId(botMessageService.getId(botMessageBuilder
+                    .setType(Proto.BotMessageType.ENTER_WAGER)
+                    .setDraftBet(draftBet).build()));
+            editMessageText.setText("Введите вознаграждение: " + wager);
+            botService.edit(editMessageText);
+
             sendMessage.setText("Введите количество дней до завершения спора");
             int id = botService.send(sendMessage);
-            botMessageService.save(Proto.BotMessage.newBuilder()
-                    .setType(Proto.BotMessageType.ENTER_FINISH_DATE).setDraftBet(draftBet)
-                    .setTgMessageId(id).setUser(user).build());
+            botMessageService.save(botMessageBuilder.setType(Proto.BotMessageType.ENTER_FINISH_DATE)
+                    .setDraftBet(draftBet).setTgMessageId(id).build());
 
         } else if (Proto.ChatStatus.WAIT_FINISH_DATE.equals(user.getChatStatus())) {
+            Proto.DraftBet draftBet = userService.getLastDraftBet(user);
             try {
-                int setDaysToFinish = Integer.parseInt(update.getMessage().getText());
-                Proto.DraftBet draftBet = userService.getLastDraftBet(user)
-                        .toBuilder().setDaysToFinish(setDaysToFinish).build();
-                draftBet = setDaysToFinish(draftBet);
+                String text = update.getMessage().getText();
+                if (text.length() > 5) {
+                    throw new NumberFormatException();
+                }
+                int setDaysToFinish = Integer.parseInt(text);
+                if(setDaysToFinish > 25000) {
+                    throw new NumberFormatException();
+                }
+                draftBet = setDaysToFinish(draftBet.toBuilder().setDaysToFinish(setDaysToFinish).build());
                 userService.setChatStatus(user, Proto.ChatStatus.WAIT_APPROVE);
 
+                // Заполняем поле WAIT_FINISH_DATE
+                editMessageText.setMessageId(botMessageService.getId(botMessageBuilder
+                        .setType(Proto.BotMessageType.ENTER_FINISH_DATE)
+                        .setDraftBet(draftBet).build()));
+                editMessageText.setText("Введите количество дней до завершения спора: " + setDaysToFinish);
+
+                botService.edit(editMessageText);
+
                 sendMessage.setText("Новый спор:\n" + prettyPrinter.printDraftBet(draftBet) + "\nПодтверждаете?");
-                sendMessage.setReplyMarkup(Buttons.approveDraftBetButtons());
-                int id = botService.send(sendMessage);
+                sendMessage.setReplyMarkup(Buttons.approveDraftBetButtons(draftBet.getId()));
+                botService.send(sendMessage);
             } catch (NumberFormatException e) {
-                sendMessage.setText("Введите количество дней до завершения спора. Это должно быть натуральное число");
+                sendMessage.setText("Введите количество дней до завершения спора. Это должно быть натуральное число не более 25000");
                 int id = botService.send(sendMessage);
+                botMessageService.save(botMessageBuilder.setType(Proto.BotMessageType.WRONG_FINISH_DATE)
+                        .setDraftBet(draftBet).setTgMessageId(id).build());
             }
         }
 
@@ -163,5 +193,14 @@ public class DraftBetService {
 
     public void delete(Proto.DraftBet draftBet) {
         grpcStub.deleteDraftBet(draftBet);
+    }
+
+    public Proto.DraftBet getByIdAndUser(Long id, Proto.User user) {
+        Proto.DraftBet protoDraft = Proto.DraftBet.newBuilder().setId(id).setInitiator(user).build();
+        Proto.ResponseDraftBet response = grpcStub.getDraftBet(protoDraft);
+        if (response.getStatus().equals(Proto.Status.SUCCESS)) {
+            return response.getDraftBet();
+        }
+        return null;
     }
 }

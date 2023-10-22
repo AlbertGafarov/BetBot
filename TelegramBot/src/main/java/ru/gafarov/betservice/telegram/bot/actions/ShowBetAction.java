@@ -39,7 +39,7 @@ public class ShowBetAction implements Action {
 
         List<BetSendMessage> sendMessages = new ArrayList<>();
         Proto.ResponseMessage response = betService.showBet(user, betId);
-        if (Proto.RequestStatus.SUCCESS.equals(response.getRequestStatus()) && response.hasBet()) {
+        if (Proto.Status.SUCCESS.equals(response.getStatus()) && response.hasBet()) {
             Proto.Bet bet = response.getBet();
 
             BetSendMessage msgToUser = new BetSendMessage();
@@ -75,7 +75,7 @@ public class ShowBetAction implements Action {
 
         List<BetSendMessage> sendMessages = new ArrayList<>();
         Proto.ResponseMessage response = betService.showBet(user, betId);
-        if (Proto.RequestStatus.SUCCESS.equals(response.getRequestStatus()) && response.hasBet()) {
+        if (Proto.Status.SUCCESS.equals(response.getStatus()) && response.hasBet()) {
             Proto.Bet bet = response.getBet();
             BetSendMessage msgToUser = new BetSendMessage();
             msgToUser.setChatId(chatId);

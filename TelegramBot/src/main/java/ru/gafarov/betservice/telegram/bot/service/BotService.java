@@ -32,7 +32,14 @@ public class BotService {
 
     public int send(BetSendMessage sendMessage) {
         try {
-            return bot.execute(sendMessage).getMessageId();
+            int id = bot.execute(sendMessage).getMessageId();
+            if(sendMessage.getDelTime() > 0) {
+                DeleteMessage deleteMessage = new DeleteMessage();
+                deleteMessage.setMessageId(id);
+                deleteMessage.setChatId(sendMessage.getChatId());
+                delete(deleteMessage, sendMessage.getDelTime());
+            }
+            return id;
         } catch (TelegramApiException e) {
             e.printStackTrace();
         }

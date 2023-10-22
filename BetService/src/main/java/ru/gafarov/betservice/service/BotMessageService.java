@@ -6,4 +6,6 @@ public interface BotMessageService {
     Proto.ResponseMessage save(Proto.BotMessage request);
 
     Proto.ResponseBotMessage get(Proto.BotMessage request);
+
+    Proto.ResponseBotMessage getAll(Proto.DraftBet request);
 }

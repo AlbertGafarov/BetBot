@@ -63,7 +63,7 @@ public class BetServiceImpl implements BetService {
             setNextStatuses(a);
             return converter.toProtoBet(a);
         }).collect(Collectors.toList());
-        return Proto.ResponseMessage.newBuilder().setRequestStatus(Proto.RequestStatus.SUCCESS).addAllBets(protoActiveBet).build();
+        return Proto.ResponseMessage.newBuilder().setStatus(Proto.Status.SUCCESS).addAllBets(protoActiveBet).build();
     }
 
     @Override
@@ -73,7 +73,7 @@ public class BetServiceImpl implements BetService {
             setNextStatuses(bet);
             return Proto.ResponseMessage.newBuilder().setBet(converter.toProtoBet(bet)).build();
         }
-        return Proto.ResponseMessage.newBuilder().setRequestStatus(Proto.RequestStatus.ERROR).build();
+        return Proto.ResponseMessage.newBuilder().setStatus(Proto.Status.ERROR).build();
     }
 
     @Override
@@ -117,13 +117,13 @@ public class BetServiceImpl implements BetService {
                     // Добавляем списки возможных следующих статусов
                     setNextStatuses(bet);
                     setFinalStatus(bet);
-                    return Proto.ResponseMessage.newBuilder().setRequestStatus(Proto.RequestStatus.SUCCESS)
+                    return Proto.ResponseMessage.newBuilder().setStatus(Proto.Status.SUCCESS)
                             .setMessageForOpponent(statusBet.getMessageForOpponent())
                             .setMessageForInitiator(statusBet.getMessageForInitiator())
                             .setBet(converter.toProtoBet(bet)).build();
                 } else {
                     log.info("Изменение невозможно и не будет выполнено");
-                    return Proto.ResponseMessage.newBuilder().setRequestStatus(Proto.RequestStatus.NOT_SUCCESS)
+                    return Proto.ResponseMessage.newBuilder().setStatus(Proto.Status.NOT_SUCCESS)
                             .setBet(converter.toProtoBet(bet))
                             .setMessageForOpponent(Objects.requireNonNullElse(statusBet.getMessageForOpponent(), ""))
                             .setMessageForInitiator(Objects.requireNonNullElse(statusBet.getMessageForInitiator(), ""))
@@ -131,13 +131,13 @@ public class BetServiceImpl implements BetService {
                 }
             } else {
                 log.error("Изменение не найдено в БД и не будет выполнено");
-                return Proto.ResponseMessage.newBuilder().setRequestStatus(Proto.RequestStatus.ERROR)
+                return Proto.ResponseMessage.newBuilder().setStatus(Proto.Status.ERROR)
                         .setMessageForOpponent("Изменение не найдено в БД и не будет выполнено")
                         .build();
             }
         }
         log.error("Спор с id: {} не найден", protoBet.getId());
-        return Proto.ResponseMessage.newBuilder().setRequestStatus(Proto.RequestStatus.ERROR)
+        return Proto.ResponseMessage.newBuilder().setStatus(Proto.Status.ERROR)
                 .setMessageForOpponent("Спор с id: " + protoBet.getId() + " не найден")
                 .build();
     }

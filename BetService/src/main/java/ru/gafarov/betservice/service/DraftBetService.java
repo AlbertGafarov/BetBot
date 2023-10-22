@@ -19,4 +19,6 @@ public interface DraftBetService {
     Proto.ResponseMessage getLastDraftBet(Proto.User request);
 
     Proto.ResponseMessage delete(Proto.DraftBet request);
+
+    Proto.ResponseDraftBet getDraftBet(Proto.DraftBet request);
 }
