@@ -439,4 +439,70 @@
             </column>
         </addColumn>
     </changeSet>
+    <changeSet id="1.0.51" author="albert.gafarov">
+        <createIndex tableName="bot_message" indexName="index_bot_message_draft_bet_id">
+            <column name="draft_bet_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="1.0.52" author="albert.gafarov">
+        <createIndex tableName="bot_message" indexName="index_bot_message_user_id">
+            <column name="user_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="1.0.53" author="albert.gafarov">
+        <createIndex tableName="bets" indexName="index_bets_initiator_id">
+            <column name="initiator_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="1.0.54" author="albert.gafarov">
+        <createIndex tableName="bets" indexName="index_bets_opponent_id">
+            <column name="opponent_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="1.0.55" author="albert.gafarov">
+        <createIndex tableName="bets" indexName="index_bets_id" unique="true">
+            <column name="id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="1.0.56" author="albert.gafarov">
+        <createIndex tableName="bets" indexName="index_bets_finish_date">
+            <column name="finish_date"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="1.0.57" author="albert.gafarov">
+        <createIndex tableName="notify_expired_status" indexName="index_notify_expired_status_bet_id" unique="true">
+            <column name="bet_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="1.0.58" author="albert.gafarov">
+        <createIndex tableName="users" indexName="index_users_id" unique="true">
+            <column name="id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="1.0.59" author="albert.gafarov">
+        <createIndex tableName="users" indexName="index_users_chat_id" unique="true">
+            <column name="chat_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="1.0.60" author="albert.gafarov">
+        <comment>Составной индекс по выражению</comment>
+        <sql splitStatements="true">
+            CREATE INDEX index_users_username ON users (upper(username), code);
+        </sql>
+    </changeSet>
+    <changeSet id="1.0.61" author="albert.gafarov">
+        <createIndex tableName="draft_bets" indexName="index_draft_bets_id" unique="true">
+            <column name="id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="1.0.62" author="albert.gafarov">
+        <createIndex tableName="draft_bets" indexName="index_draft_bets_initiator_id">
+            <column name="initiator_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="1.0.63" author="albert.gafarov">
+        <createIndex tableName="draft_bets" indexName="index_draft_bets_updated" unique="true">
+            <column name="updated"/>
+        </createIndex>
+    </changeSet>
 </databaseChangeLog>
