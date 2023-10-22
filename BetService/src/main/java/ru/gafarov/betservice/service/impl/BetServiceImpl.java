@@ -37,8 +37,10 @@ public class BetServiceImpl implements BetService {
     @Override
     public Proto.ResponseMessage save(Proto.Bet protoBet) {
 
+        LocalDateTime localDateTime = LocalDateTime.now();
         Bet bet = new Bet();
-        bet.setCreated(LocalDateTime.now());
+        bet.setCreated(localDateTime);
+        bet.setUpdated(localDateTime);
         bet.setInitiator(userService.getUser(protoBet.getInitiator()));
         bet.setOpponent(userService.getUser(protoBet.getOpponent()));
         bet.setStatus(Status.ACTIVE);

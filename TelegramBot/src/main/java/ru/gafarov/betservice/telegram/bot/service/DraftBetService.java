@@ -34,7 +34,7 @@ public class DraftBetService {
                 .setUser(user);
 
         if (Proto.ChatStatus.WAIT_OPPONENT_NAME.equals(user.getChatStatus())) {
-            String opponentName = update.getMessage().getText();
+            String opponentName = update.getMessage().getText().trim();
             Proto.DraftBet draftBet = userService.getLastDraftBet(user).toBuilder().setOpponentName(opponentName).build();
             setOpponentName(draftBet);
 
@@ -57,7 +57,7 @@ public class DraftBetService {
             Proto.User opponent = null;
             Proto.DraftBet draftBet = userService.getLastDraftBet(user);
             try {
-                int opponentCode = Integer.parseInt(update.getMessage().getText());
+                int opponentCode = Integer.parseInt(update.getMessage().getText().trim());
                 opponent = userService.getUser(draftBet.getOpponentName(), opponentCode);
             } catch (NumberFormatException e) {
                 log.error("В ожидании кода введено не число");
@@ -127,7 +127,7 @@ public class DraftBetService {
         } else if (Proto.ChatStatus.WAIT_FINISH_DATE.equals(user.getChatStatus())) {
             Proto.DraftBet draftBet = userService.getLastDraftBet(user);
             try {
-                String text = update.getMessage().getText();
+                String text = update.getMessage().getText().trim();
                 if (text.length() > 5) {
                     throw new NumberFormatException();
                 }

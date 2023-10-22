@@ -9,8 +9,8 @@ import javax.transaction.Transactional;
 import java.util.List;
 
 public interface UserRepository extends JpaRepository<User, Long> {
-    List<User> findByUsername(String name);
-    User findByUsernameAndCode(String name, int code);
+    List<User> findByUsernameIgnoreCase(String name);
+    User findByUsernameIgnoreCaseAndCode(String name, int code);
     User findByChatId(long name);
 
     @Modifying

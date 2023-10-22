@@ -24,7 +24,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public Proto.ResponseMessage saveUser(Proto.User protoUser) {
         int code = 0;
-        SortedSet<Integer> codes = userRepository.findByUsername(protoUser.getUsername()).stream().map(User::getCode)
+        SortedSet<Integer> codes = userRepository.findByUsernameIgnoreCase(protoUser.getUsername()).stream().map(User::getCode)
                 .collect(Collectors.toCollection(TreeSet::new));
         while (codes.contains(code) || code == 0) {
             code = (int) Math.round(Math.random() * 10000);
@@ -51,7 +51,7 @@ public class UserServiceImpl implements UserService {
             respProtoUser = converter.toProtoUser(userRepository.findByChatId(protoUser.getChatId()));
             // в противном случае ищем по имени и коду
         } else {
-            respProtoUser = converter.toProtoUser(userRepository.findByUsernameAndCode(protoUser.getUsername(), protoUser.getCode()));
+            respProtoUser = converter.toProtoUser(userRepository.findByUsernameIgnoreCaseAndCode(protoUser.getUsername(), protoUser.getCode()));
         }
         if (respProtoUser == null) {
             return Proto.ResponseMessage.newBuilder().setStatus(Proto.Status.NOT_SUCCESS).build();
@@ -69,6 +69,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User getUser(Proto.User protoUser) {
-        return userRepository.findByUsernameAndCode(protoUser.getUsername(), protoUser.getCode());
+        return userRepository.findByUsernameIgnoreCaseAndCode(protoUser.getUsername(), protoUser.getCode());
     }
 }
