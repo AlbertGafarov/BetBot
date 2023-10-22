@@ -7,8 +7,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.gafarov.bet.grpcInterface.BetServiceGrpc;
-import ru.gafarov.betservice.model.ChangeStatusBetRules;
-import ru.gafarov.betservice.repository.ChangeStatusBetRulesRepository;
+import ru.gafarov.betservice.model.BetFinalStatusRule;
+import ru.gafarov.betservice.model.ChangeStatusBetRule;
+import ru.gafarov.betservice.repository.BetFinalStatusRuleRepository;
+import ru.gafarov.betservice.repository.ChangeStatusBetRuleRepository;
 
 import java.util.List;
 
@@ -16,11 +18,18 @@ import java.util.List;
 public class BetConfiguration {
 
     @Autowired
-    ChangeStatusBetRulesRepository changeStatusBetRulesRepository;
+    ChangeStatusBetRuleRepository changeStatusBetRuleRepository;
+    @Autowired
+    BetFinalStatusRuleRepository betFinalStatusRuleRepository;
 
     @Bean
-    public List<ChangeStatusBetRules> statusBetList(){
-        return changeStatusBetRulesRepository.findAll();
+    public List<ChangeStatusBetRule> statusBetList(){
+        return changeStatusBetRuleRepository.findAll();
+    }
+
+    @Bean
+    public List<BetFinalStatusRule> betFinalStatusRulesList(){
+        return betFinalStatusRuleRepository.findAll();
     }
 
     @Bean

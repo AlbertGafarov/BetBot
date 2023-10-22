@@ -26,7 +26,7 @@ public class BotService {
             Thread.sleep(sleep);
             bot.execute(deleteMessage);
         } catch (TelegramApiException | InterruptedException e) {
-            e.printStackTrace();
+            log.error(e.getLocalizedMessage());
         }
     }
 
@@ -41,7 +41,7 @@ public class BotService {
             }
             return id;
         } catch (TelegramApiException e) {
-            e.printStackTrace();
+            log.error(e.getLocalizedMessage());
         }
         return 0;
     }
@@ -66,7 +66,7 @@ public class BotService {
         try {
             bot.execute(editMessageText);
         } catch (TelegramApiException e) {
-            e.printStackTrace();
+            log.error(e.getLocalizedMessage());
         }
     }
 }

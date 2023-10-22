@@ -11,7 +11,7 @@ import java.util.Objects;
 @Entity
 @Table(name = "status")
 @NoArgsConstructor
-public class ChangeStatusBetRules {
+public class ChangeStatusBetRule {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -43,7 +43,7 @@ public class ChangeStatusBetRules {
     @Column(name = "valid")
     private boolean valid;
 
-    public ChangeStatusBetRules(Proto.BetStatus currentBetStatus, Proto.BetStatus newBetStatus, BetRole betRole) {
+    public ChangeStatusBetRule(Proto.BetStatus currentBetStatus, Proto.BetStatus newBetStatus, BetRole betRole) {
         this.currentBetStatus = currentBetStatus;
         this.newBetStatus = newBetStatus;
         this.betRole = betRole;
@@ -53,10 +53,10 @@ public class ChangeStatusBetRules {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ChangeStatusBetRules changeStatusBetRules = (ChangeStatusBetRules) o;
-        return currentBetStatus == changeStatusBetRules.currentBetStatus
-                && newBetStatus == changeStatusBetRules.newBetStatus
-                && betRole.equals(changeStatusBetRules.betRole);
+        ChangeStatusBetRule changeStatusBetRule = (ChangeStatusBetRule) o;
+        return currentBetStatus == changeStatusBetRule.currentBetStatus
+                && newBetStatus == changeStatusBetRule.newBetStatus
+                && betRole.equals(changeStatusBetRule.betRole);
     }
 
     @Override

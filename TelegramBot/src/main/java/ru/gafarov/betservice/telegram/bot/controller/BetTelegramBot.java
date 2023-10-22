@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
-import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.commands.scope.BotCommandScopeDefault;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -74,7 +73,7 @@ public class BetTelegramBot extends TelegramLongPollingBot {
                 Thread.sleep(WAIT_NEXT_MESSAGE_MS);
             }
         } catch (TelegramApiException | InterruptedException e) {
-            e.printStackTrace();
+            log.error(e.getLocalizedMessage());
         }
     }
 
@@ -82,7 +81,7 @@ public class BetTelegramBot extends TelegramLongPollingBot {
         try {
             execute(deleteMessage);
         } catch (TelegramApiException e) {
-            e.printStackTrace();
+            log.error(e.getLocalizedMessage());
         }
     }
     @PostConstruct
@@ -90,7 +89,7 @@ public class BetTelegramBot extends TelegramLongPollingBot {
         try {
             this.execute(new SetMyCommands(betCommands.getBotCommandList(), new BotCommandScopeDefault(), null));
         } catch (TelegramApiException e) {
-            log.error(e.getMessage());
+            log.error(e.getLocalizedMessage());
         }
     }
 

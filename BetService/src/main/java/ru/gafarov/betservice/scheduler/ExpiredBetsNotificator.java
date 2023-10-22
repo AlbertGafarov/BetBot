@@ -12,7 +12,7 @@ import ru.gafarov.betservice.model.Bet;
 import ru.gafarov.betservice.model.NotifyExpiredStatus;
 import ru.gafarov.betservice.model.Status;
 import ru.gafarov.betservice.repository.BetRepository;
-import ru.gafarov.betservice.repository.ChangeStatusBetRulesRepository;
+import ru.gafarov.betservice.repository.ChangeStatusBetRuleRepository;
 import ru.gafarov.betservice.repository.NotifyExpiredBetRepository;
 
 import java.time.LocalDateTime;
@@ -30,7 +30,7 @@ public class ExpiredBetsNotificator {
     private final BetRepository betRepository;
     private final Converter converter;
     private final BetServiceGrpc.BetServiceBlockingStub grpcStub;
-    private final ChangeStatusBetRulesRepository statusBetRepository;
+    private final ChangeStatusBetRuleRepository ruleRepository;
     private final NotifyExpiredBetRepository notifyExpiredBetRepository;
 
     @Scheduled(cron = "0 */10 * ? * *")
@@ -39,8 +39,14 @@ public class ExpiredBetsNotificator {
         List<Bet> betList = betRepository.getExpiredBets(LocalDateTime.now());
         List<Proto.Bet> protoBetList = betList.stream()
                 .map(b -> {
-                    b.setNextOpponentBetStatusList(statusBetRepository.getNextStatuses(OPPONENT.toString(), b.getOpponentBetStatus().toString()));
-                    b.setNextInitiatorBetStatusList(statusBetRepository.getNextStatuses(INITIATOR.toString(), b.getInitiatorBetStatus().toString()));
+                    b.setNextOpponentBetStatusList(ruleRepository.getNextStatuses(OPPONENT.toString()
+                            , b.getOpponentBetStatus().toString()
+                            , b.getInitiatorBetStatus().toString()
+                            , b.getFinishDate()));
+                    b.setNextInitiatorBetStatusList(ruleRepository.getNextStatuses(INITIATOR.toString()
+                            , b.getInitiatorBetStatus().toString()
+                            , b.getOpponentBetStatus().toString()
+                            , b.getFinishDate()));
                     return converter.toProtoBet(b);
                 }).collect(Collectors.toList());
 

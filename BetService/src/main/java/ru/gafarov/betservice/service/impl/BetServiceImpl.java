@@ -5,12 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.gafarov.bet.grpcInterface.Proto;
 import ru.gafarov.betservice.converter.Converter;
-import ru.gafarov.betservice.model.Bet;
-import ru.gafarov.betservice.model.BetRole;
-import ru.gafarov.betservice.model.ChangeStatusBetRules;
-import ru.gafarov.betservice.model.Status;
+import ru.gafarov.betservice.model.*;
 import ru.gafarov.betservice.repository.BetRepository;
-import ru.gafarov.betservice.repository.ChangeStatusBetRulesRepository;
+import ru.gafarov.betservice.repository.ChangeStatusBetRuleRepository;
 import ru.gafarov.betservice.service.BetService;
 import ru.gafarov.betservice.service.UserService;
 
@@ -29,9 +26,10 @@ import static ru.gafarov.betservice.model.BetRole.OPPONENT;
 public class BetServiceImpl implements BetService {
 
     private final BetRepository betRepository;
-    private final ChangeStatusBetRulesRepository statusBetRepository;
+    private final ChangeStatusBetRuleRepository statusBetRepository;
     private final UserService userService;
-    private final List<ChangeStatusBetRules> changeStatusBetRules;
+    private final List<ChangeStatusBetRule> changeStatusBetRules;
+    private final List<BetFinalStatusRule> betFinalStatusRuleList;
     private final Converter converter;
 
     @Override
@@ -51,8 +49,14 @@ public class BetServiceImpl implements BetService {
         bet.setFinishDate(converter.toLocalDateTime(protoBet.getFinishDate()));
         bet = betRepository.save(bet);
 
-        bet.setNextOpponentBetStatusList(statusBetRepository.getNextStatuses(OPPONENT.toString(), bet.getOpponentBetStatus().toString()));
-        bet.setNextInitiatorBetStatusList(statusBetRepository.getNextStatuses(INITIATOR.toString(), bet.getInitiatorBetStatus().toString()));
+        bet.setNextOpponentBetStatusList(statusBetRepository.getNextStatuses(OPPONENT.toString()
+                , bet.getOpponentBetStatus().toString()
+                , bet.getInitiatorBetStatus().toString()
+                , bet.getFinishDate()));
+        bet.setNextInitiatorBetStatusList(statusBetRepository.getNextStatuses(INITIATOR.toString()
+                , bet.getInitiatorBetStatus().toString()
+                , bet.getOpponentBetStatus().toString()
+                , bet.getFinishDate()));
         protoBet = converter.toProtoBet(bet);
         return Proto.ResponseMessage.newBuilder().setBet(protoBet).build();
 
@@ -82,36 +86,36 @@ public class BetServiceImpl implements BetService {
     public Proto.ResponseMessage changeBetStatus(Proto.ChangeStatusBetMessage protoChangeStatusBetMessage) {
 
         Proto.Bet protoBet = protoChangeStatusBetMessage.getBet();
-        log.info("Спор, статус которого надо изменить {}", protoBet);
-        log.info("Пользователь который меняет статус спора {}", protoChangeStatusBetMessage.getUser());
+        log.debug("Спор, статус которого надо изменить {}", protoBet);
+        log.debug("Пользователь который меняет статус спора {}", protoChangeStatusBetMessage.getUser());
         Proto.BetStatus newBetStatus = protoChangeStatusBetMessage.getNewStatus();
-        log.info("Новый статус спора {}", newBetStatus);
+        log.debug("Новый статус спора {}", newBetStatus);
         Optional<Bet> optionalBet = betRepository.findById(protoBet.getId());
         if (optionalBet.isPresent()) {
-            log.info("Спор c id: {} найден в БД", protoBet.getId());
+            log.debug("Спор c id: {} найден в БД", protoBet.getId());
             Bet bet = optionalBet.get();
             BetRole userBetRole = bet.getInitiator().getUsername().equals(protoChangeStatusBetMessage.getUser().getUsername()) ? INITIATOR : OPPONENT;
             Proto.BetStatus userStatus = userBetRole.equals(INITIATOR) ? bet.getInitiatorBetStatus() : bet.getOpponentBetStatus();
-            log.info("Статус меняет {}: текущий: {}, новый: {}", userBetRole, userStatus, newBetStatus);
-            ChangeStatusBetRules statusBet = new ChangeStatusBetRules(userStatus, newBetStatus, userBetRole);
-            ChangeStatusBetRules finalStatusBet = statusBet;
-            Optional<ChangeStatusBetRules> statusBetOptional = changeStatusBetRules.stream().filter(a -> a.equals(finalStatusBet)).findFirst();
+            log.debug("Статус меняет {}: текущий: {}, новый: {}", userBetRole, userStatus, newBetStatus);
+            ChangeStatusBetRule changeStatusBetWish = new ChangeStatusBetRule(userStatus, newBetStatus, userBetRole);
+            ChangeStatusBetRule rule;
+            Optional<ChangeStatusBetRule> statusBetOptional = changeStatusBetRules.stream().filter(a -> a.equals(changeStatusBetWish)).findFirst();
             if (statusBetOptional.isPresent()) {
-                log.info("Статусная модель найдена");
-                statusBet = statusBetOptional.get();
-                if (statusBet.isValid()) {
-                    log.info("Сообщение для оппонента: {}", statusBet.getMessageForOpponent());
-                    log.info("Сообщение для инициатора: {}", statusBet.getMessageForInitiator());
+                log.debug("Статусная модель найдена");
+                rule = statusBetOptional.get();
+                if (rule.isValid()) {
+                    log.debug("Сообщение для оппонента: {}", rule.getMessageForOpponent());
+                    log.debug("Сообщение для инициатора: {}", rule.getMessageForInitiator());
 
                     if (userBetRole.equals(INITIATOR)) {
                         bet.setInitiatorBetStatus(newBetStatus);
-                        if (statusBet.getNewRivalBetStatus() != null) {
-                            bet.setOpponentBetStatus(statusBet.getNewRivalBetStatus());
+                        if (rule.getNewRivalBetStatus() != null) {
+                            bet.setOpponentBetStatus(rule.getNewRivalBetStatus());
                         }
                     } else {
                         bet.setOpponentBetStatus(newBetStatus);
-                        if (statusBet.getNewRivalBetStatus() != null) {
-                            bet.setInitiatorBetStatus(statusBet.getNewRivalBetStatus());
+                        if (rule.getNewRivalBetStatus() != null) {
+                            bet.setInitiatorBetStatus(rule.getNewRivalBetStatus());
                         }
                     }
                     bet.setUpdated(LocalDateTime.now());
@@ -120,22 +124,20 @@ public class BetServiceImpl implements BetService {
                     setNextStatuses(bet);
                     setFinalStatus(bet);
                     return Proto.ResponseMessage.newBuilder().setStatus(Proto.Status.SUCCESS)
-                            .setMessageForOpponent(statusBet.getMessageForOpponent())
-                            .setMessageForInitiator(statusBet.getMessageForInitiator())
+                            .setMessageForOpponent(rule.getMessageForOpponent())
+                            .setMessageForInitiator(rule.getMessageForInitiator())
                             .setBet(converter.toProtoBet(bet)).build();
                 } else {
-                    log.info("Изменение невозможно и не будет выполнено");
+                    log.warn("Изменение невозможно и не будет выполнено");
                     return Proto.ResponseMessage.newBuilder().setStatus(Proto.Status.NOT_SUCCESS)
                             .setBet(converter.toProtoBet(bet))
-                            .setMessageForOpponent(Objects.requireNonNullElse(statusBet.getMessageForOpponent(), ""))
-                            .setMessageForInitiator(Objects.requireNonNullElse(statusBet.getMessageForInitiator(), ""))
+                            .setMessageForOpponent(Objects.requireNonNullElse(rule.getMessageForOpponent(), ""))
+                            .setMessageForInitiator(Objects.requireNonNullElse(rule.getMessageForInitiator(), ""))
                             .build();
                 }
             } else {
-                log.error("Изменение не найдено в БД и не будет выполнено");
-                return Proto.ResponseMessage.newBuilder().setStatus(Proto.Status.ERROR)
-                        .setMessageForOpponent("Изменение не найдено в БД и не будет выполнено")
-                        .build();
+                log.error("Правило не найдено. Изменение статуса не будет выполнено");
+                return Proto.ResponseMessage.newBuilder().setStatus(Proto.Status.ERROR).build();
             }
         }
         log.error("Спор с id: {} не найден", protoBet.getId());
@@ -145,16 +147,28 @@ public class BetServiceImpl implements BetService {
     }
 
     private void setNextStatuses(Bet bet) {
-        bet.setNextInitiatorBetStatusList(statusBetRepository.getNextStatuses(INITIATOR.toString(), bet.getInitiatorBetStatus().toString()));
-        bet.setNextOpponentBetStatusList(statusBetRepository.getNextStatuses(OPPONENT.toString(), bet.getOpponentBetStatus().toString()));
-        log.info("Возможные статусы для инициатора: {}", bet.getNextInitiatorBetStatusList());
-        log.info("Возможные статусы для оппонента: {}", bet.getNextOpponentBetStatusList());
-
+        bet.setNextInitiatorBetStatusList(statusBetRepository.getNextStatuses(INITIATOR.toString()
+                , bet.getInitiatorBetStatus().toString()
+                , bet.getOpponentBetStatus().toString()
+                , bet.getFinishDate()));
+        bet.setNextOpponentBetStatusList(statusBetRepository.getNextStatuses(OPPONENT.toString()
+                , bet.getOpponentBetStatus().toString()
+                , bet.getInitiatorBetStatus().toString()
+                , bet.getFinishDate()));
     }
 
     private void setFinalStatus(Bet bet) {
         if (bet.getNextOpponentBetStatusList().isEmpty() && bet.getNextInitiatorBetStatusList().isEmpty()) {
-            bet.setStatus(Status.NOT_ACTIVE);
+            bet.setStatus(Status.CLOSED);
+            bet.setUpdated(LocalDateTime.now());
+            betRepository.save(bet);
+        }
+        Optional<BetFinalStatusRule> optionalBetFinalStatusRule = betFinalStatusRuleList.stream().filter(a -> a.getInitiatorBetStatus().equals(bet.getInitiatorBetStatus()) && 
+        a.getOpponentBetStatus().equals(bet.getOpponentBetStatus())).findFirst();
+
+        if (optionalBetFinalStatusRule.isPresent()) {
+            BetFinalStatusRule rule = optionalBetFinalStatusRule.get();
+            bet.setStatus(rule.getBetFinalStatus());
             bet.setUpdated(LocalDateTime.now());
             betRepository.save(bet);
         }
