@@ -51,37 +51,37 @@ public class GrpcRequestHandler extends BetServiceGrpc.BetServiceImplBase {
     }
 
     @Override
-    public void addDraftBet(Proto.DraftBet request, StreamObserver<Proto.ResponseMessage> responseObserver) {
+    public void addDraftBet(Proto.DraftBet request, StreamObserver<Proto.ResponseDraftBet> responseObserver) {
         responseObserver.onNext(draftBetService.save(request));
         responseObserver.onCompleted();
     }
 
     @Override
-    public void setOpponentName(Proto.DraftBet request, StreamObserver<Proto.ResponseMessage> responseObserver) {
+    public void setOpponentName(Proto.DraftBet request, StreamObserver<Proto.ResponseDraftBet> responseObserver) {
         responseObserver.onNext(draftBetService.setOpponentName(request));
         responseObserver.onCompleted();
     }
 
     @Override
-    public void setOpponentCode(Proto.DraftBet request, StreamObserver<Proto.ResponseMessage> responseObserver) {
+    public void setOpponentCode(Proto.DraftBet request, StreamObserver<Proto.ResponseDraftBet> responseObserver) {
         responseObserver.onNext(draftBetService.setOpponentCode(request));
         responseObserver.onCompleted();
     }
 
     @Override
-    public void setDefinition(Proto.DraftBet request, StreamObserver<Proto.ResponseMessage> responseObserver) {
+    public void setDefinition(Proto.DraftBet request, StreamObserver<Proto.ResponseDraftBet> responseObserver) {
         responseObserver.onNext(draftBetService.setDefinition(request));
         responseObserver.onCompleted();
     }
 
     @Override
-    public void setWager(Proto.DraftBet request, StreamObserver<Proto.ResponseMessage> responseObserver) {
+    public void setWager(Proto.DraftBet request, StreamObserver<Proto.ResponseDraftBet> responseObserver) {
         responseObserver.onNext(draftBetService.setWager(request));
         responseObserver.onCompleted();
     }
 
     @Override
-    public void setFinishDate(Proto.DraftBet request, StreamObserver<Proto.ResponseMessage> responseObserver) {
+    public void setFinishDate(Proto.DraftBet request, StreamObserver<Proto.ResponseDraftBet> responseObserver) {
         responseObserver.onNext(draftBetService.setFinishDate(request));
         responseObserver.onCompleted();
     }
@@ -99,13 +99,13 @@ public class GrpcRequestHandler extends BetServiceGrpc.BetServiceImplBase {
     }
 
     @Override
-    public void getLastDraftBet(Proto.User request, StreamObserver<Proto.ResponseMessage> responseObserver) {
+    public void getLastDraftBet(Proto.User request, StreamObserver<Proto.ResponseDraftBet> responseObserver) {
         responseObserver.onNext(draftBetService.getLastDraftBet(request));
         responseObserver.onCompleted();
     }
 
     @Override
-    public void deleteDraftBet(Proto.DraftBet request, StreamObserver<Proto.ResponseMessage> responseObserver) {
+    public void deleteDraftBet(Proto.DraftBet request, StreamObserver<Proto.ResponseDraftBet> responseObserver) {
         responseObserver.onNext(draftBetService.delete(request));
         responseObserver.onCompleted();
     }

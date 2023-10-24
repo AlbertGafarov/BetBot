@@ -48,8 +48,7 @@ public class ShowBetsAction implements Action {
             LocalDateTime time2 = prettyPrinter.fromGoogleTimestampUTC(o2.getFinishDate());
             return time1.compareTo(time2);
         }).map(bet -> {
-            BetSendMessage msgToUser = new BetSendMessage();
-            msgToUser.setChatId(chatId);
+            BetSendMessage msgToUser = new BetSendMessage(chatId);
             if (bet.getInitiator().getUsername().equals(user.getUsername())
                     && bet.getInitiator().getCode() == user.getCode()) {
                 msgToUser.setReplyMarkup(Buttons.nextStatusesButtons(bet.getInitiatorNextStatusesList(), bet.getId()));
@@ -63,8 +62,7 @@ public class ShowBetsAction implements Action {
             return msgToUser;
         }).collect(Collectors.toList());
         if (sendMessages.isEmpty()) {
-            BetSendMessage msgToUser = new BetSendMessage();
-            msgToUser.setChatId(chatId);
+            BetSendMessage msgToUser = new BetSendMessage(chatId);
             msgToUser.setText("У Вас нет активных споров");
             sendMessages.add(msgToUser);
         }

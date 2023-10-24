@@ -29,8 +29,7 @@ public class DraftAction implements Action {
     public List<BetSendMessage> handle(Update update) {
         long chatId = update.getMessage().getChatId();
         Proto.User user = userService.getUser(chatId);
-        BetSendMessage sendMessage = new BetSendMessage();
-        sendMessage.setChatId(chatId);
+        BetSendMessage sendMessage = new BetSendMessage(chatId);
         if (Proto.ChatStatus.WAIT_APPROVE.equals(user.getChatStatus())) {
             Proto.DraftBet draftBet = userService.getLastDraftBet(user).toBuilder().build();
             String stringBuilder = "Новый спор:\n" + prettyPrinter.printDraftBet(draftBet) +

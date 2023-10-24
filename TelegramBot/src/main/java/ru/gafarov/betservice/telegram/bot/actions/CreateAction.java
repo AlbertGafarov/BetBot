@@ -30,8 +30,7 @@ public class CreateAction implements Action {
                 .setInitiator(user).build();
         draftBet = draftBetService.saveDraftBet(draftBet);
         userService.setChatStatus(user, Proto.ChatStatus.WAIT_OPPONENT_NAME);
-        BetSendMessage sendMessage = new BetSendMessage();
-        sendMessage.setChatId(chatId);
+        BetSendMessage sendMessage = new BetSendMessage(chatId);
         sendMessage.setText("Введите username оппонента");
 
         botService.delete(update);

@@ -38,6 +38,7 @@ public class BetTelegramBot extends TelegramLongPollingBot {
     public void onUpdateReceived(Update update) {
         Map<String, Action> actions = betCommands.getActions();
         if (update.hasMessage()) {
+
             String msgCommand = update.getMessage().getText();
             log.info("text: {}", msgCommand);
             if (actions.containsKey(msgCommand)) {

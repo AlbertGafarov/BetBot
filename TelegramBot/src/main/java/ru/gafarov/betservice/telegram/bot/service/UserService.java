@@ -37,7 +37,7 @@ public class UserService {
     }
 
     public Proto.DraftBet getLastDraftBet(Proto.User user) {
-        Proto.ResponseMessage response = grpcStub.getLastDraftBet(user);
+        Proto.ResponseDraftBet response = grpcStub.getLastDraftBet(user);
         if (response.getStatus().equals(Proto.Status.SUCCESS)) {
             return response.getDraftBet();
         }

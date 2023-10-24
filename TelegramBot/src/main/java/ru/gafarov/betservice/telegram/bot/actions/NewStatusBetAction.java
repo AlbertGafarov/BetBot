@@ -44,13 +44,11 @@ public class NewStatusBetAction implements Action {
         List<BetSendMessage> sendMessageList = new ArrayList<>();
         // Оповещение оппонента если оно есть
         if (!response.getMessageForOpponent().isEmpty()) {
-            BetSendMessage msgToOpponent = new BetSendMessage();
-            msgToOpponent.setChatId(bet.getOpponent().getChatId());
+            BetSendMessage msgToOpponent = new BetSendMessage(bet.getOpponent().getChatId());
             msgToOpponent.setText(response.getMessageForOpponent());
             msgToOpponent.setParseMode(ParseMode.HTML);
 
-            BetSendMessage msgBetToOpponent = new BetSendMessage();
-            msgBetToOpponent.setChatId(bet.getOpponent().getChatId());
+            BetSendMessage msgBetToOpponent = new BetSendMessage(bet.getOpponent().getChatId());
             msgBetToOpponent.setText(prettyPrinter.printBet(bet));
             msgBetToOpponent.setReplyMarkup(Buttons.nextStatusesButtons(bet.getOpponentNextStatusesList(), bet.getId()));
             msgBetToOpponent.setParseMode(ParseMode.HTML);
@@ -59,13 +57,11 @@ public class NewStatusBetAction implements Action {
         }
         // Оповещение инициатора если оно есть
         if (!response.getMessageForInitiator().isEmpty()) {
-            BetSendMessage msgToInitiator = new BetSendMessage();
-            msgToInitiator.setChatId(bet.getInitiator().getChatId());
+            BetSendMessage msgToInitiator = new BetSendMessage(bet.getInitiator().getChatId());
             msgToInitiator.setText(response.getMessageForInitiator());
             msgToInitiator.setParseMode(ParseMode.HTML);
 
-            BetSendMessage msgBetToInitiator = new BetSendMessage();
-            msgBetToInitiator.setChatId(bet.getInitiator().getChatId());
+            BetSendMessage msgBetToInitiator = new BetSendMessage(bet.getInitiator().getChatId());
             msgBetToInitiator.setText(prettyPrinter.printBet(bet));
             msgBetToInitiator.setReplyMarkup(Buttons.nextStatusesButtons(bet.getInitiatorNextStatusesList(), bet.getId()));
             msgBetToInitiator.setParseMode(ParseMode.HTML);

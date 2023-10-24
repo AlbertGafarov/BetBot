@@ -42,8 +42,7 @@ public class ShowBetAction implements Action {
         if (Proto.Status.SUCCESS.equals(response.getStatus()) && response.hasBet()) {
             Proto.Bet bet = response.getBet();
 
-            BetSendMessage msgToUser = new BetSendMessage();
-            msgToUser.setChatId(chatId);
+            BetSendMessage msgToUser = new BetSendMessage(chatId);
             if (bet.getInitiator().getUsername().equals(user.getUsername())
                     && bet.getInitiator().getCode() == user.getCode()) {
                 msgToUser.setReplyMarkup(Buttons.nextStatusesButtons(bet.getInitiatorNextStatusesList(), bet.getId()));
@@ -55,8 +54,7 @@ public class ShowBetAction implements Action {
             sendMessages.add(msgToUser);
         }
         if (sendMessages.isEmpty()) {
-            BetSendMessage msgToUser = new BetSendMessage();
-            msgToUser.setChatId(chatId);
+            BetSendMessage msgToUser = new BetSendMessage(chatId);
             msgToUser.setText("Спор с указанным id не найден");
             sendMessages.add(msgToUser);
         }
@@ -77,8 +75,7 @@ public class ShowBetAction implements Action {
         Proto.ResponseMessage response = betService.showBet(user, betId);
         if (Proto.Status.SUCCESS.equals(response.getStatus()) && response.hasBet()) {
             Proto.Bet bet = response.getBet();
-            BetSendMessage msgToUser = new BetSendMessage();
-            msgToUser.setChatId(chatId);
+            BetSendMessage msgToUser = new BetSendMessage(chatId);
             if (bet.getInitiator().getUsername().equals(user.getUsername())
                     && bet.getInitiator().getCode() == user.getCode()) {
                 msgToUser.setReplyMarkup(Buttons.nextStatusesButtons(bet.getInitiatorNextStatusesList(), bet.getId()));
@@ -90,8 +87,7 @@ public class ShowBetAction implements Action {
             sendMessages.add(msgToUser);
         }
         if (sendMessages.isEmpty()) {
-            BetSendMessage msgToUser = new BetSendMessage();
-            msgToUser.setChatId(chatId);
+            BetSendMessage msgToUser = new BetSendMessage(chatId);
             msgToUser.setText("Спор с указанным id не найден");
             sendMessages.add(msgToUser);
         }

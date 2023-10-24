@@ -23,8 +23,7 @@ public class BetNotifier {
 
     public Proto.ResponseMessage notifyOfExpiredBets(Proto.Bets bets) {
         List<BetSendMessage> sendMessageList = bets.getBetsList().stream().map(b -> {
-            BetSendMessage sendMessage = new BetSendMessage();
-                    sendMessage.setChatId(b.getInitiator().getChatId());
+            BetSendMessage sendMessage = new BetSendMessage(b.getInitiator().getChatId());
                     sendMessage.setText("<b>Наступила дата окончания:</b>\n" + prettyPrinter.printBet(b));
                     sendMessage.setReplyMarkup(Buttons.nextStatusesButtons(b.getInitiatorNextStatusesList(), b.getId()));
                     sendMessage.setParseMode(ParseMode.HTML);
@@ -33,8 +32,7 @@ public class BetNotifier {
         ).collect(Collectors.toList());
 
         List<BetSendMessage> sendMessageToOpponentList = bets.getBetsList().stream().map(b -> {
-            BetSendMessage sendMessage = new BetSendMessage();
-                    sendMessage.setChatId(b.getOpponent().getChatId());
+            BetSendMessage sendMessage = new BetSendMessage(b.getOpponent().getChatId());
                     sendMessage.setText("<b>Наступила дата окончания:</b>\n" + prettyPrinter.printBet(b));
                     sendMessage.setReplyMarkup(Buttons.nextStatusesButtons(b.getOpponentNextStatusesList(), b.getId()));
                     sendMessage.setParseMode(ParseMode.HTML);

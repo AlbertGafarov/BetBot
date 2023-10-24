@@ -104,6 +104,7 @@ public class Converter {
         draftBet.setId(protoDraftBet.getId());
         draftBet.setInitiator(toUser(protoDraftBet.getInitiator()));
         draftBet.setOpponentCode(protoDraftBet.getOpponentCode());
+        draftBet.setOpponentName(protoDraftBet.getOpponentName());
         draftBet.setDefinition(protoDraftBet.getDefinition());
         draftBet.setWager(protoDraftBet.getWager());
         if (protoDraftBet.getFinishDate().getSeconds() != 0) {

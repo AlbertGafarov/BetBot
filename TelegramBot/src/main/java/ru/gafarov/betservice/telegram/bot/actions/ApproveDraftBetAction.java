@@ -50,15 +50,13 @@ public class ApproveDraftBetAction implements Action {
                     Proto.Bet bet = betService.addBet(draftBet, user);
 
                     // Предложение оппоненту нового спора
-                    BetSendMessage offerToOpponent = new BetSendMessage();
-                    offerToOpponent.setChatId(bet.getOpponent().getChatId());
+                    BetSendMessage offerToOpponent = new BetSendMessage(bet.getOpponent().getChatId());
                     offerToOpponent.setText(prettyPrinter.printOfferBet(bet));
                     offerToOpponent.setReplyMarkup(Buttons.nextStatusesButtons(bet.getOpponentNextStatusesList(), bet.getId()));
                     offerToOpponent.setParseMode(ParseMode.HTML);
 
                     // Подтверждение инициатору об отправке
-                    BetSendMessage msgDeliveryToInitiator = new BetSendMessage();
-                    msgDeliveryToInitiator.setChatId(bet.getInitiator().getChatId());
+                    BetSendMessage msgDeliveryToInitiator = new BetSendMessage(bet.getInitiator().getChatId());
                     msgDeliveryToInitiator.setText("Предложение о споре отправлено оппоненту");
                     msgDeliveryToInitiator.setParseMode(ParseMode.HTML);
                     msgDeliveryToInitiator.setDelTime(10_000);
@@ -68,8 +66,7 @@ public class ApproveDraftBetAction implements Action {
                     break;
 
                 case "cancel":
-                    BetSendMessage msgToInitiator = new BetSendMessage();
-                    msgToInitiator.setChatId(chatId);
+                    BetSendMessage msgToInitiator = new BetSendMessage(chatId);
                     msgToInitiator.setText("Спор отклонен. Черновик удален");
                     msgToInitiator.setParseMode(ParseMode.HTML);
                     msgToInitiator.setDelTime(10_000);

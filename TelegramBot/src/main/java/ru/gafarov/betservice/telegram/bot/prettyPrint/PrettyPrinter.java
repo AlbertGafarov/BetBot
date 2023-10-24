@@ -20,6 +20,14 @@ public class PrettyPrinter {
                 "\nДата окончания спора: " + fromGoogleTimestampToStr(draftBet.getFinishDate());
     }
 
+    public String printDraftBetFromForward(Proto.DraftBet draftBet) {
+        return "Оппонент: " + draftBet.getOpponentName() +
+                " " + draftBet.getOpponentCode() +
+                "\nСчитает что: " + draftBet.getDefinition() +
+                "\nВы оспариваете это утверждение" +
+                "\n\nВведите вознаграждение победителю";
+    }
+
     private String fromGoogleTimestampToStr(final Timestamp googleTimestamp) {
         LocalDateTime localDateTime = Instant.ofEpochSecond(googleTimestamp.getSeconds(), googleTimestamp.getNanos())
                 .atZone(ZoneId.systemDefault())
@@ -35,7 +43,7 @@ public class PrettyPrinter {
     }
 
     public String printOfferBet(Proto.Bet bet) {
-        return  "<b>Спор</b>\n" + bet.getInitiator().getUsername() + " " + bet.getInitiator().getCode() +
+        return "<b>Спор</b>\n" + bet.getInitiator().getUsername() + " " + bet.getInitiator().getCode() +
                 "\nсчитает что:\n" + bet.getDefinition() +
                 "\nи предлагает Вам оспорить это утверждение." +
                 "\nВознаграждение победителю спора: " + bet.getWager() +

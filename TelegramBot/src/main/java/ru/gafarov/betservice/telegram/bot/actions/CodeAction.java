@@ -20,8 +20,7 @@ public class CodeAction implements Action {
     public List<BetSendMessage> handle(Update update) {
         long chatId = update.getMessage().getChatId();
         String text = authorizationService.getCode(chatId);
-        BetSendMessage sendMessage = new BetSendMessage();
-        sendMessage.setChatId(chatId);
+        BetSendMessage sendMessage = new BetSendMessage(chatId);
         sendMessage.setText(text);
         return List.of(sendMessage);
     }
@@ -30,8 +29,7 @@ public class CodeAction implements Action {
     public List<BetSendMessage> callback(Update update) {
         long chatId = update.getCallbackQuery().getFrom().getId();
         String text = authorizationService.getCode(chatId);
-        BetSendMessage sendMessage = new BetSendMessage();
-        sendMessage.setChatId(chatId);
+        BetSendMessage sendMessage = new BetSendMessage(chatId);
         sendMessage.setText(text);
 
         botService.delete(update);

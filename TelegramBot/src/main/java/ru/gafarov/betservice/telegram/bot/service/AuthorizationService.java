@@ -35,16 +35,14 @@ public class AuthorizationService {
             Proto.ResponseMessage responseMessage1 = grpcStub.addUser(protoUser);
 
             if (responseMessage1.hasUser()) {
-                BetSendMessage sendMessage = new BetSendMessage();
-                sendMessage.setChatId(String.valueOf(chatId));
+                BetSendMessage sendMessage = new BetSendMessage(chatId);
                 sendMessage.setText("Привет! \nВаш username: " + responseMessage1.getUser().getUsername() +
                         "\nВаш код: " + responseMessage1.getUser().getCode() +
                         "\nимя и код нужно отправить вашему оппоненту");
                 return sendMessage;
             }
         }
-        BetSendMessage sendMessage = new BetSendMessage();
-        sendMessage.setChatId(String.valueOf(chatId));
+        BetSendMessage sendMessage = new BetSendMessage(chatId);
         sendMessage.setText("Привет " + responseMessage.getUser().getUsername() + "!");
         userService.setChatStatus(responseMessage.getUser(), Proto.ChatStatus.START);
         sendMessage.setReplyMarkup(Buttons.inlineMarkup());
