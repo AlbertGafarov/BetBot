@@ -607,4 +607,37 @@
     <changeSet id="1.0.77" author="albert.gafarov">
         <addUniqueConstraint tableName="bet_final_status_rule" columnNames="initiator_status,opponent_status"/>
     </changeSet>
+    <changeSet id="1.0.78" author="albert.gafarov">
+        <createTable tableName="subscribe">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="subscriber_id" type="integer">
+                <constraints foreignKeyName="fk_subscriber_user_id"
+                             referencedTableName="users"
+                             referencedColumnNames="id"
+                             nullable="false"/>
+            </column>
+            <column name="subscribed_id" type="integer">
+                <constraints foreignKeyName="fk_subscribed_user_id"
+                             referencedTableName="users"
+                             referencedColumnNames="id"
+                             nullable="false"/>
+            </column>
+            <column name="created" type="timestamp" defaultValueDate="current_timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated" type="timestamp" defaultValueDate="current_timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="varchar(25)" defaultValue="ACTIVE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addUniqueConstraint tableName="subscribe" columnNames="subscriber_id,subscribed_id"/>
+        <createIndex tableName="subscribe" indexName="subscribe_idx" unique="true">
+            <column name="subscriber_id"/>
+            <column name="subscribed_id"/>
+        </createIndex>
+    </changeSet>
 </databaseChangeLog>

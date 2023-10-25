@@ -8,7 +8,9 @@ import ru.gafarov.betservice.converter.Converter;
 import ru.gafarov.betservice.model.*;
 import ru.gafarov.betservice.repository.BetRepository;
 import ru.gafarov.betservice.repository.ChangeStatusBetRuleRepository;
+import ru.gafarov.betservice.repository.SubscribeRepository;
 import ru.gafarov.betservice.service.BetService;
+import ru.gafarov.betservice.service.SubscribeService;
 import ru.gafarov.betservice.service.UserService;
 
 import java.time.LocalDateTime;
@@ -28,6 +30,7 @@ public class BetServiceImpl implements BetService {
     private final BetRepository betRepository;
     private final ChangeStatusBetRuleRepository statusBetRepository;
     private final UserService userService;
+    private final SubscribeService subscribeService;
     private final List<ChangeStatusBetRule> changeStatusBetRules;
     private final List<BetFinalStatusRule> betFinalStatusRuleList;
     private final Converter converter;
@@ -49,6 +52,9 @@ public class BetServiceImpl implements BetService {
         bet.setFinishDate(converter.toLocalDateTime(protoBet.getFinishDate()));
         bet = betRepository.save(bet);
 
+        // Добавляем подписку, если ее нет
+        subscribeService.checkAndPutForInitiator(bet);
+
         bet.setNextOpponentBetStatusList(statusBetRepository.getNextStatuses(OPPONENT.toString()
                 , bet.getOpponentBetStatus().toString()
                 , bet.getInitiatorBetStatus().toString()
@@ -58,8 +64,7 @@ public class BetServiceImpl implements BetService {
                 , bet.getOpponentBetStatus().toString()
                 , bet.getFinishDate()));
         protoBet = converter.toProtoBet(bet);
-        return Proto.ResponseMessage.newBuilder().setBet(protoBet).build();
-
+        return Proto.ResponseMessage.newBuilder().setStatus(Proto.Status.SUCCESS).setBet(protoBet).build();
     }
 
     public Proto.ResponseMessage getActiveBets(Proto.User protoUser) {
@@ -114,6 +119,8 @@ public class BetServiceImpl implements BetService {
                         }
                     } else {
                         bet.setOpponentBetStatus(newBetStatus);
+                        subscribeService.checkAndPutForOpponent(bet);
+
                         if (rule.getNewRivalBetStatus() != null) {
                             bet.setInitiatorBetStatus(rule.getNewRivalBetStatus());
                         }
