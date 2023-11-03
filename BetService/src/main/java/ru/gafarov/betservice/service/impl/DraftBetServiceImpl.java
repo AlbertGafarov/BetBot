@@ -46,10 +46,15 @@ public class DraftBetServiceImpl implements DraftBetService {
     }
 
     @Override
-    public Proto.ResponseDraftBet setOpponentCode(Proto.DraftBet draftBet) {
+    public Proto.ResponseDraftBet setOpponentCodeAndName(Proto.DraftBet draftBet) {
         LocalDateTime localDateTime = LocalDateTime.now();
-        draftBetRepository.setOpponentCode(draftBet.getId(), draftBet.getOpponentCode(), localDateTime);
-        return null;
+        try {
+            draftBetRepository.setOpponentCodeAndName(draftBet.getId(), draftBet.getOpponentCode(), draftBet.getOpponentName(), localDateTime);
+            return Proto.ResponseDraftBet.newBuilder().setStatus(Proto.Status.SUCCESS).build();
+        } catch (Exception exception) {
+            exception.printStackTrace();
+            return Proto.ResponseDraftBet.newBuilder().setStatus(Proto.Status.ERROR).build();
+        }
     }
 
     @Override

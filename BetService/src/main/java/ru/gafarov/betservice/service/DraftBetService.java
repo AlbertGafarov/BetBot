@@ -8,7 +8,7 @@ public interface DraftBetService {
 
     Proto.ResponseDraftBet setOpponentName(Proto.DraftBet request);
 
-    Proto.ResponseDraftBet setOpponentCode(Proto.DraftBet request);
+    Proto.ResponseDraftBet setOpponentCodeAndName(Proto.DraftBet request);
 
     Proto.ResponseDraftBet setDefinition(Proto.DraftBet request);
 

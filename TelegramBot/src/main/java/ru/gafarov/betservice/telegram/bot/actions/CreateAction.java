@@ -7,11 +7,13 @@ import ru.gafarov.bet.grpcInterface.Proto;
 import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
 import ru.gafarov.betservice.telegram.bot.service.BotMessageService;
 import ru.gafarov.betservice.telegram.bot.service.BotService;
-import ru.gafarov.betservice.telegram.bot.service.DraftBetService;
+import ru.gafarov.betservice.telegram.bot.service.draftBet.DraftBetService;
 import ru.gafarov.betservice.telegram.bot.service.UserService;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static ru.gafarov.betservice.telegram.bot.components.Buttons.wantChoseFromFriends;
 
 @Component
 @RequiredArgsConstructor
@@ -32,6 +34,7 @@ public class CreateAction implements Action {
         userService.setChatStatus(user, Proto.ChatStatus.WAIT_OPPONENT_NAME);
         BetSendMessage sendMessage = new BetSendMessage(chatId);
         sendMessage.setText("Введите username оппонента");
+        sendMessage.setReplyMarkup(wantChoseFromFriends(draftBet));
 
         botService.delete(update);
         int id = botService.send(sendMessage);

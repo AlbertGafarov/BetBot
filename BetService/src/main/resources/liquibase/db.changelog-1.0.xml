@@ -640,4 +640,9 @@
             <column name="subscribed_id"/>
         </createIndex>
     </changeSet>
+    <changeSet id="1.0.79" author="albert.gafarov">
+        <dropPrimaryKey tableName="subscribe" constraintName="subscribe_pkey"/>
+        <dropColumn tableName="subscribe" columnName="id"/>
+        <addPrimaryKey tableName="subscribe" columnNames="subscriber_id,subscribed_id"/>
+    </changeSet>
 </databaseChangeLog>

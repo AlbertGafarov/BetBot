@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -19,31 +20,46 @@ public class BotService {
 
     @Lazy
     private final BetTelegramBot bot;
+    private final BotMessageService botMessageService;
 
-    @Async
-    public void delete(DeleteMessage deleteMessage, long sleep) {
+    @Async("deleteMessageExecutor")
+    public void deleteAsync(DeleteMessage deleteMessage, long sleep) {
         try {
+            log.info("запущен таймер");
             Thread.sleep(sleep);
-            bot.execute(deleteMessage);
+            log.info("завершен таймер");
+            if (!botMessageService.isDeleted(deleteMessage.getMessageId())) {
+                bot.execute(deleteMessage);
+                botMessageService.markDeleted(deleteMessage);
+            }
         } catch (TelegramApiException | InterruptedException e) {
             log.error(e.getLocalizedMessage());
         }
     }
 
-    public int send(BetSendMessage sendMessage) {
+    public int sendAndDelete(BetSendMessage sendMessage) {
+        int id = 0;
         try {
-            int id = bot.execute(sendMessage).getMessageId();
-            if(sendMessage.getDelTime() > 0) {
-                DeleteMessage deleteMessage = new DeleteMessage();
-                deleteMessage.setMessageId(id);
-                deleteMessage.setChatId(sendMessage.getChatId());
-                delete(deleteMessage, sendMessage.getDelTime());
-            }
-            return id;
+            id = bot.execute(sendMessage).getMessageId();
         } catch (TelegramApiException e) {
             log.error(e.getLocalizedMessage());
         }
-        return 0;
+        if (sendMessage.getDelTime() > 0) {
+            DeleteMessage deleteMessage = new DeleteMessage();
+            deleteMessage.setMessageId(id);
+            deleteMessage.setChatId(sendMessage.getChatId());
+            deleteAsync(deleteMessage, sendMessage.getDelTime());
+        }
+        return id;
+    }
+
+    public int send(BetSendMessage sendMessage) {
+        try {
+            return bot.execute(sendMessage).getMessageId();
+        } catch (TelegramApiException e) {
+            log.error(e.getLocalizedMessage());
+            return 0;
+        }
     }
 
     public void delete(Update update) {
@@ -60,11 +76,20 @@ public class BotService {
         deleteMessage.setChatId(chatId);
         deleteMessage.setMessageId(messageId);
         bot.delete(deleteMessage);
+        botMessageService.markDeleted(deleteMessage);
     }
 
     public void edit(EditMessageText editMessageText) {
         try {
             bot.execute(editMessageText);
+        } catch (TelegramApiException e) {
+            log.error(e.getLocalizedMessage());
+        }
+    }
+
+    public void edit(EditMessageReplyMarkup editMessageReplyMarkup) {
+        try {
+            bot.execute(editMessageReplyMarkup);
         } catch (TelegramApiException e) {
             log.error(e.getLocalizedMessage());
         }

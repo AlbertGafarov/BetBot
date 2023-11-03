@@ -1,26 +1,51 @@
 package ru.gafarov.betservice.model;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
+import java.io.Serializable;
+import java.time.LocalDateTime;
 
-@EqualsAndHashCode(callSuper = true)
+//@EqualsAndHashCode
 @Data
 @Entity
-@Table(name = "subscribe")
-@NoArgsConstructor
-public class Subscribe extends BaseEntity {
+@IdClass(Subscribe.SubscribeId.class)
+//@Table(name = "subscribe")
+//@NoArgsConstructor
+@EntityListeners(AuditingEntityListener.class)
+public class Subscribe {
 
-    @ManyToOne
-    @JoinColumn(name = "subscriber_id")
-    private User subscriber; // Подписчик или подписчица
+    @Id
+//    @ManyToOne
+//    @JoinColumn(name = "subscriber_id")
+    private Long subscriberId;
 
-    @ManyToOne
-    @JoinColumn(name = "subscribed_id")
-    private User subscribed; // Тот или та, на кого подписаны
+    @Id
+//    @ManyToOne
+//    @JoinColumn(name = "subscribed_id")
+    private Long subscribedId;
+
+    @CreatedDate
+    @Column(name = "created")
+    private LocalDateTime created;
+
+    @LastModifiedDate
+    @Column(name = "updated")
+    private LocalDateTime updated;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private Status status;
+
+    @EqualsAndHashCode
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class SubscribeId implements Serializable {
+
+        protected Long subscriberId;
+        protected Long subscribedId;
+    }
 }

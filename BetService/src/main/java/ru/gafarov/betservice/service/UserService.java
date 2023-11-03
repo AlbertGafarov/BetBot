@@ -5,8 +5,10 @@ import ru.gafarov.betservice.model.User;
 
 public interface UserService {
 
-    Proto.ResponseMessage saveUser(Proto.User protoUser);
+    Proto.ResponseUser saveUser(Proto.User protoUser);
+    Proto.ResponseUser findFriend(Proto.Subscribe subscribe);
     User getUser(Proto.User protoUser);
-    Proto.ResponseMessage getProtoUser(Proto.User protoUser);
+    Proto.ResponseUser getProtoUser(Proto.User protoUser);
     Proto.ResponseMessage changeChatStatus(Proto.User request);
+    Proto.ResponseUser getFriends(Proto.User protoUser);
 }

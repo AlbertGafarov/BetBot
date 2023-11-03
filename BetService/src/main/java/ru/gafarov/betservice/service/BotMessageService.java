@@ -8,4 +8,6 @@ public interface BotMessageService {
     Proto.ResponseBotMessage get(Proto.BotMessage request);
 
     Proto.ResponseBotMessage getAll(Proto.DraftBet request);
+
+    Proto.ResponseBotMessage delete(Proto.BotMessages request);
 }

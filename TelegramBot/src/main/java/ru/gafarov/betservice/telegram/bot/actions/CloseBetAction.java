@@ -1,22 +1,19 @@
 package ru.gafarov.betservice.telegram.bot.actions;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
-import ru.gafarov.betservice.telegram.bot.controller.BetTelegramBot;
+import ru.gafarov.betservice.telegram.bot.service.BotService;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Component
-@RequiredArgsConstructor(onConstructor_ = {@Lazy})
+@RequiredArgsConstructor
 public class CloseBetAction implements Action {
 
-    @Lazy
-    private final BetTelegramBot bot;
+    private final BotService botService;
 
     @Override
     public List<BetSendMessage> handle(Update update) {
@@ -25,9 +22,7 @@ public class CloseBetAction implements Action {
 
     @Override
     public List<BetSendMessage> callback(Update update) {
-        long chatId = update.getCallbackQuery().getFrom().getId();
-        int messageId = update.getCallbackQuery().getMessage().getMessageId();
-        bot.delete(new DeleteMessage(String.valueOf(chatId), messageId));
+        botService.delete(update);
         return new ArrayList<>();
     }
 }

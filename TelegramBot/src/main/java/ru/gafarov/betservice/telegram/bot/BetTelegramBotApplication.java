@@ -6,7 +6,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.scheduling.annotation.EnableAsync;
 import ru.gafarov.betservice.telegram.bot.config.ConfigMap;
 
-@EnableAsync()
+@EnableAsync
 @SpringBootApplication
 @EnableConfigurationProperties(ConfigMap.class)
 public class BetTelegramBotApplication {

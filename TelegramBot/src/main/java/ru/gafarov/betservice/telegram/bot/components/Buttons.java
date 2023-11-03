@@ -2,7 +2,7 @@ package ru.gafarov.betservice.telegram.bot.components;
 
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
-import ru.gafarov.bet.grpcInterface.Proto;
+import ru.gafarov.bet.grpcInterface.Proto.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,8 +30,8 @@ public class Buttons {
     public static InlineKeyboardMarkup approveDraftBetButtons(long id) {
         InlineKeyboardButton OK_BUTTON = new InlineKeyboardButton("Ok");
         InlineKeyboardButton CANCEL_BUTTON = new InlineKeyboardButton("Cancel");
-        OK_BUTTON.setCallbackData("/draftBet/ok/" + id);
-        CANCEL_BUTTON.setCallbackData("/draftBet/cancel/" + id);
+        OK_BUTTON.setCallbackData("/draftBet/" + id + "/approve/ok");
+        CANCEL_BUTTON.setCallbackData("/draftBet/" + id + "/approve/cancel/");
 
         List<InlineKeyboardButton> rowInline = List.of(OK_BUTTON, CANCEL_BUTTON);
         List<InlineKeyboardButton> secondRowInline = new ArrayList<>() {{
@@ -47,7 +47,7 @@ public class Buttons {
         return markupInline;
     }
 
-    public static InlineKeyboardMarkup nextStatusesButtons(List<Proto.BetStatus> nextStatuses, long id) {
+    public static InlineKeyboardMarkup nextStatusesButtons(List<BetStatus> nextStatuses, long id) {
         List<InlineKeyboardButton> rowInline = nextStatuses.stream().map(a -> {
             InlineKeyboardButton button = new InlineKeyboardButton(a.name());
             button.setCallbackData("/newStatus/" + a.name() + "/" + id);
@@ -62,6 +62,19 @@ public class Buttons {
             add(closeButton);
         }};
         List<List<InlineKeyboardButton>> rowsInLine = List.of(rowInline, secondRowInline);
+        InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
+        markupInline.setKeyboard(rowsInLine);
+
+        return markupInline;
+    }
+
+    public static InlineKeyboardMarkup wantChoseFromFriends(DraftBet draftBet){
+        List<InlineKeyboardButton> rowInline = new ArrayList<>() {{
+            InlineKeyboardButton showMyFriendsButton = new InlineKeyboardButton("Выбрать из списка моих друзей");
+            showMyFriendsButton.setCallbackData("/draftBet/" + draftBet.getId() + "/showMyFriends/");
+            add(showMyFriendsButton);
+        }};
+        List<List<InlineKeyboardButton>> rowsInLine = List.of(rowInline);
         InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
         markupInline.setKeyboard(rowsInLine);
 

@@ -19,10 +19,11 @@ public class BetCommands {
     private final Action draftAction;
     private final Action codeAction;
     private final Action showBetsAction;
-    private final Action approveDraftBetAction;
     private final Action newStatusBetAction;
     private final Action showBetAction;
     private final Action closeBetAction;
+    private final Action myReferenceAction;
+    private final Action addMeAction;
     @Getter
     private final Map<String, String> botCommands = new HashMap<>(){{
         put("/start", "start bot");
@@ -30,6 +31,7 @@ public class BetCommands {
         put("/draft", "Черновик");
         put("/code", "Мой код");
         put("/bets", "Мои споры");
+        put("/reference", "Моя ссылка");
     }};
 
     public List<BotCommand> getBotCommandList(){
@@ -42,8 +44,10 @@ public class BetCommands {
             put("/draft", draftAction);
             put("/code", codeAction);
             put("/bets", showBetsAction);
+            put("/reference", myReferenceAction);
+            put("/addMe", addMeAction);
             put("code", codeAction);
-            put("draftBet", approveDraftBetAction);
+            put("draftBet", draftAction);
             put("newStatus", newStatusBetAction);
             put("showBet", showBetAction);
             put("closeBet", closeBetAction);

@@ -35,8 +35,7 @@ public class BotMessageServiceImpl implements BotMessageService {
         botMessage = botMessageRepository.save(botMessage);
         if (botMessage.getId() > 0) {
             return Proto.ResponseMessage.newBuilder().setStatus(Proto.Status.SUCCESS).build();
-        }
-        else {
+        } else {
             return Proto.ResponseMessage.newBuilder().setStatus(Proto.Status.ERROR).build();
         }
     }
@@ -44,14 +43,22 @@ public class BotMessageServiceImpl implements BotMessageService {
     @Override
     public Proto.ResponseBotMessage get(Proto.BotMessage protoBotMessage) {
 
-        Optional<BotMessage> optionalBotMessage = botMessageRepository.getMessage(protoBotMessage.getUser().getId()
-                , protoBotMessage.getDraftBet().getId(), protoBotMessage.getType().toString()).stream()
-                .max(Comparator.comparing(BaseEntity::getUpdated));
+        Optional<BotMessage> optionalBotMessage;
+        if (protoBotMessage.getTgMessageId() > 0) {
+            optionalBotMessage = botMessageRepository.getByTgMessageId(protoBotMessage.getTgMessageId());
+        } else {
+            optionalBotMessage = botMessageRepository.getMessage(protoBotMessage.getUser().getId()
+                    , protoBotMessage.getDraftBet().getId(), protoBotMessage.getType().toString()).stream()
+                    .max(Comparator.comparing(BaseEntity::getUpdated));
+        }
 
         return optionalBotMessage.map(botMessage -> Proto.ResponseBotMessage.newBuilder()
                 .setBotMessage(converter.toProtoBotMessage(botMessage))
-                .setStatus(Proto.Status.SUCCESS).build()).orElseGet(() -> Proto.ResponseBotMessage.newBuilder()
-                .setStatus(Proto.Status.ERROR).build());
+                .setStatus(Proto.Status.SUCCESS).build()).orElseGet(() -> {
+            log.error("Не найдено сообщение: {}", protoBotMessage);
+            return Proto.ResponseBotMessage.newBuilder()
+                    .setStatus(Proto.Status.ERROR).build();
+        });
     }
 
     @Override
@@ -65,5 +72,33 @@ public class BotMessageServiceImpl implements BotMessageService {
             return Proto.ResponseBotMessage.newBuilder().addAllBotMessages(botMessageList).setStatus(Proto.Status.ERROR).build();
         }
         return Proto.ResponseBotMessage.newBuilder().addAllBotMessages(botMessageList).setStatus(Proto.Status.SUCCESS).build();
+    }
+
+    @Override
+    public Proto.ResponseBotMessage delete(Proto.BotMessages botMessages) {
+        List<Long> identifications = botMessages.getBotMessageList().stream()
+                .map(Proto.BotMessage::getId).filter(a -> a > 0).collect(Collectors.toList());
+        if (!identifications.isEmpty()) {
+            try {
+                botMessageRepository.markDeleted(identifications);
+                return Proto.ResponseBotMessage.newBuilder().setStatus(Proto.Status.SUCCESS).build();
+            } catch (Exception e) {
+                e.printStackTrace();
+                return Proto.ResponseBotMessage.newBuilder().setStatus(Proto.Status.ERROR).build();
+            }
+        } else {
+            List<Integer> tgIdentifications = botMessages.getBotMessageList().stream()
+                    .map(Proto.BotMessage::getTgMessageId).filter(a -> a > 0).collect(Collectors.toList());
+            try {
+                if (tgIdentifications.isEmpty()) {
+                    throw new Exception();
+                }
+                botMessageRepository.markDeletedByTgId(tgIdentifications);
+                return Proto.ResponseBotMessage.newBuilder().setStatus(Proto.Status.SUCCESS).build();
+            } catch (Exception e) {
+                e.printStackTrace();
+                return Proto.ResponseBotMessage.newBuilder().setStatus(Proto.Status.ERROR).build();
+            }
+        }
     }
 }

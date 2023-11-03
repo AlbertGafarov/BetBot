@@ -1,12 +1,10 @@
 package ru.gafarov.betservice.converter;
 
 import com.google.protobuf.Timestamp;
+import lombok.val;
 import org.springframework.stereotype.Component;
 import ru.gafarov.bet.grpcInterface.Proto;
-import ru.gafarov.betservice.model.Bet;
-import ru.gafarov.betservice.model.BotMessage;
-import ru.gafarov.betservice.model.DraftBet;
-import ru.gafarov.betservice.model.User;
+import ru.gafarov.betservice.model.*;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -92,13 +90,16 @@ public class Converter {
 
     public BotMessage toBotMessage(Proto.BotMessage protoBotMessage) {
         BotMessage botMessage = new BotMessage();
-        botMessage.setDraftBet(toDraftBet(protoBotMessage.getDraftBet()));
+        if (protoBotMessage.getDraftBet().getId() > 0) {
+            botMessage.setDraftBet(toDraftBet(protoBotMessage.getDraftBet()));
+        }
         botMessage.setTgMessageId(protoBotMessage.getTgMessageId());
         botMessage.setUser(toUser(protoBotMessage.getUser()));
         botMessage.setMessageType(protoBotMessage.getType());
 
         return botMessage;
     }
+
     public DraftBet toDraftBet(Proto.DraftBet protoDraftBet) {
         DraftBet draftBet = new DraftBet();
         draftBet.setId(protoDraftBet.getId());
@@ -115,12 +116,27 @@ public class Converter {
     }
 
     public Proto.BotMessage toProtoBotMessage(BotMessage botMessage) {
-        return Proto.BotMessage.newBuilder()
+        val builder = Proto.BotMessage.newBuilder()
                 .setId(botMessage.getId())
                 .setTgMessageId(botMessage.getTgMessageId())
-                .setDraftBet(toProtoDraftBet(botMessage.getDraftBet()))
                 .setType(botMessage.getMessageType())
-                .setUser(toProtoUser(botMessage.getUser()))
-                .build();
+                .setUser(toProtoUser(botMessage.getUser()));
+        if (botMessage.getDraftBet() != null) {
+            builder.setDraftBet(toProtoDraftBet(botMessage.getDraftBet()));
+        }
+        if (botMessage.getStatus().equals(Status.DELETED)) {
+            builder.setIsDeleted(true);
+        }
+        return builder.build();
+    }
+
+    public Subscribe toSubscribe(Proto.Subscribe protoSubscribe) {
+        Subscribe subscribe = new Subscribe();
+        subscribe.setSubscriberId(protoSubscribe.getSubscriber().getId());
+        subscribe.setSubscribedId(protoSubscribe.getSubscribed().getId());
+//        subscribe.setSubscriber(toUser(protoSubscribe.getSubscriber()));
+//        subscribe.setSubscribed(toUser(protoSubscribe.getSubscribed()));
+
+        return subscribe;
     }
 }

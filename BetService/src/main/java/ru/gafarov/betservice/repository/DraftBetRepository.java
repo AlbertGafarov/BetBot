@@ -17,8 +17,8 @@ public interface DraftBetRepository extends JpaRepository<DraftBet, Long> {
 
     @Modifying
     @Transactional
-    @Query(value = "update draft_bets set opponent_code = ?2, updated = ?3 where id = ?1", nativeQuery = true)
-    void setOpponentCode(long id, int opponentCode, LocalDateTime localDateTime);
+    @Query(value = "update draft_bets set opponent_code = ?2, opponent_name = ?3, updated = ?4 where id = ?1", nativeQuery = true)
+    void setOpponentCodeAndName(long id, int opponentCode, String opponentName, LocalDateTime localDateTime);
 
     @Modifying
     @Transactional

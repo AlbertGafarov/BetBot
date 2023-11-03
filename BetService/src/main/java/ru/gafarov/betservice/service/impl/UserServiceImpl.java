@@ -1,6 +1,7 @@
 package ru.gafarov.betservice.service.impl;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.gafarov.bet.grpcInterface.Proto;
 import ru.gafarov.betservice.converter.Converter;
@@ -10,10 +11,13 @@ import ru.gafarov.betservice.repository.UserRepository;
 import ru.gafarov.betservice.service.UserService;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @AllArgsConstructor
 public class UserServiceImpl implements UserService {
@@ -22,7 +26,7 @@ public class UserServiceImpl implements UserService {
     private final Converter converter;
 
     @Override
-    public Proto.ResponseMessage saveUser(Proto.User protoUser) {
+    public Proto.ResponseUser saveUser(Proto.User protoUser) {
         int code = 0;
         SortedSet<Integer> codes = userRepository.findByUsernameIgnoreCase(protoUser.getUsername()).stream().map(User::getCode)
                 .collect(Collectors.toCollection(TreeSet::new));
@@ -39,32 +43,70 @@ public class UserServiceImpl implements UserService {
         user.setChatStatus(Proto.ChatStatus.START);
         user.setStatus(Status.ACTIVE);
         userRepository.save(user);
-        return Proto.ResponseMessage.newBuilder().setUser(Proto.User.newBuilder(protoUser).setCode(code)
+        return Proto.ResponseUser.newBuilder().setUser(Proto.User.newBuilder(protoUser).setCode(code)
                 .build()).build();
     }
 
     @Override
-    public Proto.ResponseMessage getProtoUser(Proto.User protoUser) {
+    public Proto.ResponseUser getProtoUser(Proto.User protoUser) {
         Proto.User respProtoUser;
-        // если известен chatId, то ищем по нему
-        if (protoUser.getChatId() != 0) {
+        if(protoUser.getId() != 0) {
+            Optional<User> optional = userRepository.findById(protoUser.getId());
+            if(optional.isPresent()) {
+                return Proto.ResponseUser.newBuilder().setUser(converter.toProtoUser(optional.get()))
+                        .setStatus(Proto.Status.SUCCESS).build();
+            } else {
+                log.error("Не найден пользователь с id: {}", protoUser.getId());
+                return Proto.ResponseUser.newBuilder().setStatus(Proto.Status.NOT_FOUND).build();
+            }
+            // если известен chatId, то ищем по нему
+        } else if (protoUser.getChatId() != 0) {
             respProtoUser = converter.toProtoUser(userRepository.findByChatId(protoUser.getChatId()));
+            if (respProtoUser != null) {
+                return Proto.ResponseUser.newBuilder().setUser(respProtoUser).setStatus(Proto.Status.SUCCESS).build();
+            } else {
+                log.error("Не найден пользователь с chatId: {}", protoUser.getChatId());
+                return Proto.ResponseUser.newBuilder().setStatus(Proto.Status.NOT_FOUND).build();
+            }
             // в противном случае ищем по имени и коду
         } else {
             respProtoUser = converter.toProtoUser(userRepository.findByUsernameIgnoreCaseAndCode(protoUser.getUsername(), protoUser.getCode()));
         }
-        if (respProtoUser == null) {
-            return Proto.ResponseMessage.newBuilder().setStatus(Proto.Status.NOT_SUCCESS).build();
+        if (respProtoUser != null) {
+            return Proto.ResponseUser.newBuilder().setUser(respProtoUser).setStatus(Proto.Status.SUCCESS).build();
         } else {
-            return Proto.ResponseMessage.newBuilder().setUser(respProtoUser).setStatus(Proto.Status.SUCCESS).build();
+            log.error("Не найден пользователь с username: {} и code: {}", protoUser.getUsername(), protoUser.getCode());
+            return Proto.ResponseUser.newBuilder().setStatus(Proto.Status.NOT_FOUND).build();
         }
     }
 
     @Override
     public Proto.ResponseMessage changeChatStatus(Proto.User protoUser) {
 
-            userRepository.changeChatStatus(protoUser.getChatId(), protoUser.getChatStatus().toString());
-        return Proto.ResponseMessage.newBuilder().setUser(converter.toProtoUser(getUser(protoUser))).build();
+        userRepository.changeChatStatus(protoUser.getChatId(), protoUser.getChatStatus().toString());
+        return Proto.ResponseMessage.newBuilder().setUser(converter.toProtoUser(getUser(protoUser)))
+                .setStatus(Proto.Status.SUCCESS).build();
+    }
+
+    @Override
+    public Proto.ResponseUser getFriends(Proto.User protoUser) {
+        List<User> friends = userRepository.getFriends(protoUser.getId());
+        if (friends.isEmpty()) {
+            log.info("Друзья не найдены");
+            return Proto.ResponseUser.newBuilder().setStatus(Proto.Status.NOT_FOUND).build();
+        }
+        return Proto.ResponseUser.newBuilder()
+                .addAllUsers(friends.stream().map(converter::toProtoUser).collect(Collectors.toList()))
+                .setStatus(Proto.Status.SUCCESS).build();
+    }
+
+    @Override
+    public Proto.ResponseUser findFriend(Proto.Subscribe subscribe) {
+        Optional<User> optional = userRepository.findFriend(subscribe.getSubscriber().getId()
+                , subscribe.getSubscribed().getChatId());
+        return optional.map(user -> Proto.ResponseUser.newBuilder().setUser(converter.toProtoUser(user))
+                .setStatus(Proto.Status.SUCCESS).build()).orElseGet(() -> Proto.ResponseUser.newBuilder()
+                .setStatus(Proto.Status.ERROR).build());
     }
 
     @Override

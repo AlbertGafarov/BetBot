@@ -47,8 +47,17 @@ message BotMessage {
   User user = 3;
   BotMessageType type = 4;
   DraftBet draftBet = 5;
+  bool isDeleted = 6;
 }
 
+message BotMessages {
+  repeated BotMessage botMessage = 1;
+}
+
+message Subscribe {
+  User subscriber = 1;
+  User subscribed = 2;
+}
 message ResponseMessage {
   string messageForInitiator = 1;
   string messageForOpponent = 2;
@@ -57,6 +66,9 @@ message ResponseMessage {
   Bet bet = 5;
   DraftBet draftBet = 6;
   repeated Bet bets = 7;
+}
+message Response {
+  Status status = 1;
 }
 
 message ResponseBotMessage {
@@ -70,6 +82,12 @@ message ResponseDraftBet {
   DraftBet draftBet = 2;
 }
 
+message ResponseUser {
+  Status status = 1;
+  User user = 2;
+  repeated User users = 3;
+}
+
 message Bets {
   repeated Bet bets = 1;
 }
@@ -77,6 +95,8 @@ message Bets {
 enum Status {
   SUCCESS = 0;
   NOT_SUCCESS = 1;
+  NOT_FOUND = 3;
+  REDUNDANT = 4;
   ERROR = 2;
 }
 
@@ -104,20 +124,31 @@ enum ChatStatus {
 
 enum BotMessageType {
   ENTER_USERNAME = 0;
+  CHOOSE_OPPONENT = 7;
   ENTER_CODE = 1;
   ENTER_WAGER = 2;
   ENTER_DEFINITION = 3;
   ENTER_FINISH_DATE = 4;
   WRONG_FINISH_DATE = 5;
   CODE_WRONG_ENTER_USERNAME = 6;
+  BET = 8;
+  YOU_HAVE_NOT_BETS = 9;
+  MY_REFERENCE = 10;
+  MY_REFERENCE_INFO = 11;
+  ADD_OPPONENT = 12;
+  REDUNDANT_OPPONENT = 13;
 }
 
 service BetService {
-  rpc addUser(User) returns (ResponseMessage);
-  rpc getUser(User) returns (ResponseMessage);
+  rpc addUser(User) returns (ResponseUser);
+  rpc getUser(User) returns (ResponseUser);
+  rpc findFriend(Subscribe) returns (ResponseUser);
+  rpc getFriends(User) returns (ResponseUser);
   rpc changeChatStatus(User) returns (ResponseMessage);
   rpc addBet(Bet) returns (ResponseMessage);
   rpc addDraftBet(DraftBet) returns (ResponseDraftBet);
+  rpc getDraftBet(DraftBet) returns (ResponseDraftBet);
+  rpc getLastDraftBet(User) returns (ResponseDraftBet);
   rpc deleteDraftBet(DraftBet) returns (ResponseDraftBet);
   rpc setOpponentName(DraftBet) returns (ResponseDraftBet);
   rpc setOpponentCode(DraftBet) returns (ResponseDraftBet);
@@ -126,11 +157,11 @@ service BetService {
   rpc setFinishDate(DraftBet) returns (ResponseDraftBet);
   rpc changeStatusBet(ChangeStatusBetMessage) returns (ResponseMessage);
   rpc getActiveBets(User) returns (ResponseMessage);
-  rpc getLastDraftBet(User) returns (ResponseDraftBet);
   rpc getBet(Bet) returns (ResponseMessage);
   rpc notifyOfExpiredBets(Bets) returns (ResponseMessage);
   rpc saveBotMessage(BotMessage) returns (ResponseMessage);
   rpc getBotMessage(BotMessage) returns (ResponseBotMessage);
   rpc getBotMessages(DraftBet) returns (ResponseBotMessage);
-  rpc getDraftBet(DraftBet) returns (ResponseDraftBet);
+  rpc deleteBotMessages(BotMessages) returns (ResponseBotMessage);
+  rpc addSubscribe(Subscribe) returns (Response);
 }

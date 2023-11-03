@@ -1,4 +1,4 @@
-package ru.gafarov.betservice.telegram.bot.service;
+package ru.gafarov.betservice.telegram.bot.service.draftBet;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +12,10 @@ import ru.gafarov.bet.grpcInterface.Proto.*;
 import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
 import ru.gafarov.betservice.telegram.bot.components.Buttons;
 import ru.gafarov.betservice.telegram.bot.prettyPrint.PrettyPrinter;
+import ru.gafarov.betservice.telegram.bot.service.BotMessageService;
+import ru.gafarov.betservice.telegram.bot.service.BotService;
+import ru.gafarov.betservice.telegram.bot.service.UserService;
+
 
 @Slf4j
 @Service
@@ -28,15 +32,15 @@ public class DraftBetService {
 
         Message message = update.getMessage();
         User user = userService.getUser(message.getChatId());
-        
+
         String text = message.getText().trim(); // Текст сообщения
         BetSendMessage replyMessage = new BetSendMessage(message.getChatId()); // Ответное сообщение
         EditMessageText editMessageText = new EditMessageText(); // Сообщение для редактирования
         editMessageText.setChatId(message.getChatId());
-        
+
         val botMessageBuilder = BotMessage.newBuilder().setUser(user);
         if (ChatStatus.START.equals(user.getChatStatus()) && message.getForwardFrom() != null) {
-            User opponent = userService.getUser(message.getForwardFrom().getId());
+            User opponent = userService.findFriend(user, message.getForwardFrom().getId());
             if (opponent != null) {
                 DraftBet draftBet = DraftBet.newBuilder().setDefinition(text).setInitiator(user)
                         .setOpponentName(opponent.getUsername())
@@ -44,12 +48,12 @@ public class DraftBetService {
                 draftBet = setDefinition(draftBet);
                 userService.setChatStatus(user, ChatStatus.WAIT_WAGER);
 
-            replyMessage.setText(prettyPrinter.printDraftBetFromForward(draftBet));
-            int tgMessageId = botService.send(replyMessage);
-            botMessageService.save(botMessageBuilder.setType(BotMessageType.ENTER_WAGER)
-                    .setDraftBet(draftBet).setTgMessageId(tgMessageId).build());
+                replyMessage.setText(prettyPrinter.printDraftBetFromForward(draftBet));
+                int tgMessageId = botService.sendAndDelete(replyMessage);
+                botMessageService.save(botMessageBuilder.setType(BotMessageType.ENTER_WAGER)
+                        .setDraftBet(draftBet).setTgMessageId(tgMessageId).build());
             } else {
-                log.warn("Не найден оппонент с id: {}", message.getForwardFrom().getId());
+                log.warn("Не найден оппонент с chatId: {}", message.getForwardFrom().getId());
                 replyMessage.setText("Спор не будет создан, потому что ваш оппонент не найден. " +
                         "Перешлите ему ссылку на этого бота, чтобы он мог подписаться");
                 replyMessage.setDelTime(10000);
@@ -62,12 +66,13 @@ public class DraftBetService {
             editMessageText.setMessageId(botMessageService.getId(botMessageBuilder
                     .setType(BotMessageType.ENTER_USERNAME).setDraftBet(draftBet).build()));
             editMessageText.setText("Введите username оппонента: " + text);
+
             botService.edit(editMessageText);
             // Меняем статус чата
             userService.setChatStatus(user, ChatStatus.WAIT_OPPONENT_CODE);
-            // Отправляем  ответное сообщение
+            // Отправляем ответное сообщение
             replyMessage.setText("Введите code оппонента");
-            int tgMessageId = botService.send(replyMessage);
+            int tgMessageId = botService.sendAndDelete(replyMessage);
             // Сохраняем id сообщения в БД
             botMessageService.save(botMessageBuilder.setType(BotMessageType.ENTER_CODE)
                     .setDraftBet(draftBet).setTgMessageId(tgMessageId).build());
@@ -85,13 +90,13 @@ public class DraftBetService {
             if (opponent == null) {
                 userService.setChatStatus(user, ChatStatus.WAIT_OPPONENT_NAME);
                 replyMessage.setText(" Код не соответствует username. Введите username оппонента");
-                int tgMessageId = botService.send(replyMessage);
+                int tgMessageId = botService.sendAndDelete(replyMessage);
                 botMessageService.save(botMessageBuilder.setType(BotMessageType.CODE_WRONG_ENTER_USERNAME)
                         .setDraftBet(draftBet).setTgMessageId(tgMessageId).build());
 
             } else {
                 draftBet = draftBet.toBuilder().setOpponentCode(opponent.getCode()).build();
-                setOpponentCode(draftBet);
+                setOpponentCodeAndName(draftBet);
                 userService.setChatStatus(user, ChatStatus.WAIT_DEFINITION);
 
                 // Заполняем поле ENTER_CODE
@@ -101,7 +106,7 @@ public class DraftBetService {
                 botService.edit(editMessageText);
 
                 replyMessage.setText("Введите суть спора");
-                int tgMessageId = botService.send(replyMessage);
+                int tgMessageId = botService.sendAndDelete(replyMessage);
                 botMessageService.save(botMessageBuilder.setType(BotMessageType.ENTER_DEFINITION)
                         .setDraftBet(draftBet).setTgMessageId(tgMessageId).build());
             }
@@ -119,7 +124,7 @@ public class DraftBetService {
             botService.edit(editMessageText);
 
             replyMessage.setText("Введите вознаграждение");
-            int tgMessageId = botService.send(replyMessage);
+            int tgMessageId = botService.sendAndDelete(replyMessage);
             botMessageService.save(botMessageBuilder.setType(BotMessageType.ENTER_WAGER)
                     .setDraftBet(draftBet).setTgMessageId(tgMessageId).build());
 
@@ -136,7 +141,7 @@ public class DraftBetService {
             botService.edit(editMessageText);
 
             replyMessage.setText("Введите количество дней до завершения спора");
-            int tgMessageId = botService.send(replyMessage);
+            int tgMessageId = botService.sendAndDelete(replyMessage);
             botMessageService.save(botMessageBuilder.setType(BotMessageType.ENTER_FINISH_DATE)
                     .setDraftBet(draftBet).setTgMessageId(tgMessageId).build());
 
@@ -162,10 +167,10 @@ public class DraftBetService {
 
                 replyMessage.setText("Новый спор:\n" + prettyPrinter.printDraftBet(draftBet) + "\nПодтверждаете?");
                 replyMessage.setReplyMarkup(Buttons.approveDraftBetButtons(draftBet.getId()));
-                botService.send(replyMessage);
+                botService.sendAndDelete(replyMessage);
             } catch (NumberFormatException e) {
                 replyMessage.setText("Введите количество дней до завершения спора. Это должно быть натуральное число не более 25000");
-                int tgMessageId = botService.send(replyMessage);
+                int tgMessageId = botService.sendAndDelete(replyMessage);
                 botMessageService.save(botMessageBuilder.setType(BotMessageType.WRONG_FINISH_DATE)
                         .setDraftBet(draftBet).setTgMessageId(tgMessageId).build());
             }
@@ -181,18 +186,23 @@ public class DraftBetService {
 
     public void setOpponentName(DraftBet draftBet) {
         log.info("Сохраняем имя оппонента в черновике запроса \n{}", draftBet.toString());
-        grpcStub.setOpponentName(draftBet);
+        ResponseDraftBet response = grpcStub.setOpponentName(draftBet);
+        if (!response.getStatus().equals(Status.SUCCESS)) {
+            log.error("Получена ошибка при попытке сохранить имя оппонента в черновике запроса с id: {}", draftBet.getId());
+        }
+
     }
 
-
-    public void setOpponentCode(DraftBet draftBet) {
-        log.info("Сохраняем код оппонента в черновике запроса \n{}", draftBet.toString());
-        grpcStub.setOpponentCode(draftBet);
+    public void setOpponentCodeAndName(DraftBet draftBet) {
+        ResponseDraftBet response = grpcStub.setOpponentCode(draftBet);
+        if (!response.getStatus().equals(Status.SUCCESS)) {
+            log.error("Получена ошибка при попытке сохранить код оппонента в черновике запроса с id: {}", draftBet.getId());
+        }
     }
 
     public DraftBet setDefinition(DraftBet draftBet) {
         log.info("Сохраняем суть в черновике запроса \n{}", draftBet.toString());
-        ResponseDraftBet response =  grpcStub.setDefinition(draftBet);
+        ResponseDraftBet response = grpcStub.setDefinition(draftBet);
         if (response.getStatus().equals(Status.SUCCESS)) {
             return response.getDraftBet();
         }
@@ -201,7 +211,10 @@ public class DraftBetService {
 
     public void setWager(DraftBet draftBet) {
         log.info("Сохраняем вознаграждение в черновике запроса \n{}", draftBet.toString());
-        grpcStub.setWager(draftBet);
+        ResponseDraftBet response = grpcStub.setWager(draftBet);
+        if (!response.getStatus().equals(Status.SUCCESS)) {
+            log.error("Получена ошибка при попытке сохранить вознаграждение в черновике запроса с id: {}", draftBet.getId());
+        }
     }
 
     public DraftBet setDaysToFinish(DraftBet draftBet) {
@@ -210,7 +223,10 @@ public class DraftBetService {
     }
 
     public void delete(DraftBet draftBet) {
-        grpcStub.deleteDraftBet(draftBet);
+        ResponseDraftBet response = grpcStub.deleteDraftBet(draftBet);
+        if (!response.getStatus().equals(Status.SUCCESS)) {
+            log.error("Получена ошибка при попытке удалить черновик запроса с id: {}", draftBet.getId());
+        }
     }
 
     public DraftBet getByIdAndUser(Long id, User user) {
@@ -218,7 +234,9 @@ public class DraftBetService {
         ResponseDraftBet response = grpcStub.getDraftBet(protoDraft);
         if (response.getStatus().equals(Status.SUCCESS)) {
             return response.getDraftBet();
+        } else {
+            log.error("Получена ошибка при попытке получить черновик с id: {}", id);
+            return null;
         }
-        return null;
     }
 }

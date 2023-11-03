@@ -1,4 +1,4 @@
-package ru.gafarov.betservice.telegram.bot.actions;
+package ru.gafarov.betservice.telegram.bot.service.draftBet;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,13 +11,10 @@ import ru.gafarov.betservice.telegram.bot.components.Buttons;
 import ru.gafarov.betservice.telegram.bot.prettyPrint.PrettyPrinter;
 import ru.gafarov.betservice.telegram.bot.service.*;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class ApproveDraftBetAction implements Action {
+public class ApproveDraftBetService {
 
     private final UserService userService;
     private final BetService betService;
@@ -26,18 +23,13 @@ public class ApproveDraftBetAction implements Action {
     private final BotService botService;
     private final BotMessageService botMessageService;
 
-    @Override
-    public List<BetSendMessage> handle(Update update) {
-        return null;
-    }
-
-    @Override
-    public List<BetSendMessage> callback(Update update) {
+    // /draftBet/{id}/approve/(ok|cancel)
+    public void approveOrCancelDraft(Update update) {
         long chatId = update.getCallbackQuery().getFrom().getId();
         Proto.User user = userService.getUser(chatId);
         if (Proto.ChatStatus.WAIT_APPROVE.equals(user.getChatStatus())) {
             String[] command = update.getCallbackQuery().getData().split("/");
-            Proto.DraftBet draftBet = draftBetService.getByIdAndUser(Long.valueOf(command[3]), user);
+            Proto.DraftBet draftBet = draftBetService.getByIdAndUser(Long.valueOf(command[2]), user);
             log.info("Подготовленный спор: {}", draftBet);
 
             botService.delete(update);
@@ -45,7 +37,7 @@ public class ApproveDraftBetAction implements Action {
             draftBetService.delete(draftBet);
             botMessageService.delete(draftBet, user);
 
-            switch (command[2]) {
+            switch (command[4]) {
                 case "ok":
                     Proto.Bet bet = betService.addBet(draftBet, user);
 
@@ -61,8 +53,8 @@ public class ApproveDraftBetAction implements Action {
                     msgDeliveryToInitiator.setParseMode(ParseMode.HTML);
                     msgDeliveryToInitiator.setDelTime(10_000);
 
-                    botService.send(offerToOpponent);
-                    botService.send(msgDeliveryToInitiator);
+                    botService.sendAndDelete(offerToOpponent);
+                    botService.sendAndDelete(msgDeliveryToInitiator);
                     break;
 
                 case "cancel":
@@ -71,10 +63,9 @@ public class ApproveDraftBetAction implements Action {
                     msgToInitiator.setParseMode(ParseMode.HTML);
                     msgToInitiator.setDelTime(10_000);
 
-                    botService.send(msgToInitiator);
+                    botService.sendAndDelete(msgToInitiator);
                     break;
             }
         }
-        return new ArrayList<>();
     }
 }

@@ -6,10 +6,7 @@ import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.stereotype.Component;
 import ru.gafarov.bet.grpcInterface.BetServiceGrpc;
 import ru.gafarov.bet.grpcInterface.Proto;
-import ru.gafarov.betservice.service.BetService;
-import ru.gafarov.betservice.service.BotMessageService;
-import ru.gafarov.betservice.service.DraftBetService;
-import ru.gafarov.betservice.service.UserService;
+import ru.gafarov.betservice.service.*;
 
 @Component
 @GrpcService
@@ -20,9 +17,10 @@ public class GrpcRequestHandler extends BetServiceGrpc.BetServiceImplBase {
     private final BetService betService;
     private final DraftBetService draftBetService;
     private final BotMessageService botMessageService;
+    private final SubscribeService subscribeService;
 
     @Override
-    public void addUser(Proto.User request, StreamObserver<Proto.ResponseMessage> responseObserver) {
+    public void addUser(Proto.User request, StreamObserver<Proto.ResponseUser> responseObserver) {
         responseObserver.onNext(userService.saveUser(request));
         responseObserver.onCompleted();
     }
@@ -40,7 +38,7 @@ public class GrpcRequestHandler extends BetServiceGrpc.BetServiceImplBase {
     }
 
     @Override
-    public void getUser(Proto.User request, StreamObserver<Proto.ResponseMessage> responseObserver) {
+    public void getUser(Proto.User request, StreamObserver<Proto.ResponseUser> responseObserver) {
         responseObserver.onNext(userService.getProtoUser(request));
         responseObserver.onCompleted();
     }
@@ -64,7 +62,7 @@ public class GrpcRequestHandler extends BetServiceGrpc.BetServiceImplBase {
 
     @Override
     public void setOpponentCode(Proto.DraftBet request, StreamObserver<Proto.ResponseDraftBet> responseObserver) {
-        responseObserver.onNext(draftBetService.setOpponentCode(request));
+        responseObserver.onNext(draftBetService.setOpponentCodeAndName(request));
         responseObserver.onCompleted();
     }
 
@@ -131,6 +129,30 @@ public class GrpcRequestHandler extends BetServiceGrpc.BetServiceImplBase {
     @Override
     public void getDraftBet(Proto.DraftBet request, StreamObserver<Proto.ResponseDraftBet> responseObserver) {
         responseObserver.onNext(draftBetService.getDraftBet(request));
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void findFriend(Proto.Subscribe request, StreamObserver<Proto.ResponseUser> responseObserver) {
+        responseObserver.onNext(userService.findFriend(request));
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void getFriends(Proto.User request, StreamObserver<Proto.ResponseUser> responseObserver) {
+        responseObserver.onNext(userService.getFriends(request));
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void deleteBotMessages(Proto.BotMessages request, StreamObserver<Proto.ResponseBotMessage> responseObserver) {
+        responseObserver.onNext(botMessageService.delete(request));
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void addSubscribe(Proto.Subscribe request, StreamObserver<Proto.Response> responseObserver) {
+        responseObserver.onNext(subscribeService.addSubscribe(request));
         responseObserver.onCompleted();
     }
 }
