@@ -13,7 +13,7 @@ import ru.gafarov.bet.grpcInterface.Proto.*;
 public class BotMessageService {
 
     private final BetServiceGrpc.BetServiceBlockingStub grpcStub;
-    private final BotService botService;
+    private final DeleteMessageService deleteMessageService;
 
     public void save(BotMessage botMessage) {
         ResponseMessage response = grpcStub.saveBotMessage(botMessage);
@@ -39,7 +39,7 @@ public class BotMessageService {
                 DeleteMessage deleteMessage = new DeleteMessage();
                 deleteMessage.setMessageId(a.getTgMessageId());
                 deleteMessage.setChatId(user.getChatId());
-                botService.deleteAsync(deleteMessage, 0);
+                deleteMessageService.deleteAsync(deleteMessage, 0);
             });
             ResponseBotMessage responseBotMessage = grpcStub.deleteBotMessages(BotMessages.newBuilder()
                     .addAllBotMessage(response.getBotMessagesList()).build());

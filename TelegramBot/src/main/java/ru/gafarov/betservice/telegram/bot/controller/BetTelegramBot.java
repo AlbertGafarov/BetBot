@@ -13,7 +13,7 @@ import ru.gafarov.betservice.telegram.bot.actions.Action;
 import ru.gafarov.betservice.telegram.bot.components.BetCommands;
 import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
 import ru.gafarov.betservice.telegram.bot.config.ConfigMap;
-import ru.gafarov.betservice.telegram.bot.service.BotService;
+import ru.gafarov.betservice.telegram.bot.service.DeleteMessageService;
 import ru.gafarov.betservice.telegram.bot.service.draftBet.DraftBetService;
 
 import javax.annotation.PostConstruct;
@@ -32,7 +32,7 @@ public class BetTelegramBot extends TelegramLongPollingBot {
     private final ConfigMap configMap;
     private final BetCommands betCommands;
     private final DraftBetService draftBetService;
-    private final BotService botService;
+    private final DeleteMessageService deleteMessageService;
 
     @Override
     public void onUpdateReceived(Update update) {
@@ -70,7 +70,7 @@ public class BetTelegramBot extends TelegramLongPollingBot {
                     DeleteMessage deleteMessage = new DeleteMessage();
                     deleteMessage.setMessageId(id);
                     deleteMessage.setChatId(sendMessage.getChatId());
-                    botService.deleteAsync(deleteMessage, sendMessage.getDelTime());
+                    deleteMessageService.deleteAsync(deleteMessage, sendMessage.getDelTime());
                 }
                 Thread.sleep(WAIT_NEXT_MESSAGE_MS);
             }

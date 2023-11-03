@@ -137,6 +137,7 @@ enum BotMessageType {
   MY_REFERENCE_INFO = 11;
   ADD_OPPONENT = 12;
   REDUNDANT_OPPONENT = 13;
+  FRIEND_LIST = 14;
 }
 
 service BetService {

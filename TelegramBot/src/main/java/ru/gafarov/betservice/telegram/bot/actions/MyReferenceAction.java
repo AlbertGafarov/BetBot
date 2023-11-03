@@ -27,15 +27,16 @@ public class MyReferenceAction implements Action {
         Proto.User user = userService.getUser(chatId);
         BetSendMessage sendInfoMessage = new BetSendMessage(chatId);
         sendInfoMessage.setText("Перешлите следующее сообщение вашему собеседнику, чтобы он переслал его в Бот:");
+        sendInfoMessage.setDelTime(60_000);
 
         botMessageService.save(Proto.BotMessage.newBuilder().setTgMessageId(botService.send(sendInfoMessage))
                 .setType(Proto.BotMessageType.MY_REFERENCE_INFO).setUser(user).build());
 
-        String text = "/addMe/"+ user.getUsername() + "/" + user.getCode() + "/\n<i>\"Перешлите это сообщение в Бот," +
-                " чтобы добавить " + user.getUsername() + "\"</i>";
         BetSendMessage sendMessage = new BetSendMessage(chatId);
-        sendMessage.setText(text);
+        sendMessage.setText("/addMe/"+ user.getUsername() + "/" + user.getCode() + "/\n<i>\"Перешлите это сообщение в Бот," +
+                " чтобы добавить " + user.getUsername() + "\"</i>");
         sendMessage.setParseMode(ParseMode.HTML);
+        sendMessage.setDelTime(60_000);
 
         botMessageService.save(Proto.BotMessage.newBuilder().setTgMessageId(botService.send(sendMessage))
                 .setType(Proto.BotMessageType.MY_REFERENCE).setUser(user).build());

@@ -3,7 +3,6 @@ package ru.gafarov.betservice.telegram.bot.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup;
@@ -21,21 +20,7 @@ public class BotService {
     @Lazy
     private final BetTelegramBot bot;
     private final BotMessageService botMessageService;
-
-    @Async("deleteMessageExecutor")
-    public void deleteAsync(DeleteMessage deleteMessage, long sleep) {
-        try {
-            log.info("запущен таймер");
-            Thread.sleep(sleep);
-            log.info("завершен таймер");
-            if (!botMessageService.isDeleted(deleteMessage.getMessageId())) {
-                bot.execute(deleteMessage);
-                botMessageService.markDeleted(deleteMessage);
-            }
-        } catch (TelegramApiException | InterruptedException e) {
-            log.error(e.getLocalizedMessage());
-        }
-    }
+    private final DeleteMessageService deleteMessageService;
 
     public int sendAndDelete(BetSendMessage sendMessage) {
         int id = 0;
@@ -48,7 +33,7 @@ public class BotService {
             DeleteMessage deleteMessage = new DeleteMessage();
             deleteMessage.setMessageId(id);
             deleteMessage.setChatId(sendMessage.getChatId());
-            deleteAsync(deleteMessage, sendMessage.getDelTime());
+            deleteMessageService.deleteAsync(deleteMessage, sendMessage.getDelTime());
         }
         return id;
     }

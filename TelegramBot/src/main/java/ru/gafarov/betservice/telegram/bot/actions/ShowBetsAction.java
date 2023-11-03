@@ -2,7 +2,6 @@ package ru.gafarov.betservice.telegram.bot.actions;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
@@ -10,12 +9,8 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.gafarov.bet.grpcInterface.Proto.*;
 import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
 import ru.gafarov.betservice.telegram.bot.components.Buttons;
-import ru.gafarov.betservice.telegram.bot.controller.BetTelegramBot;
 import ru.gafarov.betservice.telegram.bot.prettyPrint.PrettyPrinter;
-import ru.gafarov.betservice.telegram.bot.service.BetService;
-import ru.gafarov.betservice.telegram.bot.service.BotMessageService;
-import ru.gafarov.betservice.telegram.bot.service.BotService;
-import ru.gafarov.betservice.telegram.bot.service.UserService;
+import ru.gafarov.betservice.telegram.bot.service.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -28,17 +23,15 @@ import static ru.gafarov.betservice.telegram.bot.controller.BetTelegramBot.WAIT_
 
 @Slf4j
 @Component
-@RequiredArgsConstructor(onConstructor_ = {@Lazy})
+@RequiredArgsConstructor
 public class ShowBetsAction implements Action {
 
     private final UserService userService;
     private final BetService betService;
     private final PrettyPrinter prettyPrinter;
     private final BotService botService;
+    private final DeleteMessageService deleteMessageService;
     private final BotMessageService botMessageService;
-
-    @Lazy
-    private final BetTelegramBot bot;
 
     @Override
     public List<BetSendMessage> handle(Update update) {
@@ -80,7 +73,7 @@ public class ShowBetsAction implements Action {
                     DeleteMessage deleteMessage = new DeleteMessage();
                     deleteMessage.setMessageId(tgMessageId);
                     deleteMessage.setChatId(sendMessage.getChatId());
-                    botService.deleteAsync(deleteMessage, sendMessage.getDelTime());
+                    deleteMessageService.deleteAsync(deleteMessage, sendMessage.getDelTime());
                 }
                 try {
                     Thread.sleep(WAIT_NEXT_MESSAGE_MS);
@@ -91,8 +84,7 @@ public class ShowBetsAction implements Action {
         }
 
         //Удаление вызывающей команды
-        DeleteMessage deleteMessage = new DeleteMessage(String.valueOf(chatId), update.getMessage().getMessageId());
-        bot.delete(deleteMessage);
+        botService.delete(update);
         return new ArrayList<>();
     }
 

@@ -36,7 +36,7 @@ public class Buttons {
         List<InlineKeyboardButton> rowInline = List.of(OK_BUTTON, CANCEL_BUTTON);
         List<InlineKeyboardButton> secondRowInline = new ArrayList<>() {{
             InlineKeyboardButton closeButton = new InlineKeyboardButton("✖");
-            closeButton.setCallbackData("/closeBet");
+            closeButton.setCallbackData("/close");
             add(closeButton);
         }};
         List<List<InlineKeyboardButton>> rowsInLine = List.of(rowInline,secondRowInline);
@@ -57,7 +57,7 @@ public class Buttons {
             InlineKeyboardButton pauseButton = new InlineKeyboardButton("⬇");
             pauseButton.setCallbackData("/showBet/" + id);
             InlineKeyboardButton closeButton = new InlineKeyboardButton("✖");
-            closeButton.setCallbackData("/closeBet");
+            closeButton.setCallbackData("/close");
             add(pauseButton);
             add(closeButton);
         }};

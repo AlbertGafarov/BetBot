@@ -11,7 +11,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class CloseBetAction implements Action {
+public class CloseAction implements Action {
 
     private final BotService botService;
 

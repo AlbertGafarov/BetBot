@@ -1,0 +1,33 @@
+package ru.gafarov.betservice.telegram.bot.service;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import ru.gafarov.betservice.telegram.bot.controller.BetTelegramBot;
+
+@Slf4j
+@Component
+@RequiredArgsConstructor(onConstructor_ = {@Lazy})
+public class DeleteMessageService {
+
+    @Lazy
+    private final BetTelegramBot bot;
+    private final BotMessageService botMessageService;
+
+    @Async("deleteMessageExecutor")
+    public void deleteAsync(DeleteMessage deleteMessage, long sleep) {
+        try {
+            Thread.sleep(sleep);
+            if (!botMessageService.isDeleted(deleteMessage.getMessageId())) {
+                bot.execute(deleteMessage);
+                botMessageService.markDeleted(deleteMessage);
+            }
+        } catch (TelegramApiException | InterruptedException e) {
+            log.error(e.getLocalizedMessage());
+        }
+    }
+}

@@ -31,6 +31,7 @@ public class DraftAction implements Action {
     private final UserService userService;
     private final PrettyPrinter prettyPrinter;
     private final BotService botService;
+    private final DeleteMessageService deleteMessageService;
     private final BotMessageService botMessageService;
     private final ApproveDraftBetService approveDraftBetService;
     private final DraftBetService draftBetService;
@@ -56,7 +57,7 @@ public class DraftAction implements Action {
         DeleteMessage deleteMessage = new DeleteMessage();
         deleteMessage.setChatId(chatId);
         deleteMessage.setMessageId(messageId);
-        botService.deleteAsync(deleteMessage, 0);
+        deleteMessageService.deleteAsync(deleteMessage, 0);
 
         return List.of(sendMessage);
     }
