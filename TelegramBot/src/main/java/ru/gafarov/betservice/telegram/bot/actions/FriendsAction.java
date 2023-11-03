@@ -37,7 +37,7 @@ public class FriendsAction implements Action {
 
         List<List<InlineKeyboardButton>> buttons = friends.stream().map(a -> {
             InlineKeyboardButton nameButton = new InlineKeyboardButton(a.getUsername() + " " + a.getCode());
-            nameButton.setCallbackData("ss");
+            nameButton.setCallbackData("/nothing");
             InlineKeyboardButton deleteButton = new InlineKeyboardButton("🗑");
             deleteButton.setCallbackData("/friends/delete/" + a.getId());
             return List.of(nameButton, deleteButton);
@@ -52,6 +52,7 @@ public class FriendsAction implements Action {
 
         botMessageService.save(BotMessage.newBuilder().setTgMessageId(botService.send(friendListMessage))
                 .setType(BotMessageType.FRIEND_LIST).setUser(user).build());
+        botService.delete(update);
         return new ArrayList<>();
     }
 

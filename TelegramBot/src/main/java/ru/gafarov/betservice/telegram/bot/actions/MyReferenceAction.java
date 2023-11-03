@@ -40,6 +40,7 @@ public class MyReferenceAction implements Action {
 
         botMessageService.save(Proto.BotMessage.newBuilder().setTgMessageId(botService.send(sendMessage))
                 .setType(Proto.BotMessageType.MY_REFERENCE).setUser(user).build());
+        botService.delete(update);
         return new ArrayList<>();
     }
 

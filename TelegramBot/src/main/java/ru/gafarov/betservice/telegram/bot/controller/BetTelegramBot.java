@@ -41,7 +41,7 @@ public class BetTelegramBot extends TelegramLongPollingBot {
 
             log.info("text: {}", update.getMessage().getText());
             String[] commands = update.getMessage().getText().split("/");
-            if (actions.containsKey("/" + commands[1])) {
+            if (commands.length > 1 && actions.containsKey("/" + commands[1])) {
                 log.info("Команда {} найдена", "/" + commands[1]);
                 List<BetSendMessage> sendMessages = actions.get("/" + commands[1]).handle(update);
                 send(sendMessages);
