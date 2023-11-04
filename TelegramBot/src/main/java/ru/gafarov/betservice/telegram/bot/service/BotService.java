@@ -9,6 +9,7 @@ import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageRe
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import ru.gafarov.bet.grpcInterface.Proto.*;
 import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
 import ru.gafarov.betservice.telegram.bot.controller.BetTelegramBot;
 
@@ -19,8 +20,8 @@ public class BotService {
 
     @Lazy
     private final BetTelegramBot bot;
-    private final BotMessageService botMessageService;
     private final DeleteMessageService deleteMessageService;
+    private final BotMessageService botMessageService;
 
     public int sendAndDelete(BetSendMessage sendMessage) {
         int id = 0;
@@ -47,28 +48,60 @@ public class BotService {
         }
     }
 
-    public void delete(Update update) {
-        long chatId = 0;
-        int messageId = 0;
-        if (update.hasMessage()) {
-            chatId = update.getMessage().getChatId();
-            messageId = update.getMessage().getMessageId();
-        } else if (update.hasCallbackQuery()) {
-            chatId = update.getCallbackQuery().getFrom().getId();
-            messageId = update.getCallbackQuery().getMessage().getMessageId();
+    public void sendAndSave(BetSendMessage sendMessage, User user, BotMessageType botMessageType) {
+        try {
+            int id = bot.execute(sendMessage).getMessageId();
+            botMessageService.save(BotMessage.newBuilder().setTgMessageId(id)
+                    .setType(botMessageType).setUser(user).build());
+            if (sendMessage.getDelTime() > 0) {
+                DeleteMessage deleteMessage = new DeleteMessage();
+                deleteMessage.setMessageId(id);
+                deleteMessage.setChatId(sendMessage.getChatId());
+                deleteMessageService.deleteAsync(deleteMessage, sendMessage.getDelTime());
+            }
+        } catch (TelegramApiException e) {
+            log.error(e.getLocalizedMessage());
         }
+    }
+
+    public void sendAndSave(BetSendMessage sendMessage, User user, BotMessageType botMessageType, DraftBet draftBet) {
+        try {
+            int id = bot.execute(sendMessage).getMessageId();
+            botMessageService.save(BotMessage.newBuilder().setTgMessageId(id)
+                    .setType(botMessageType).setUser(user).setDraftBet(draftBet).build());
+            if (sendMessage.getDelTime() > 0) {
+                DeleteMessage deleteMessage = new DeleteMessage();
+                deleteMessage.setMessageId(id);
+                deleteMessage.setChatId(sendMessage.getChatId());
+                deleteMessageService.deleteAsync(deleteMessage, sendMessage.getDelTime());
+            }
+        } catch (TelegramApiException e) {
+            log.error(e.getLocalizedMessage());
+        }
+    }
+
+    public void delete(Update update) {
         DeleteMessage deleteMessage = new DeleteMessage();
-        deleteMessage.setChatId(chatId);
-        deleteMessage.setMessageId(messageId);
-        bot.delete(deleteMessage);
-        botMessageService.markDeleted(deleteMessage);
+        if (update.hasMessage()) {
+            deleteMessage.setChatId(update.getMessage().getChatId());
+            deleteMessage.setMessageId(update.getMessage().getMessageId());
+            if (update.getMessage().getFrom().getIsBot()) {
+                deleteMessageService.deleteSync(deleteMessage);
+            } else {
+                deleteMessageService.deleteUserMessageSync(deleteMessage);
+            }
+        } else if (update.hasCallbackQuery()) {
+            deleteMessage.setChatId(update.getCallbackQuery().getFrom().getId());
+            deleteMessage.setMessageId(update.getCallbackQuery().getMessage().getMessageId());
+            deleteMessageService.deleteSync(deleteMessage);
+        }
     }
 
     public void edit(EditMessageText editMessageText) {
         try {
             bot.execute(editMessageText);
         } catch (TelegramApiException e) {
-            log.error(e.getLocalizedMessage());
+            e.printStackTrace();
         }
     }
 
@@ -76,7 +109,7 @@ public class BotService {
         try {
             bot.execute(editMessageReplyMarkup);
         } catch (TelegramApiException e) {
-            log.error(e.getLocalizedMessage());
+            e.printStackTrace();
         }
     }
 }

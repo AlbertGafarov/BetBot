@@ -49,6 +49,7 @@ public class BetCommands {
             put("/reference", myReferenceAction);
             put("/addMe", addMeAction);
             put("/friends", friendsAction);
+            put("friends", friendsAction);
             put("code", codeAction);
             put("draftBet", draftAction);
             put("newStatus", newStatusBetAction);

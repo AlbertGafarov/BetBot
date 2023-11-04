@@ -9,4 +9,6 @@ public interface SubscribeService {
     void checkAndPutForOpponent(Bet bet);
 
     Proto.Response addSubscribe(Proto.Subscribe request);
+
+    Proto.Response delete(Proto.Subscribe request);
 }

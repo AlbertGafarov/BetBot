@@ -4,18 +4,18 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import ru.gafarov.bet.grpcInterface.Proto.*;
-import ru.gafarov.betservice.telegram.bot.components.BetEditMessageReplyMarkup;
 import ru.gafarov.betservice.telegram.bot.components.BetEditMessageText;
 import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
 import ru.gafarov.betservice.telegram.bot.components.Buttons;
 import ru.gafarov.betservice.telegram.bot.prettyPrint.PrettyPrinter;
-import ru.gafarov.betservice.telegram.bot.service.*;
+import ru.gafarov.betservice.telegram.bot.service.BotMessageService;
+import ru.gafarov.betservice.telegram.bot.service.BotService;
+import ru.gafarov.betservice.telegram.bot.service.UserService;
 import ru.gafarov.betservice.telegram.bot.service.draftBet.ApproveDraftBetService;
 import ru.gafarov.betservice.telegram.bot.service.draftBet.DraftBetService;
 
@@ -31,7 +31,6 @@ public class DraftAction implements Action {
     private final UserService userService;
     private final PrettyPrinter prettyPrinter;
     private final BotService botService;
-    private final DeleteMessageService deleteMessageService;
     private final BotMessageService botMessageService;
     private final ApproveDraftBetService approveDraftBetService;
     private final DraftBetService draftBetService;
@@ -41,6 +40,8 @@ public class DraftAction implements Action {
         long chatId = update.getMessage().getChatId();
         User user = userService.getUser(chatId);
         BetSendMessage sendMessage = new BetSendMessage(chatId);
+
+        // /draft
         if (ChatStatus.WAIT_APPROVE.equals(user.getChatStatus())) {
             DraftBet draftBet = userService.getLastDraftBet(user).toBuilder().build();
             String stringBuilder = "Новый спор:\n" + prettyPrinter.printDraftBet(draftBet) +
@@ -52,14 +53,11 @@ public class DraftAction implements Action {
             sendMessage.setText("У вас нет черновиков спора");
             sendMessage.setDelTime(5000);
         }
-        // Удаление сообщения у того кто нажал
-        int messageId = update.getMessage().getMessageId();
-        DeleteMessage deleteMessage = new DeleteMessage();
-        deleteMessage.setChatId(chatId);
-        deleteMessage.setMessageId(messageId);
-        deleteMessageService.deleteAsync(deleteMessage, 0);
+        botService.send(sendMessage);
 
-        return List.of(sendMessage);
+        // Удаление сообщения у того кто нажал
+        botService.delete(update);
+        return new ArrayList<>();
     }
 
     @Override
@@ -90,10 +88,7 @@ public class DraftAction implements Action {
             int messageId = update.getCallbackQuery().getMessage().getMessageId();
             BetEditMessageText editMessageText = new BetEditMessageText(chatId, messageId);
             editMessageText.setText("Выбра(н/на): " + opponent.getUsername() + " " + opponent.getCode());
-            BetEditMessageReplyMarkup editMessageReplyMarkup = new BetEditMessageReplyMarkup(chatId, messageId);
-            editMessageReplyMarkup.setReplyMarkup(null);
             botService.edit(editMessageText);
-            botService.edit(editMessageReplyMarkup);
 
             replyMessage.setText("Введите суть спора");
             int tgMessageId = botService.send(replyMessage);
@@ -102,7 +97,6 @@ public class DraftAction implements Action {
 
             // /draftBet/{id}/showMyFriends
         } else if ("showMyFriends".equals(command[3])) {
-
 
             BetSendMessage sendMessage = new BetSendMessage(chatId);
 
@@ -121,7 +115,7 @@ public class DraftAction implements Action {
                 sendMessage.setReplyMarkup(friendButtons);
 
                 //Деактивируем кнопку
-                EditMessageReplyMarkup editMessageReplyMarkup = new EditMessageReplyMarkup(); // Сообщение для редактирования
+                EditMessageReplyMarkup editMessageReplyMarkup = new EditMessageReplyMarkup();
                 editMessageReplyMarkup.setChatId(chatId);
                 editMessageReplyMarkup.setMessageId(botMessageService.getId(botMessageBuilder.setType(BotMessageType.ENTER_USERNAME)
                         .setDraftBet(DraftBet.newBuilder().setId(Integer.parseInt(command[2])).build()).build()));

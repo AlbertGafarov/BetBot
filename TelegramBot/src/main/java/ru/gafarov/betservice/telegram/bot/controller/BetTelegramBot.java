@@ -39,23 +39,21 @@ public class BetTelegramBot extends TelegramLongPollingBot {
         Map<String, Action> actions = betCommands.getActions();
         if (update.hasMessage()) {
 
-            log.info("text: {}", update.getMessage().getText());
-            String[] commands = update.getMessage().getText().split("/");
-            if (commands.length > 1 && actions.containsKey("/" + commands[1])) {
-                log.info("Команда {} найдена", "/" + commands[1]);
-                List<BetSendMessage> sendMessages = actions.get("/" + commands[1]).handle(update);
+            String[] command = update.getMessage().getText().split("/");
+            log.info("Получено сообщение от {}. Разбито на части: {}", update.getMessage().getFrom().getId(), Arrays.toString(command));
+            if (command.length > 1 && actions.containsKey("/" + command[1])) {
+                log.debug("Команда {} найдена", "/" + command[1]);
+                List<BetSendMessage> sendMessages = actions.get("/" + command[1]).handle(update);
                 send(sendMessages);
             } else {
                 draftBetService.createDraft(update);
             }
 
         } else if (update.hasCallbackQuery()) {
-            long chatId = update.getCallbackQuery().getFrom().getId();
-            log.info("Получена команда от {}: {}", chatId, update.getCallbackQuery().getData());
             String[] command = update.getCallbackQuery().getData().split("/");
-            log.info("Команда разбита на части: {}", Arrays.toString(command));
-            log.info("command[1] {}", command[1]);
-            if (actions.containsKey(command[1])) {
+            log.info("Получена команда от {}. Разбита на части: {}", update.getCallbackQuery().getFrom().getId(), Arrays.toString(command));
+            if (command.length > 1 && actions.containsKey(command[1])) {
+                log.debug("Команда {} найдена", "/" + command[1]);
                 List<BetSendMessage> sendMessages = actions.get(command[1]).callback(update);
                 send(sendMessages);
             }
@@ -66,7 +64,7 @@ public class BetTelegramBot extends TelegramLongPollingBot {
         try {
             for (BetSendMessage sendMessage : sendMessages) {
                 int id = execute(sendMessage).getMessageId();
-                if(sendMessage.getDelTime() > 0) {
+                if (sendMessage.getDelTime() > 0) {
                     DeleteMessage deleteMessage = new DeleteMessage();
                     deleteMessage.setMessageId(id);
                     deleteMessage.setChatId(sendMessage.getChatId());
@@ -79,15 +77,12 @@ public class BetTelegramBot extends TelegramLongPollingBot {
         }
     }
 
-    public void delete(DeleteMessage deleteMessage) {
-        try {
+    public void delete(DeleteMessage deleteMessage) throws TelegramApiException {
             execute(deleteMessage);
-        } catch (TelegramApiException e) {
-            log.error(e.getLocalizedMessage());
-        }
     }
+
     @PostConstruct
-    private void setBetCommands(){
+    private void setBetCommands() {
         try {
             this.execute(new SetMyCommands(betCommands.getBotCommandList(), new BotCommandScopeDefault(), null));
         } catch (TelegramApiException e) {

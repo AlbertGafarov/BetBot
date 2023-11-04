@@ -24,10 +24,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
             "where s.subscriber_id = ?1 and u.chat_id = ?2", nativeQuery = true)
     Optional<User> findFriend(long id, long chatId);
 
-    @Query(value = "select u.* from betbot.subscribe\n" +
-            "join betbot.users u on subscriber_id = u.id\n" +
-            "where subscribed_id = ?1 \n" +
-            "and subscriber_id in (select subscribed_id from betbot.subscribe \n" +
-            "where subscriber_id = ?1)", nativeQuery = true)
+    @Query(value = "select u.* from betbot.subscribe s\n" +
+            "join betbot.users u on s.subscriber_id = u.id\n" +
+            "where s.subscribed_id = ?1\n" +
+            "and s.status = 'ACTIVE'\n" +
+            "and s.subscriber_id in (select subscribed_id from betbot.subscribe\n" +
+            "where subscriber_id = ?1 and status = 'ACTIVE')", nativeQuery = true)
     List<User> getFriends(long id);
 }

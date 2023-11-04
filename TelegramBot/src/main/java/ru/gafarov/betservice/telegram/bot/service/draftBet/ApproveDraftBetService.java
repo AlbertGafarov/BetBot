@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import ru.gafarov.bet.grpcInterface.Proto;
+import ru.gafarov.bet.grpcInterface.Proto.*;
 import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
 import ru.gafarov.betservice.telegram.bot.components.Buttons;
 import ru.gafarov.betservice.telegram.bot.prettyPrint.PrettyPrinter;
@@ -26,20 +26,20 @@ public class ApproveDraftBetService {
     // /draftBet/{id}/approve/(ok|cancel)
     public void approveOrCancelDraft(Update update) {
         long chatId = update.getCallbackQuery().getFrom().getId();
-        Proto.User user = userService.getUser(chatId);
-        if (Proto.ChatStatus.WAIT_APPROVE.equals(user.getChatStatus())) {
+        User user = userService.getUser(chatId);
+        if (ChatStatus.WAIT_APPROVE.equals(user.getChatStatus())) {
             String[] command = update.getCallbackQuery().getData().split("/");
-            Proto.DraftBet draftBet = draftBetService.getByIdAndUser(Long.valueOf(command[2]), user);
-            log.info("Подготовленный спор: {}", draftBet);
+            DraftBet draftBet = draftBetService.getByIdAndUser(Long.valueOf(command[2]), user);
+            log.debug("Подготовленный спор: {}", draftBet);
 
             botService.delete(update);
-            userService.setChatStatus(user, Proto.ChatStatus.START);
+            userService.setChatStatus(user, ChatStatus.START);
             draftBetService.delete(draftBet);
-            botMessageService.delete(draftBet, user);
+            botMessageService.deleteByDraft(draftBet, user);
 
             switch (command[4]) {
                 case "ok":
-                    Proto.Bet bet = betService.addBet(draftBet, user);
+                    Bet bet = betService.addBet(draftBet, user);
 
                     // Предложение оппоненту нового спора
                     BetSendMessage offerToOpponent = new BetSendMessage(bet.getOpponent().getChatId());
@@ -53,8 +53,8 @@ public class ApproveDraftBetService {
                     msgDeliveryToInitiator.setParseMode(ParseMode.HTML);
                     msgDeliveryToInitiator.setDelTime(10_000);
 
-                    botService.sendAndDelete(offerToOpponent);
-                    botService.sendAndDelete(msgDeliveryToInitiator);
+                    botService.sendAndSave(offerToOpponent, bet.getOpponent(), BotMessageType.OFFER_BET);
+                    botService.sendAndSave(msgDeliveryToInitiator, user, BotMessageType.APPROVE_DRAFT);
                     break;
 
                 case "cancel":
@@ -63,7 +63,7 @@ public class ApproveDraftBetService {
                     msgToInitiator.setParseMode(ParseMode.HTML);
                     msgToInitiator.setDelTime(10_000);
 
-                    botService.sendAndDelete(msgToInitiator);
+                    botService.sendAndSave(msgToInitiator, user, BotMessageType.CANCEL_DRAFT, draftBet);
                     break;
             }
         }

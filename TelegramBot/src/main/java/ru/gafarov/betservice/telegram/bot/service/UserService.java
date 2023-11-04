@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import ru.gafarov.bet.grpcInterface.BetServiceGrpc;
 import ru.gafarov.bet.grpcInterface.Proto.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -31,7 +32,7 @@ public class UserService {
 
     public void setChatStatus(User protoUser, ChatStatus chatStatus) {
         protoUser = User.newBuilder(protoUser).setChatStatus(chatStatus).build();
-        log.info("Меняем статус чата: \n{}", protoUser);
+        log.debug("Меняем статус чата: \n{}", protoUser);
         ResponseMessage response = grpcStub.changeChatStatus(protoUser);
         if (!response.getStatus().equals(Status.SUCCESS)) {
             log.error("Получена ошибка при попытке установить статус пользователя");
@@ -71,6 +72,8 @@ public class UserService {
         ResponseUser response = grpcStub.getFriends(user);
         if (response.getStatus().equals(Status.SUCCESS)) {
             return response.getUsersList();
+        } else if (response.getStatus().equals(Status.NOT_FOUND)){
+            return new ArrayList<>();
         }
         log.error("Получена ошибка при попытке получения списка друзей");
         return null;

@@ -79,4 +79,23 @@ public class SubscribeServiceImpl implements SubscribeService {
             return Proto.Response.newBuilder().setStatus(Proto.Status.ERROR).build();
         }
     }
+
+    @Override
+    public Proto.Response delete(Proto.Subscribe protoSubscribe) {
+        try {
+            Optional<Subscribe> optional = subscribeRepository.findBySubscriberIdAndSubscribedId(protoSubscribe.getSubscriber().getId()
+            , protoSubscribe.getSubscribed().getId());
+            if (optional.isPresent()) {
+                Subscribe subscribe = optional.get();
+                subscribe.setStatus(Status.DELETED);
+                subscribeRepository.save(subscribe);
+            return Proto.Response.newBuilder().setStatus(Proto.Status.SUCCESS).build();
+            } else {
+                return Proto.Response.newBuilder().setStatus(Proto.Status.NOT_FOUND).build();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Proto.Response.newBuilder().setStatus(Proto.Status.ERROR).build();
+        }
+    }
 }

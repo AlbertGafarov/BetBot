@@ -9,18 +9,15 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class Buttons {
-    private static final InlineKeyboardButton START_BUTTON = new InlineKeyboardButton("Start");
-    private static final InlineKeyboardButton CODE_BUTTON = new InlineKeyboardButton("Code");
-    private static final InlineKeyboardButton CREATE_BUTTON = new InlineKeyboardButton("Create");
 
-    public static InlineKeyboardMarkup inlineMarkup() {
-        START_BUTTON.setCallbackData("/start");
-        CODE_BUTTON.setCallbackData("/code");
-        CREATE_BUTTON.setCallbackData("/create");
+    public static InlineKeyboardMarkup codeButtons() {
+        InlineKeyboardButton codeButton = new InlineKeyboardButton("Code");
+        codeButton.setCallbackData("/code");
+        InlineKeyboardButton closeButton = new InlineKeyboardButton("✖");
+        closeButton.setCallbackData("/close");
 
-        List<InlineKeyboardButton> rowInline = List.of(CODE_BUTTON);
+        List<InlineKeyboardButton> rowInline = List.of(codeButton, closeButton);
         List<List<InlineKeyboardButton>> rowsInLine = List.of(rowInline);
-
         InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
         markupInline.setKeyboard(rowsInLine);
 
@@ -79,5 +76,21 @@ public class Buttons {
         markupInline.setKeyboard(rowsInLine);
 
         return markupInline;
+    }
+    public static InlineKeyboardMarkup closeButton(){
+        InlineKeyboardButton closeButton = new InlineKeyboardButton("✖");
+        closeButton.setCallbackData("/close");
+        List<List<InlineKeyboardButton>> buttons = new ArrayList<>();
+        buttons.add(List.of(closeButton));
+        InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
+        markupInline.setKeyboard(buttons);
+        return markupInline;
+    }
+    public static void addCloseButton(InlineKeyboardMarkup markupInline){
+
+        List<List<InlineKeyboardButton>> buttons = markupInline.getKeyboard();
+        InlineKeyboardButton closeButton = new InlineKeyboardButton("✖");
+        closeButton.setCallbackData("/close");
+        buttons.add(List.of(closeButton));
     }
 }

@@ -23,4 +23,12 @@ public class SubscribeService {
         }
         return response.getStatus();
     }
+
+    public Status delete(User user, User friend) {
+
+        Subscribe subscribe = Subscribe.newBuilder().setSubscriber(user)
+                .setSubscribed(friend).build();
+        Response response = grpcStub.deleteSubscribe(subscribe);
+        return response.getStatus();
+    }
 }

@@ -3,12 +3,15 @@ package ru.gafarov.betservice.telegram.bot.actions;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import ru.gafarov.bet.grpcInterface.Proto;
+import ru.gafarov.bet.grpcInterface.Proto.BotMessageType;
+import ru.gafarov.bet.grpcInterface.Proto.ChatStatus;
+import ru.gafarov.bet.grpcInterface.Proto.DraftBet;
+import ru.gafarov.bet.grpcInterface.Proto.User;
 import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
 import ru.gafarov.betservice.telegram.bot.service.BotMessageService;
 import ru.gafarov.betservice.telegram.bot.service.BotService;
-import ru.gafarov.betservice.telegram.bot.service.draftBet.DraftBetService;
 import ru.gafarov.betservice.telegram.bot.service.UserService;
+import ru.gafarov.betservice.telegram.bot.service.draftBet.DraftBetService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,25 +30,19 @@ public class CreateAction implements Action {
     @Override
     public List<BetSendMessage> handle(Update update) {
         long chatId = update.getMessage().getChatId();
-        Proto.User user = userService.getUser(chatId);
-        Proto.DraftBet draftBet = Proto.DraftBet.newBuilder()
+        User user = userService.getUser(chatId);
+        DraftBet draftBet = DraftBet.newBuilder()
                 .setInitiator(user).build();
         draftBet = draftBetService.saveDraftBet(draftBet);
-        userService.setChatStatus(user, Proto.ChatStatus.WAIT_OPPONENT_NAME);
+        userService.setChatStatus(user, ChatStatus.WAIT_OPPONENT_NAME);
         BetSendMessage sendMessage = new BetSendMessage(chatId);
         sendMessage.setText("Введите username оппонента");
-        sendMessage.setReplyMarkup(wantChoseFromFriends(draftBet));
-
+        if (!userService.getFriends(user).isEmpty()) {
+            sendMessage.setReplyMarkup(wantChoseFromFriends(draftBet));
+        }
+        botMessageService.deleteWithoutDraft(draftBet, user);
+        botService.sendAndSave(sendMessage, user, BotMessageType.ENTER_USERNAME, draftBet);
         botService.delete(update);
-        int id = botService.send(sendMessage);
-
-        Proto.BotMessage botMessage = Proto.BotMessage.newBuilder()
-                .setType(Proto.BotMessageType.ENTER_USERNAME)
-                .setTgMessageId(id)
-                .setDraftBet(draftBet)
-                .setUser(user)
-                .build();
-        botMessageService.save(botMessage);
         return new ArrayList<>();
     }
 

@@ -129,14 +129,4 @@ public class Converter {
         }
         return builder.build();
     }
-
-    public Subscribe toSubscribe(Proto.Subscribe protoSubscribe) {
-        Subscribe subscribe = new Subscribe();
-        subscribe.setSubscriberId(protoSubscribe.getSubscriber().getId());
-        subscribe.setSubscribedId(protoSubscribe.getSubscribed().getId());
-//        subscribe.setSubscriber(toUser(protoSubscribe.getSubscriber()));
-//        subscribe.setSubscribed(toUser(protoSubscribe.getSubscribed()));
-
-        return subscribe;
-    }
 }

@@ -22,12 +22,35 @@ public class DeleteMessageService {
     public void deleteAsync(DeleteMessage deleteMessage, long sleep) {
         try {
             Thread.sleep(sleep);
-            if (!botMessageService.isDeleted(deleteMessage.getMessageId())) {
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        try {
+            if (botMessageService.isNotDeleted(deleteMessage.getMessageId())) {
                 bot.execute(deleteMessage);
                 botMessageService.markDeleted(deleteMessage);
             }
-        } catch (TelegramApiException | InterruptedException e) {
-            log.error(e.getLocalizedMessage());
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void deleteSync(DeleteMessage deleteMessage) {
+        try {
+            if (botMessageService.isNotDeleted(deleteMessage.getMessageId())) {
+                bot.execute(deleteMessage);
+                botMessageService.markDeleted(deleteMessage);
+            }
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void deleteUserMessageSync(DeleteMessage deleteMessage) {
+        try {
+            bot.execute(deleteMessage);
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
         }
     }
 }

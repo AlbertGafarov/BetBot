@@ -146,6 +146,12 @@ public class GrpcRequestHandler extends BetServiceGrpc.BetServiceImplBase {
 
     @Override
     public void deleteBotMessages(Proto.BotMessages request, StreamObserver<Proto.ResponseBotMessage> responseObserver) {
+        responseObserver.onNext(botMessageService.deleteAll(request));
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void deleteBotMessage(Proto.BotMessage request, StreamObserver<Proto.ResponseBotMessage> responseObserver) {
         responseObserver.onNext(botMessageService.delete(request));
         responseObserver.onCompleted();
     }
@@ -153,6 +159,18 @@ public class GrpcRequestHandler extends BetServiceGrpc.BetServiceImplBase {
     @Override
     public void addSubscribe(Proto.Subscribe request, StreamObserver<Proto.Response> responseObserver) {
         responseObserver.onNext(subscribeService.addSubscribe(request));
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void deleteSubscribe(Proto.Subscribe request, StreamObserver<Proto.Response> responseObserver) {
+        responseObserver.onNext(subscribeService.delete(request));
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void getBotMessagesWithout(Proto.DraftBet draftBet, StreamObserver<Proto.ResponseBotMessage> responseObserver) {
+        responseObserver.onNext(botMessageService.getWithout(draftBet));
         responseObserver.onCompleted();
     }
 }

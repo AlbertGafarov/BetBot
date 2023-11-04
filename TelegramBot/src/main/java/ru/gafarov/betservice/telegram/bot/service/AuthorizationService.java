@@ -9,15 +9,19 @@ import ru.gafarov.bet.grpcInterface.Proto.*;
 import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
 import ru.gafarov.betservice.telegram.bot.components.Buttons;
 
+import static ru.gafarov.betservice.telegram.bot.components.Buttons.closeButton;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class AuthorizationService {
 
     private final BetServiceGrpc.BetServiceBlockingStub grpcStub;
-    public final UserService userService;
+    private final UserService userService;
+    private final BotMessageService botMessageService;
+    private final BotService botService;
 
-    public BetSendMessage authorization(Update update) {
+    public void authorization(Update update) {
         long chatId = update.getMessage().getChatId();
         ResponseUser responseMessage = grpcStub.getUser(User.newBuilder().setChatId(chatId).build());
         if (!responseMessage.hasUser()) {
@@ -37,25 +41,30 @@ public class AuthorizationService {
             if (response.hasUser()) {
                 BetSendMessage sendMessage = new BetSendMessage(chatId);
                 sendMessage.setText("Привет! \nВаш username: " + response.getUser().getUsername() +
-                        "\nВаш код: " + response.getUser().getCode() +
-                        "\nимя и код нужно отправить вашему оппоненту");
-                return sendMessage;
+                        "\nВаш код: " + response.getUser().getCode());
+                sendMessage.setReplyMarkup(closeButton());
+                botService.sendAndSave(sendMessage, response.getUser(), BotMessageType.INFO);
             }
+        } else {
+
+            botMessageService.deleteWithoutDraft(DraftBet.newBuilder().build(), responseMessage.getUser());
         }
         BetSendMessage sendMessage = new BetSendMessage(chatId);
         sendMessage.setText("Привет " + responseMessage.getUser().getUsername() + "!");
         userService.setChatStatus(responseMessage.getUser(), ChatStatus.START);
-        sendMessage.setReplyMarkup(Buttons.inlineMarkup());
-        return sendMessage;
-
+        sendMessage.setReplyMarkup(Buttons.codeButtons());
+        botService.sendAndSave(sendMessage, responseMessage.getUser(), BotMessageType.HELLO);
     }
 
-    public String getCode(long chatId) {
+    public void getCode(long chatId) {
         ResponseUser response = grpcStub.getUser(User.newBuilder().setChatId(chatId).build());
+        BetSendMessage sendMessage = new BetSendMessage(chatId);
         if (response.hasUser()) {
-            return "Ваш код: " + response.getUser().getCode();
+            sendMessage.setText("Ваш код: " + response.getUser().getCode());
+
         } else {
-            return"Вашего кода еще не существует. Нажмите /start";
+            sendMessage.setText("Вашего кода еще не существует. Нажмите /start");
         }
+        botService.sendAndSave(sendMessage, response.getUser(), BotMessageType.CODE);
     }
 }

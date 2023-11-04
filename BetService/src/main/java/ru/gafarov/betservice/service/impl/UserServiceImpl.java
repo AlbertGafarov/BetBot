@@ -92,7 +92,7 @@ public class UserServiceImpl implements UserService {
     public Proto.ResponseUser getFriends(Proto.User protoUser) {
         List<User> friends = userRepository.getFriends(protoUser.getId());
         if (friends.isEmpty()) {
-            log.info("Друзья не найдены");
+            log.debug("Друзья не найдены");
             return Proto.ResponseUser.newBuilder().setStatus(Proto.Status.NOT_FOUND).build();
         }
         return Proto.ResponseUser.newBuilder()

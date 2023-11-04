@@ -67,7 +67,6 @@ public class BotMessageServiceImpl implements BotMessageService {
                 .getByDraftBet(draftBet.getInitiator().getId(), draftBet.getId())
                 .stream().map(converter::toProtoBotMessage).collect(Collectors.toList());
         if (botMessageList.isEmpty()) {
-            log.info(draftBet.toString());
             log.error("Не найдено ни одной записи botMessage по draftBet с id: {}", draftBet.getId());
             return Proto.ResponseBotMessage.newBuilder().addAllBotMessages(botMessageList).setStatus(Proto.Status.ERROR).build();
         }
@@ -75,7 +74,7 @@ public class BotMessageServiceImpl implements BotMessageService {
     }
 
     @Override
-    public Proto.ResponseBotMessage delete(Proto.BotMessages botMessages) {
+    public Proto.ResponseBotMessage deleteAll(Proto.BotMessages botMessages) {
         List<Long> identifications = botMessages.getBotMessageList().stream()
                 .map(Proto.BotMessage::getId).filter(a -> a > 0).collect(Collectors.toList());
         if (!identifications.isEmpty()) {
@@ -87,18 +86,31 @@ public class BotMessageServiceImpl implements BotMessageService {
                 return Proto.ResponseBotMessage.newBuilder().setStatus(Proto.Status.ERROR).build();
             }
         } else {
-            List<Integer> tgIdentifications = botMessages.getBotMessageList().stream()
-                    .map(Proto.BotMessage::getTgMessageId).filter(a -> a > 0).collect(Collectors.toList());
-            try {
-                if (tgIdentifications.isEmpty()) {
-                    throw new Exception();
-                }
-                botMessageRepository.markDeletedByTgId(tgIdentifications);
-                return Proto.ResponseBotMessage.newBuilder().setStatus(Proto.Status.SUCCESS).build();
-            } catch (Exception e) {
-                e.printStackTrace();
-                return Proto.ResponseBotMessage.newBuilder().setStatus(Proto.Status.ERROR).build();
-            }
+            return Proto.ResponseBotMessage.newBuilder().setStatus(Proto.Status.NOT_FOUND).build();
         }
+    }
+
+    @Override
+    public Proto.ResponseBotMessage delete(Proto.BotMessage botMessage) {
+
+        if(botMessage.getTgMessageId() > 0) {
+            botMessageRepository.markDeletedByTgId(botMessage.getTgMessageId());
+            return Proto.ResponseBotMessage.newBuilder().setStatus(Proto.Status.SUCCESS).build();
+        } else {
+            log.error("tg_message_id: {} невозможен", botMessage.getTgMessageId());
+        return Proto.ResponseBotMessage.newBuilder().setStatus(Proto.Status.ERROR).build();
+        }
+    }
+
+    @Override
+    public Proto.ResponseBotMessage getWithout(Proto.DraftBet draftBet) {
+        List<Proto.BotMessage> botMessageList = botMessageRepository
+                .getWithoutDraftBet(draftBet.getInitiator().getId(), draftBet.getId())
+                .stream().map(converter::toProtoBotMessage).collect(Collectors.toList());
+        if (botMessageList.isEmpty()) {
+            log.debug("Не найдено ни одной записи botMessage кроме draftBet с id: {}", draftBet.getId());
+            return Proto.ResponseBotMessage.newBuilder().addAllBotMessages(botMessageList).setStatus(Proto.Status.NOT_FOUND).build();
+        }
+        return Proto.ResponseBotMessage.newBuilder().addAllBotMessages(botMessageList).setStatus(Proto.Status.SUCCESS).build();
     }
 }

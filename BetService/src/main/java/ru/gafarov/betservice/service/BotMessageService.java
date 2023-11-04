@@ -9,5 +9,9 @@ public interface BotMessageService {
 
     Proto.ResponseBotMessage getAll(Proto.DraftBet request);
 
-    Proto.ResponseBotMessage delete(Proto.BotMessages request);
+    Proto.ResponseBotMessage deleteAll(Proto.BotMessages request);
+
+    Proto.ResponseBotMessage delete(Proto.BotMessage botMessage);
+
+    Proto.ResponseBotMessage getWithout(Proto.DraftBet draftBet);
 }

@@ -30,16 +30,14 @@ public class BotMessageService {
         return null;
     }
 
-    public void delete(DraftBet draftBet, User user) {
+    public void deleteByDraft(DraftBet draftBet, User user) {
         ResponseBotMessage response = grpcStub.getBotMessages(draftBet);
         if (response.getStatus().equals(Status.ERROR)) {
             log.error("Получена ошибка при попытке получить botMessages по draftBet c id: {}", draftBet.getId());
         } else {
             response.getBotMessagesList().forEach(a -> {
-                DeleteMessage deleteMessage = new DeleteMessage();
-                deleteMessage.setMessageId(a.getTgMessageId());
-                deleteMessage.setChatId(user.getChatId());
-                deleteMessageService.deleteAsync(deleteMessage, 0);
+                DeleteMessage deleteMessage = new DeleteMessage(String.valueOf(user.getChatId()), a.getTgMessageId());
+                deleteMessageService.deleteSync(deleteMessage);
             });
             ResponseBotMessage responseBotMessage = grpcStub.deleteBotMessages(BotMessages.newBuilder()
                     .addAllBotMessage(response.getBotMessagesList()).build());
@@ -51,21 +49,38 @@ public class BotMessageService {
 
     public void markDeleted(DeleteMessage deleteMessage) {
 
-        ResponseBotMessage responseBotMessage = grpcStub.deleteBotMessages(BotMessages.newBuilder()
-                .addBotMessage(BotMessage.newBuilder().setTgMessageId(deleteMessage.getMessageId()).build()).build());
+        ResponseBotMessage responseBotMessage = grpcStub.deleteBotMessage(BotMessage.newBuilder()
+                .setTgMessageId(deleteMessage.getMessageId()).build());
         if (!responseBotMessage.getStatus().equals(Status.SUCCESS)) {
             log.error("Получена ошибка при попытке пометить в БД сообщения от бота удаленными");
         }
     }
 
-    public boolean isDeleted(Integer messageId) {
+    public boolean isNotDeleted(Integer messageId) {
 
         ResponseBotMessage response = grpcStub.getBotMessage(BotMessage.newBuilder().setTgMessageId(messageId).build());
         if (response.hasBotMessage()) {
-            return response.getBotMessage().getIsDeleted();
+            return !response.getBotMessage().getIsDeleted();
         } else {
             log.error("botMessage с tg_message_id: {} не найден", messageId);
-            return false;
+            return true;
+        }
+    }
+
+    public void deleteWithoutDraft(DraftBet draftBet, User user) {
+        ResponseBotMessage response = grpcStub.getBotMessagesWithout(draftBet);
+        if (response.getStatus().equals(Status.ERROR)) {
+            log.error("Получена ошибка при попытке получить botMessages кроме draftBet c id: {}", draftBet.getId());
+        } else {
+            response.getBotMessagesList().forEach(a -> {
+                DeleteMessage deleteMessage = new DeleteMessage(String.valueOf(user.getChatId()), a.getTgMessageId());
+                deleteMessageService.deleteSync(deleteMessage);
+            });
+            ResponseBotMessage responseBotMessage = grpcStub.deleteBotMessages(BotMessages.newBuilder()
+                    .addAllBotMessage(response.getBotMessagesList()).build());
+            if (responseBotMessage.getStatus().equals(Status.ERROR)) {
+                log.error("Получена ошибка при попытке пометить в БД сообщения от бота удаленными");
+            }
         }
     }
 }

@@ -7,6 +7,7 @@ import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
 import ru.gafarov.betservice.telegram.bot.service.AuthorizationService;
 import ru.gafarov.betservice.telegram.bot.service.BotService;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -19,20 +20,16 @@ public class CodeAction implements Action {
     @Override
     public List<BetSendMessage> handle(Update update) {
         long chatId = update.getMessage().getChatId();
-        String text = authorizationService.getCode(chatId);
-        BetSendMessage sendMessage = new BetSendMessage(chatId);
-        sendMessage.setText(text);
-        return List.of(sendMessage);
+        authorizationService.getCode(chatId);
+        botService.delete(update);
+        return new ArrayList<>();
     }
 
     @Override
     public List<BetSendMessage> callback(Update update) {
         long chatId = update.getCallbackQuery().getFrom().getId();
-        String text = authorizationService.getCode(chatId);
-        BetSendMessage sendMessage = new BetSendMessage(chatId);
-        sendMessage.setText(text);
-
+        authorizationService.getCode(chatId);
         botService.delete(update);
-        return List.of(sendMessage);
+        return new ArrayList<>();
     }
 }

@@ -138,6 +138,15 @@ enum BotMessageType {
   ADD_OPPONENT = 12;
   REDUNDANT_OPPONENT = 13;
   FRIEND_LIST = 14;
+  YOU_HAVE_NOT_FRIENDS = 15;
+  DRAFT_BET = 16;
+  HELLO = 17;
+  INFO = 18;
+  CODE = 19;
+  APPROVE_DRAFT = 20;
+  CANCEL_DRAFT = 21;
+  OFFER_BET = 22;
+  DELETED_FRIEND = 23;
 }
 
 service BetService {
@@ -163,6 +172,9 @@ service BetService {
   rpc saveBotMessage(BotMessage) returns (ResponseMessage);
   rpc getBotMessage(BotMessage) returns (ResponseBotMessage);
   rpc getBotMessages(DraftBet) returns (ResponseBotMessage);
+  rpc getBotMessagesWithout(DraftBet) returns (ResponseBotMessage);
   rpc deleteBotMessages(BotMessages) returns (ResponseBotMessage);
+  rpc deleteBotMessage(BotMessage) returns (ResponseBotMessage);
   rpc addSubscribe(Subscribe) returns (Response);
+  rpc deleteSubscribe(Subscribe) returns (Response);
 }

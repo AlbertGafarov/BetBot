@@ -31,6 +31,10 @@ public interface BotMessageRepository extends JpaRepository<BotMessage, Long> {
 
     @Modifying
     @Transactional
-    @Query(value = "update bot_message set status = 'DELETED' where tg_message_id in :tgIdentifications", nativeQuery = true)
-    void markDeletedByTgId(@Param("tgIdentifications") List<Integer> tgIdentifications);
+    @Query(value = "update bot_message set status = 'DELETED' where tg_message_id = ?1", nativeQuery = true)
+    void markDeletedByTgId(int tgMessageId);
+
+    @Query(value = "SELECT * FROM bot_message where status = 'ACTIVE' AND user_id = ?1 AND draft_bet_id != ?2 AND draft_bet_id is not null"
+            , nativeQuery = true)
+    List<BotMessage> getWithoutDraftBet(long userId, long draftBetId);
 }
