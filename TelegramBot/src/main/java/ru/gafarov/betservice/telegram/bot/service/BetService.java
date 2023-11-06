@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import ru.gafarov.bet.grpcInterface.BetServiceGrpc;
-import ru.gafarov.bet.grpcInterface.Proto;
+import ru.gafarov.bet.grpcInterface.Proto.*;
 
 @Slf4j
 @Service
@@ -16,34 +16,41 @@ public class BetService {
     private final BetServiceGrpc.BetServiceBlockingStub grpcStub;
     private final UserService userService;
 
-    public Proto.Bet addBet(Proto.DraftBet draftBet, Proto.User user) {
-        Proto.User opponent = userService.getUser(draftBet.getOpponentName(), draftBet.getOpponentCode());
-        Proto.Bet bet = Proto.Bet.newBuilder()
+    public Bet addBet(DraftBet draftBet, User user) {
+        User opponent = userService.getUser(draftBet.getOpponentName(), draftBet.getOpponentCode());
+        Bet bet = Bet.newBuilder()
                 .setInitiator(user)
                 .setOpponent(opponent)
                 .setFinishDate(draftBet.getFinishDate())
                 .setDefinition(draftBet.getDefinition())
                 .setWager(draftBet.getWager())
+                .setInverseDefinition(draftBet.getInverseDefinition())
                 .build();
         log.info("Сохраняем спор \n{}", bet);
-        return grpcStub.addBet(bet).getBet();
+        ResponseBet response = grpcStub.addBet(bet);
+        if (response.getStatus().equals(Status.SUCCESS)) {
+            return response.getBet();
+        } else {
+            log.error("Получена ошибка при попытке добавить новый спор по черновику: \n{}", draftBet);
+            return null;
+        }
     }
 
-    public Proto.ResponseMessage setStatus(Proto.User user, long betId, Proto.BetStatus betStatus) {
-        Proto.ChangeStatusBetMessage changeStatusBetMessage = Proto.ChangeStatusBetMessage.newBuilder()
+    public ResponseMessage setStatus(User user, long betId, BetStatus betStatus) {
+        ChangeStatusBetMessage changeStatusBetMessage = ChangeStatusBetMessage.newBuilder()
                 .setUser(user)
                 .setNewStatus(betStatus)
-                .setBet(Proto.Bet.newBuilder().setId(betId).build())
+                .setBet(Bet.newBuilder().setId(betId).build())
                 .build();
         return grpcStub.changeStatusBet(changeStatusBetMessage);
     }
 
-    public Proto.ResponseMessage  showActiveBets(Proto.User user) {
+    public ResponseMessage  showActiveBets(User user) {
         return grpcStub.getActiveBets(user);
     }
 
-    public Proto.ResponseMessage showBet(Proto.User user, long id) {
-        Proto.Bet bet = Proto.Bet.newBuilder().setId(id).setInitiator(user).build();
+    public ResponseMessage showBet(User user, long id) {
+        Bet bet = Bet.newBuilder().setId(id).setInitiator(user).build();
         return grpcStub.getBet(bet);
     }
 

@@ -47,6 +47,9 @@ public class Bet extends BaseEntity {
     @Column(name = "opponent_bet_status")
     private Proto.BetStatus opponentBetStatus; // Статус спора, по мнению оппонента
 
+    @Column(name = "inverse_definition")
+    private boolean inverseDefinition;
+
     @Transient
     private List<Proto.BetStatus> nextOpponentBetStatusList;
 

@@ -35,4 +35,6 @@ public class DraftBet extends BaseEntity {
     @JoinColumn(name = "initiator_id")
     private User initiator; // Инициатор спора
 
+    @Column(name = "inverse_definition")
+    private boolean inverseDefinition;
 }

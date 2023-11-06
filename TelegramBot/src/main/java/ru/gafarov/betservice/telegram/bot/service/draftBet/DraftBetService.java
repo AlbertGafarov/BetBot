@@ -42,13 +42,14 @@ public class DraftBetService {
         if (ChatStatus.START.equals(user.getChatStatus()) && message.getForwardFrom() != null) {
             User opponent = userService.findFriend(user, message.getForwardFrom().getId());
             if (opponent != null) {
-                DraftBet draftBet = DraftBet.newBuilder().setDefinition("" + text).setInitiator(user)
+                DraftBet draftBet = DraftBet.newBuilder().setDefinition(text).setInitiator(user)
                         .setOpponentName(opponent.getUsername())
-                        .setOpponentCode(opponent.getCode()).build();
+                        .setOpponentCode(opponent.getCode())
+                        .setInverseDefinition(true).build();
                 draftBet = setDefinition(draftBet);
                 userService.setChatStatus(user, ChatStatus.WAIT_WAGER);
 
-                replyMessage.setText(prettyPrinter.printDraftBetFromForward(draftBet));
+                replyMessage.setText(prettyPrinter.printDraftBetFromForwardMessage(draftBet));
                 botService.sendAndSave(replyMessage, user, BotMessageType.ENTER_WAGER, draftBet);
             } else {
                 log.warn("Не найден оппонент с chatId: {}", message.getForwardFrom().getId());
@@ -190,8 +191,10 @@ public class DraftBetService {
         ResponseDraftBet response = grpcStub.setDefinition(draftBet);
         if (response.getStatus().equals(Status.SUCCESS)) {
             return response.getDraftBet();
+        } else {
+            log.error("Получена ошибка при попытке сохранить суть спора: \n{}", draftBet);
+            return null;
         }
-        return null;
     }
 
     public void setWager(DraftBet draftBet) {

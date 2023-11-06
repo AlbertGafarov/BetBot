@@ -26,7 +26,7 @@ public class GrpcRequestHandler extends BetServiceGrpc.BetServiceImplBase {
     }
 
     @Override
-    public void addBet(Proto.Bet request, StreamObserver<Proto.ResponseMessage> responseObserver) {
+    public void addBet(Proto.Bet request, StreamObserver<Proto.ResponseBet> responseObserver) {
         responseObserver.onNext(betService.save(request));
         responseObserver.onCompleted();
     }

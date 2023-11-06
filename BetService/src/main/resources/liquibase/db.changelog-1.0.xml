@@ -645,4 +645,16 @@
         <dropColumn tableName="subscribe" columnName="id"/>
         <addPrimaryKey tableName="subscribe" columnNames="subscriber_id,subscribed_id"/>
     </changeSet>
+    <changeSet id="1.0.80" author="albert.gafarov">
+    <addColumn tableName="draft_bets">
+        <column name="inverse_definition" type="boolean" defaultValue="false">
+            <constraints nullable="false"/>
+        </column>
+    </addColumn>
+    <addColumn tableName="bets">
+        <column name="inverse_definition" type="boolean" defaultValue="false">
+            <constraints nullable="false"/>
+        </column>
+    </addColumn>
+    </changeSet>
 </databaseChangeLog>

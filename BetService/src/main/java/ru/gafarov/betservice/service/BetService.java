@@ -4,7 +4,7 @@ import ru.gafarov.bet.grpcInterface.Proto;
 
 public interface BetService {
 
-    Proto.ResponseMessage save(Proto.Bet protoBet);
+    Proto.ResponseBet save(Proto.Bet protoBet);
 
     Proto.ResponseMessage showBet(Proto.Bet protoBet);
 

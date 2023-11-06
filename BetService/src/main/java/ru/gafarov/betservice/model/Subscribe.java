@@ -9,23 +9,16 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-//@EqualsAndHashCode
 @Data
 @Entity
 @IdClass(Subscribe.SubscribeId.class)
-//@Table(name = "subscribe")
-//@NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
 public class Subscribe {
 
     @Id
-//    @ManyToOne
-//    @JoinColumn(name = "subscriber_id")
     private Long subscriberId;
 
     @Id
-//    @ManyToOne
-//    @JoinColumn(name = "subscribed_id")
     private Long subscribedId;
 
     @CreatedDate

@@ -8,7 +8,6 @@ import ru.gafarov.betservice.converter.Converter;
 import ru.gafarov.betservice.model.*;
 import ru.gafarov.betservice.repository.BetRepository;
 import ru.gafarov.betservice.repository.ChangeStatusBetRuleRepository;
-import ru.gafarov.betservice.repository.SubscribeRepository;
 import ru.gafarov.betservice.service.BetService;
 import ru.gafarov.betservice.service.SubscribeService;
 import ru.gafarov.betservice.service.UserService;
@@ -36,12 +35,9 @@ public class BetServiceImpl implements BetService {
     private final Converter converter;
 
     @Override
-    public Proto.ResponseMessage save(Proto.Bet protoBet) {
+    public Proto.ResponseBet save(Proto.Bet protoBet) {
 
-        LocalDateTime localDateTime = LocalDateTime.now();
         Bet bet = new Bet();
-        bet.setCreated(localDateTime);
-        bet.setUpdated(localDateTime);
         bet.setInitiator(userService.getUser(protoBet.getInitiator()));
         bet.setOpponent(userService.getUser(protoBet.getOpponent()));
         bet.setStatus(Status.ACTIVE);
@@ -49,6 +45,7 @@ public class BetServiceImpl implements BetService {
         bet.setOpponentBetStatus(Proto.BetStatus.OFFERED);
         bet.setWager(protoBet.getWager());
         bet.setDefinition(protoBet.getDefinition());
+        bet.setInverseDefinition(protoBet.getInverseDefinition());
         bet.setFinishDate(converter.toLocalDateTime(protoBet.getFinishDate()));
         bet = betRepository.save(bet);
 
@@ -64,7 +61,7 @@ public class BetServiceImpl implements BetService {
                 , bet.getOpponentBetStatus().toString()
                 , bet.getFinishDate()));
         protoBet = converter.toProtoBet(bet);
-        return Proto.ResponseMessage.newBuilder().setStatus(Proto.Status.SUCCESS).setBet(protoBet).build();
+        return Proto.ResponseBet.newBuilder().setStatus(Proto.Status.SUCCESS).setBet(protoBet).build();
     }
 
     public Proto.ResponseMessage getActiveBets(Proto.User protoUser) {

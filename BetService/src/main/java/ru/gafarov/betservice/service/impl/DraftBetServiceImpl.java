@@ -62,8 +62,6 @@ public class DraftBetServiceImpl implements DraftBetService {
         LocalDateTime localDateTime = LocalDateTime.now();
         if (protoDraftBet.getId() == 0) {
             DraftBet draftBet = converter.toDraftBet(protoDraftBet);
-            draftBet.setUpdated(localDateTime);
-            draftBet.setCreated(localDateTime);
             draftBet.setStatus(Status.ACTIVE);
             draftBet = draftBetRepository.save(draftBet);
             return Proto.ResponseDraftBet.newBuilder().setDraftBet(converter.toProtoDraftBet(draftBet)).build();
