@@ -29,7 +29,6 @@ public class Bet extends BaseEntity {
     @Column(name = "definition")
     private String definition; // Утверждение, которое инициатор предлагает оспорить оппоненту, либо согласиться.
 
-    @NonNull
     @Column(name = "wager")
     private String wager; // Награда, которую получит победитель спора
 

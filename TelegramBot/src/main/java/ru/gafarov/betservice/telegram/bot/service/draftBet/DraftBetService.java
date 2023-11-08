@@ -50,6 +50,7 @@ public class DraftBetService {
                 userService.setChatStatus(user, ChatStatus.WAIT_WAGER);
 
                 replyMessage.setText(prettyPrinter.printDraftBetFromForwardMessage(draftBet));
+                replyMessage.setReplyMarkup(Buttons.oneButton("без вознаграждения", "/draftBet/" + draftBet.getId() + "/withoutWager"));
                 botService.sendAndSave(replyMessage, user, BotMessageType.ENTER_WAGER, draftBet);
             } else {
                 log.warn("Не найден оппонент с chatId: {}", message.getForwardFrom().getId());
@@ -116,11 +117,11 @@ public class DraftBetService {
             botService.edit(editMessageText);
 
             replyMessage.setText("Введите вознаграждение");
+            replyMessage.setReplyMarkup(Buttons.oneButton("без вознаграждения", "/draftBet/" + draftBet.getId() + "/withoutWager"));
             botService.sendAndSave(replyMessage, user, BotMessageType.ENTER_WAGER, draftBet);
 
         } else if (ChatStatus.WAIT_WAGER.equals(user.getChatStatus())) {
-            DraftBet draftBet = userService.getLastDraftBet(user)
-                    .toBuilder().setWager(text).build();
+            DraftBet draftBet = userService.getLastDraftBet(user).toBuilder().setWager(text).build();
             setWager(draftBet);
             userService.setChatStatus(user, ChatStatus.WAIT_FINISH_DATE);
 

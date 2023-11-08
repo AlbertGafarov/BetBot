@@ -44,7 +44,6 @@ public class Converter {
                 .setId(bet.getId())
                 .setOpponent(toProtoUser(bet.getOpponent()))
                 .setInitiator(toProtoUser(bet.getInitiator()))
-                .setWager(bet.getWager())
                 .setDefinition(bet.getDefinition())
                 .setFinishDate(toTimestamp(bet.getFinishDate()))
                 .setOpponentStatus(bet.getOpponentBetStatus())
@@ -52,6 +51,9 @@ public class Converter {
                 .setInverseDefinition(bet.isInverseDefinition())
                 .addAllInitiatorNextStatuses(bet.getNextInitiatorBetStatusList())
                 .addAllOpponentNextStatuses(bet.getNextOpponentBetStatusList());
+        if (bet.getWager() != null) {
+            builder.setWager(bet.getWager());
+        }
         return builder.build();
     }
 

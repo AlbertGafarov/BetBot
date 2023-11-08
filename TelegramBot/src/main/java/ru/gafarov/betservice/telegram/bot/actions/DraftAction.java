@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -142,6 +143,21 @@ public class DraftAction implements Action {
                         .setTgMessageId(tgMessageId)
                         .build());
             }
+            // /draftBet/{id}/withoutWager
+        } else if ("withoutWager".equals(command[3])) {
+            DraftBet draftBet = DraftBet.newBuilder().setId(Long.parseLong(command[2])).build();
+            userService.setChatStatus(user, ChatStatus.WAIT_FINISH_DATE);
+
+            // Заполняем поле WAIT_WAGER
+            EditMessageText editMessageText = new EditMessageText();
+            editMessageText.setChatId(chatId);
+            editMessageText.setMessageId(botMessageService.getId(botMessageBuilder
+                    .setType(BotMessageType.ENTER_WAGER).setDraftBet(draftBet).build()));
+            editMessageText.setText("Введите вознаграждение: без вознаграждения");
+            botService.edit(editMessageText);
+
+            replyMessage.setText("Введите количество дней до завершения спора");
+            botService.sendAndSave(replyMessage, user, BotMessageType.ENTER_FINISH_DATE, draftBet);
         }
         return new ArrayList<>();
     }

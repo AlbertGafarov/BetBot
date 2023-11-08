@@ -657,4 +657,7 @@
         </column>
     </addColumn>
     </changeSet>
+    <changeSet id="1.0.81" author="albert.gafarov">
+        <dropNotNullConstraint tableName="bets" columnName="wager"/>
+    </changeSet>
 </databaseChangeLog>

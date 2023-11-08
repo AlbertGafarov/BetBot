@@ -93,4 +93,13 @@ public class Buttons {
         closeButton.setCallbackData("/close");
         buttons.add(List.of(closeButton));
     }
+    public static InlineKeyboardMarkup oneButton(String name, String command){
+        InlineKeyboardButton closeButton = new InlineKeyboardButton(name);
+        closeButton.setCallbackData(command);
+        List<List<InlineKeyboardButton>> buttons = new ArrayList<>();
+        buttons.add(List.of(closeButton));
+        InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
+        markupInline.setKeyboard(buttons);
+        return markupInline;
+    }
 }
