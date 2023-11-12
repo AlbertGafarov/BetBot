@@ -3,14 +3,17 @@ package ru.gafarov.betservice.telegram.bot.actions;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.methods.ParseMode;
-import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import ru.gafarov.bet.grpcInterface.Proto.*;
+import ru.gafarov.bet.grpcInterface.Proto.Bet;
+import ru.gafarov.bet.grpcInterface.Proto.BotMessageType;
+import ru.gafarov.bet.grpcInterface.Proto.ResponseMessage;
+import ru.gafarov.bet.grpcInterface.Proto.User;
 import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
 import ru.gafarov.betservice.telegram.bot.components.Buttons;
 import ru.gafarov.betservice.telegram.bot.prettyPrint.PrettyPrinter;
-import ru.gafarov.betservice.telegram.bot.service.*;
+import ru.gafarov.betservice.telegram.bot.service.BetService;
+import ru.gafarov.betservice.telegram.bot.service.BotService;
+import ru.gafarov.betservice.telegram.bot.service.UserService;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -30,8 +33,6 @@ public class ShowBetsAction implements Action {
     private final BetService betService;
     private final PrettyPrinter prettyPrinter;
     private final BotService botService;
-    private final DeleteMessageService deleteMessageService;
-    private final BotMessageService botMessageService;
 
     @Override
     public List<BetSendMessage> handle(Update update) {
@@ -55,26 +56,16 @@ public class ShowBetsAction implements Action {
             }
             String text = prettyPrinter.printBet(bet);
             msgToUser.setText(text);
-            msgToUser.setParseMode(ParseMode.HTML);
             msgToUser.setDelTime(i.accumulateAndGet(READ_ONE_CHAR_MS * text.length() + WAIT_NEXT_MESSAGE_MS, Integer::sum));
             return msgToUser;
         }).collect(Collectors.toList());
         if (sendMessages.isEmpty()) {
             BetSendMessage msgToUser = new BetSendMessage(chatId);
             msgToUser.setText("У Вас нет активных споров");
-            int tgMessageId = botService.sendAndDelete(msgToUser);
-            botMessageService.save(BotMessage.newBuilder().setTgMessageId(tgMessageId).setUser(user)
-                    .setType(BotMessageType.YOU_HAVE_NOT_BETS).build());
+            botService.sendAndSave(msgToUser, user, BotMessageType.YOU_HAVE_NOT_BETS);
         } else {
             for (BetSendMessage sendMessage : sendMessages) {
-                int tgMessageId = botService.send(sendMessage);
-                botMessageService.save(BotMessage.newBuilder().setTgMessageId(tgMessageId).setUser(user).setType(BotMessageType.BET).build());
-                if (sendMessage.getDelTime() > 0) {
-                    DeleteMessage deleteMessage = new DeleteMessage();
-                    deleteMessage.setMessageId(tgMessageId);
-                    deleteMessage.setChatId(sendMessage.getChatId());
-                    deleteMessageService.deleteAsync(deleteMessage, sendMessage.getDelTime());
-                }
+                botService.sendAndSave(sendMessage, user, BotMessageType.BET);
                 try {
                     Thread.sleep(WAIT_NEXT_MESSAGE_MS);
                 } catch (InterruptedException e) {

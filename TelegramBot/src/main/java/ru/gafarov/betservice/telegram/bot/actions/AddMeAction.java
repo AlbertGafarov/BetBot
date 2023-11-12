@@ -31,8 +31,8 @@ public class AddMeAction implements Action {
 
         long chatId = update.getMessage().getChatId();
         User user = userService.getUser(chatId);
-        String[] commands = update.getMessage().getText().split("/");
-        User opponent = userService.getUser(commands[2], Integer.parseInt(commands[3]));
+        String[] command = update.getMessage().getText().split("/");
+        User opponent = userService.getUser(command[2], Integer.parseInt(command[3]));
 
         Status userStatus = subscribeService.addSubscribe(user, opponent);
         BetSendMessage sendUserMessage = new BetSendMessage(chatId);

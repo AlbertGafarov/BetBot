@@ -2,7 +2,8 @@ package ru.gafarov.betservice.telegram.bot.components;
 
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
-import ru.gafarov.bet.grpcInterface.Proto.*;
+import ru.gafarov.bet.grpcInterface.Proto.BetStatus;
+import ru.gafarov.bet.grpcInterface.Proto.DraftBet;
 
 import java.util.ArrayList;
 import java.util.List;

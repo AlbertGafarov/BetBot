@@ -41,7 +41,7 @@ public class AuthorizationService {
             if (response.hasUser()) {
                 BetSendMessage sendMessage = new BetSendMessage(chatId);
                 sendMessage.setText("Привет! \nВаш username: " + response.getUser().getUsername() +
-                        "\nВаш код: " + response.getUser().getCode());
+                        "\nВаш код: " + response.getUser().getCode() + "\nInfo о боте: /info");
                 sendMessage.setReplyMarkup(closeButton());
                 botService.sendAndSave(sendMessage, response.getUser(), BotMessageType.INFO);
             }
@@ -50,7 +50,7 @@ public class AuthorizationService {
             botMessageService.deleteWithoutDraft(DraftBet.newBuilder().build(), responseMessage.getUser());
         }
         BetSendMessage sendMessage = new BetSendMessage(chatId);
-        sendMessage.setText("Привет " + responseMessage.getUser().getUsername() + "!");
+        sendMessage.setText("Привет <b>" + responseMessage.getUser().getUsername() + "</b>!\nInfo о боте: /info");
         userService.setChatStatus(responseMessage.getUser(), ChatStatus.START);
         sendMessage.setReplyMarkup(Buttons.codeButtons());
         botService.sendAndSave(sendMessage, responseMessage.getUser(), BotMessageType.HELLO);

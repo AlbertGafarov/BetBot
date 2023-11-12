@@ -4,12 +4,16 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import ru.gafarov.bet.grpcInterface.Proto.*;
+import ru.gafarov.bet.grpcInterface.Proto.BotMessage;
+import ru.gafarov.bet.grpcInterface.Proto.BotMessageType;
+import ru.gafarov.bet.grpcInterface.Proto.DraftBet;
+import ru.gafarov.bet.grpcInterface.Proto.User;
 import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
 import ru.gafarov.betservice.telegram.bot.controller.BetTelegramBot;
 
@@ -49,6 +53,7 @@ public class BotService {
     }
 
     public void sendAndSave(BetSendMessage sendMessage, User user, BotMessageType botMessageType) {
+        sendMessage.setParseMode(ParseMode.HTML);
         try {
             int id = bot.execute(sendMessage).getMessageId();
             botMessageService.save(BotMessage.newBuilder().setTgMessageId(id)

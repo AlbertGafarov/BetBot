@@ -3,7 +3,6 @@ package ru.gafarov.betservice.telegram.bot.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import ru.gafarov.bet.grpcInterface.Proto;
 import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
 import ru.gafarov.betservice.telegram.bot.components.Buttons;
@@ -26,7 +25,6 @@ public class BetNotifier {
             BetSendMessage sendMessage = new BetSendMessage(b.getInitiator().getChatId());
                     sendMessage.setText("<b>Наступила дата окончания:</b>\n" + prettyPrinter.printBet(b));
                     sendMessage.setReplyMarkup(Buttons.nextStatusesButtons(b.getInitiatorNextStatusesList(), b.getId()));
-                    sendMessage.setParseMode(ParseMode.HTML);
                     return sendMessage;
                 }
         ).collect(Collectors.toList());
@@ -35,7 +33,6 @@ public class BetNotifier {
             BetSendMessage sendMessage = new BetSendMessage(b.getOpponent().getChatId());
                     sendMessage.setText("<b>Наступила дата окончания:</b>\n" + prettyPrinter.printBet(b));
                     sendMessage.setReplyMarkup(Buttons.nextStatusesButtons(b.getOpponentNextStatusesList(), b.getId()));
-                    sendMessage.setParseMode(ParseMode.HTML);
                     return sendMessage;
                 }
         ).collect(Collectors.toList());

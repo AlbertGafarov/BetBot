@@ -2,9 +2,8 @@ package ru.gafarov.betservice.telegram.bot.actions;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import ru.gafarov.bet.grpcInterface.Proto;
+import ru.gafarov.bet.grpcInterface.Proto.*;
 import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
 import ru.gafarov.betservice.telegram.bot.service.BotMessageService;
 import ru.gafarov.betservice.telegram.bot.service.BotService;
@@ -24,22 +23,17 @@ public class MyReferenceAction implements Action {
     @Override
     public List<BetSendMessage> handle(Update update) {
         long chatId = update.getMessage().getChatId();
-        Proto.User user = userService.getUser(chatId);
+        User user = userService.getUser(chatId);
         BetSendMessage sendInfoMessage = new BetSendMessage(chatId);
         sendInfoMessage.setText("Перешлите следующее сообщение вашему собеседнику, чтобы он переслал его в Бот:");
         sendInfoMessage.setDelTime(60_000);
-
-        botMessageService.save(Proto.BotMessage.newBuilder().setTgMessageId(botService.send(sendInfoMessage))
-                .setType(Proto.BotMessageType.MY_REFERENCE_INFO).setUser(user).build());
+        botService.sendAndSave(sendInfoMessage, user, BotMessageType.MY_REFERENCE_INFO);
 
         BetSendMessage sendMessage = new BetSendMessage(chatId);
         sendMessage.setText("/addMe/"+ user.getUsername() + "/" + user.getCode() + "/\n<i>\"Перешлите это сообщение в Бот," +
                 " чтобы добавить " + user.getUsername() + "\"</i>");
-        sendMessage.setParseMode(ParseMode.HTML);
         sendMessage.setDelTime(60_000);
-
-        botMessageService.save(Proto.BotMessage.newBuilder().setTgMessageId(botService.send(sendMessage))
-                .setType(Proto.BotMessageType.MY_REFERENCE).setUser(user).build());
+        botService.sendAndSave(sendMessage, user, BotMessageType.MY_REFERENCE);
         botService.delete(update);
         return new ArrayList<>();
     }

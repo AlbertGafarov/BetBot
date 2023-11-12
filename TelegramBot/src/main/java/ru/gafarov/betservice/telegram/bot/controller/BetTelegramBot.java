@@ -41,9 +41,9 @@ public class BetTelegramBot extends TelegramLongPollingBot {
 
             String[] command = update.getMessage().getText().split("/");
             log.info("Получено сообщение от {}. Разбито на части: {}", update.getMessage().getFrom().getId(), Arrays.toString(command));
-            if (command.length > 1 && actions.containsKey("/" + command[1])) {
+            if (command.length > 1 && actions.containsKey(command[1])) {
                 log.debug("Команда {} найдена", "/" + command[1]);
-                List<BetSendMessage> sendMessages = actions.get("/" + command[1]).handle(update);
+                List<BetSendMessage> sendMessages = actions.get(command[1]).handle(update);
                 send(sendMessages);
             } else {
                 draftBetService.createDraft(update);

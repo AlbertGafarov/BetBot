@@ -3,7 +3,6 @@ package ru.gafarov.betservice.telegram.bot.actions;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.gafarov.bet.grpcInterface.Proto;
 import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
@@ -45,7 +44,6 @@ public class ShowBetAction implements Action {
                 msgToUser.setReplyMarkup(Buttons.nextStatusesButtons(bet.getOpponentNextStatusesList(), bet.getId()));
             }
             msgToUser.setText(prettyPrinter.printBet(bet));
-            msgToUser.setParseMode(ParseMode.HTML);
         } else {
             msgToUser.setText("Спор с указанным id не найден");
         }
@@ -75,7 +73,6 @@ public class ShowBetAction implements Action {
                 msgToUser.setReplyMarkup(Buttons.nextStatusesButtons(bet.getOpponentNextStatusesList(), bet.getId()));
             }
             msgToUser.setText(prettyPrinter.printBet(bet));
-            msgToUser.setParseMode(ParseMode.HTML);
         } else {
             msgToUser.setText("Спор с указанным id не найден");
         }

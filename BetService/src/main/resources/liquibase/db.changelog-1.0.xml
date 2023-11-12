@@ -646,18 +646,57 @@
         <addPrimaryKey tableName="subscribe" columnNames="subscriber_id,subscribed_id"/>
     </changeSet>
     <changeSet id="1.0.80" author="albert.gafarov">
-    <addColumn tableName="draft_bets">
-        <column name="inverse_definition" type="boolean" defaultValue="false">
-            <constraints nullable="false"/>
-        </column>
-    </addColumn>
-    <addColumn tableName="bets">
-        <column name="inverse_definition" type="boolean" defaultValue="false">
-            <constraints nullable="false"/>
-        </column>
-    </addColumn>
+        <addColumn tableName="draft_bets">
+            <column name="inverse_definition" type="boolean" defaultValue="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <addColumn tableName="bets">
+            <column name="inverse_definition" type="boolean" defaultValue="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
     </changeSet>
     <changeSet id="1.0.81" author="albert.gafarov">
         <dropNotNullConstraint tableName="bets" columnName="wager"/>
+    </changeSet>
+    <changeSet id="1.0.82" author="albert.gafarov">
+        <createTable tableName="info">
+            <column name="type" type="varchar(128)">
+                <constraints primaryKey="true" unique="true" nullable="false"/>
+            </column>
+            <column name="text" type="clob"/>
+            <column name="created" type="timestamp" defaultValueDate="current_timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated" type="timestamp" defaultValueDate="current_timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="varchar(25)" defaultValue="ACTIVE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <sql>insert into info (type, text) values ('MENU', '&lt;b>Выберите пункт меню для ознакомления:&lt;/b>')</sql>
+        <sql>insert into info (type, text) values ('ABOUT_BOT', E'&lt;b>О боте:&lt;/b>
+    Этот бот запомнит Ваш спор с оппонентом и напомнит о нем, когда придет время.
+    Вы можете предложить спор оппоненту, только если Вы знаете его username и код или он добавлен в Ваши друзья.
+    Незнакомый человек не сможет предложить Вам спор, если он не знает Ваши username и код.
+    Вы можете указать вознаграждению тому, кто окажется прав в споре, но бот не отвечает за ваши расчеты.
+    Бот не может быть судьей. Решение о том, кто прав вы принимаете сами. Вы сможете это сделать когда наступит дата завершения')
+        </sql>
+        <sql>insert into info (type, text) values ('HOW_ADD_FRIEND', E'&lt;b>Как добавить друга:&lt;/b>
+    Чтобы добавить друга, нужно сформировать ссылку командой /reference, а затем переслать ее другу в личном сообщении. Друг должен переслать эту ссылку в бот и после этого вы получите сообщение о том, что вы стали друзьями.
+    Также, когда оппонент принимает спор, оппонент и инициатор становятся друзьями автоматически.
+    Чтобы удалить друга вызовите команду /friends и нажмите на 🗑 справа от его имени')
+        </sql>
+        <sql>insert into info (type, text) values ('HOW_CREATE_BET', '&lt;b>Как создать спор:&lt;/b>
+    Чтобы создать спор, выберите команду /create и следуйте подсказкам')
+        </sql>
+        <sql>insert into info (type, text) values ('ABOUT_PERSONAL_DATA', E'&lt;b>О персональных данных:&lt;/b>
+    Бот не хранит персональные данные такие как номер телефона, адрес электронной почты.
+    Для идентификации пользователя используется chat id telegramm и nickname или сочетание имя_фамилия.
+    Бот хранит ваши споры. Пожалуйста, не вносите туда персональные данные, номера банковских карт и прочую чувствительную информацию.
+    Продолжая использование бота, Вы соглашаетесь с этими условиями')
+        </sql>
     </changeSet>
 </databaseChangeLog>
