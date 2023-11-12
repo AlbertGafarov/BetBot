@@ -37,7 +37,7 @@ public class DraftAction implements Action {
     private final DraftBetService draftBetService;
 
     @Override
-    public List<BetSendMessage> handle(Update update) {
+    public void handle(Update update) {
         long chatId = update.getMessage().getChatId();
         User user = userService.getUser(chatId);
         BetSendMessage sendMessage = new BetSendMessage(chatId);
@@ -54,15 +54,14 @@ public class DraftAction implements Action {
             sendMessage.setText("У вас нет черновиков спора");
             sendMessage.setDelTime(5000);
         }
-        botService.send(sendMessage);
+        botService.sendTimeIsUpMessage(sendMessage);
 
         // Удаление сообщения у того кто нажал
         botService.delete(update);
-        return new ArrayList<>();
     }
 
     @Override
-    public List<BetSendMessage> callback(Update update) {
+    public void callback(Update update) {
 
         String[] command = update.getCallbackQuery().getData().split("/");
         long chatId = update.getCallbackQuery().getFrom().getId();
@@ -92,7 +91,7 @@ public class DraftAction implements Action {
             botService.edit(editMessageText);
 
             replyMessage.setText("Введите суть спора");
-            int tgMessageId = botService.send(replyMessage);
+            int tgMessageId = botService.sendTimeIsUpMessage(replyMessage);
             botMessageService.save(botMessageBuilder.setType(BotMessageType.ENTER_DEFINITION)
                     .setDraftBet(draftBet).setTgMessageId(tgMessageId).build());
 
@@ -123,7 +122,7 @@ public class DraftAction implements Action {
                 editMessageReplyMarkup.setReplyMarkup(null);
                 botService.edit(editMessageReplyMarkup);
 
-                int tgMessageId = botService.send(sendMessage);
+                int tgMessageId = botService.sendTimeIsUpMessage(sendMessage);
                 // Сохраняем id сообщения в БД
                 botMessageService.save(botMessageBuilder
                         .setType(BotMessageType.CHOOSE_OPPONENT)
@@ -159,6 +158,5 @@ public class DraftAction implements Action {
             replyMessage.setText("Введите количество дней до завершения спора");
             botService.sendAndSave(replyMessage, user, BotMessageType.ENTER_FINISH_DATE, draftBet);
         }
-        return new ArrayList<>();
     }
 }

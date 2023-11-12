@@ -15,7 +15,6 @@ import ru.gafarov.betservice.telegram.bot.service.BotService;
 import ru.gafarov.betservice.telegram.bot.service.SubscribeService;
 import ru.gafarov.betservice.telegram.bot.service.UserService;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -33,7 +32,7 @@ public class FriendsAction implements Action {
 
     @Override
     // /friends/
-    public List<BetSendMessage> handle(Update update) {
+    public void handle(Update update) {
         long chatId = update.getMessage().getChatId();
         User user = userService.getUser(chatId);
         BetSendMessage friendListMessage = new BetSendMessage(chatId);
@@ -44,7 +43,7 @@ public class FriendsAction implements Action {
             friendListMessage.setReplyMarkup(closeButton());
             friendListMessage.setDelTime(30_000);
 
-            botMessageService.save(BotMessage.newBuilder().setTgMessageId(botService.send(friendListMessage))
+            botMessageService.save(BotMessage.newBuilder().setTgMessageId(botService.sendTimeIsUpMessage(friendListMessage))
                     .setType(BotMessageType.YOU_HAVE_NOT_FRIENDS).setUser(user).build());
         } else {
             List<List<InlineKeyboardButton>> buttons = friends.stream().map(a -> {
@@ -60,15 +59,14 @@ public class FriendsAction implements Action {
             friendListMessage.setReplyMarkup(markupInline);
             friendListMessage.setText("Ваши друзья:");
 
-            botMessageService.save(BotMessage.newBuilder().setTgMessageId(botService.send(friendListMessage))
+            botMessageService.save(BotMessage.newBuilder().setTgMessageId(botService.sendTimeIsUpMessage(friendListMessage))
                     .setType(BotMessageType.FRIEND_LIST).setUser(user).build());
             botService.delete(update);
         }
-        return new ArrayList<>();
     }
 
     @Override
-    public List<BetSendMessage> callback(Update update) {
+    public void callback(Update update) {
         String[] command = update.getCallbackQuery().getData().split("/");
         // /friends/delete/{id}
         if ("delete".equals(command[2])) {
@@ -83,6 +81,5 @@ public class FriendsAction implements Action {
             }
         }
         botService.delete(update);
-        return new ArrayList<>();
     }
 }

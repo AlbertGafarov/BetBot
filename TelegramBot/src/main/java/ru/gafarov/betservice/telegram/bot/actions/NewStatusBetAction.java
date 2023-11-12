@@ -12,9 +12,6 @@ import ru.gafarov.betservice.telegram.bot.service.BetService;
 import ru.gafarov.betservice.telegram.bot.service.BotService;
 import ru.gafarov.betservice.telegram.bot.service.UserService;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -27,12 +24,11 @@ public class NewStatusBetAction implements Action {
 
 
     @Override
-    public List<BetSendMessage> handle(Update update) {
-        return null;
+    public void handle(Update update) {
     }
 
     @Override
-    public List<BetSendMessage> callback(Update update) {
+    public void callback(Update update) {
         long chatId = update.getCallbackQuery().getFrom().getId();
         Proto.User user = userService.getUser(chatId);
         String[] command = update.getCallbackQuery().getData().split("/");
@@ -69,8 +65,6 @@ public class NewStatusBetAction implements Action {
             msgBetToInitiator.setDelTime(60_000);
             botService.sendAndSave(msgBetToInitiator, bet.getInitiator(), Proto.BotMessageType.BET);
         }
-
         botService.delete(update);
-        return new ArrayList<>();
     }
 }

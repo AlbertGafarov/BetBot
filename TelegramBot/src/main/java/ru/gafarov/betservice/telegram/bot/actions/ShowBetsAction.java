@@ -16,13 +16,12 @@ import ru.gafarov.betservice.telegram.bot.service.BotService;
 import ru.gafarov.betservice.telegram.bot.service.UserService;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import static ru.gafarov.betservice.telegram.bot.controller.BetTelegramBot.READ_ONE_CHAR_MS;
-import static ru.gafarov.betservice.telegram.bot.controller.BetTelegramBot.WAIT_NEXT_MESSAGE_MS;
+import static ru.gafarov.betservice.telegram.bot.service.BotService.READ_ONE_CHAR_MS;
+import static ru.gafarov.betservice.telegram.bot.service.BotService.WAIT_NEXT_MESSAGE_MS;
 
 @Slf4j
 @Component
@@ -35,7 +34,7 @@ public class ShowBetsAction implements Action {
     private final BotService botService;
 
     @Override
-    public List<BetSendMessage> handle(Update update) {
+    public void handle(Update update) {
         long chatId = update.getMessage().getChatId();
         User user = userService.getUser(chatId);
         ResponseMessage response = betService.showActiveBets(user);
@@ -73,14 +72,11 @@ public class ShowBetsAction implements Action {
                 }
             }
         }
-
         //Удаление вызывающей команды
         botService.delete(update);
-        return new ArrayList<>();
     }
 
     @Override
-    public List<BetSendMessage> callback(Update update) {
-        return null;
+    public void callback(Update update) {
     }
 }

@@ -13,9 +13,6 @@ import ru.gafarov.betservice.telegram.bot.service.BotService;
 import ru.gafarov.betservice.telegram.bot.service.SubscribeService;
 import ru.gafarov.betservice.telegram.bot.service.UserService;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Component
 @RequiredArgsConstructor
 public class AddMeAction implements Action {
@@ -27,7 +24,7 @@ public class AddMeAction implements Action {
 
     @Override
     // /addMe/{username}/{code}/{info text}
-    public List<BetSendMessage> handle(Update update) {
+    public void handle(Update update) {
 
         long chatId = update.getMessage().getChatId();
         User user = userService.getUser(chatId);
@@ -61,11 +58,9 @@ public class AddMeAction implements Action {
                     .setType(BotMessageType.ADD_OPPONENT).setUser(opponent).build());
         }
         botService.delete(update);
-        return new ArrayList<>();
     }
 
     @Override
-    public List<BetSendMessage> callback(Update update) {
-        return null;
+    public void callback(Update update) {
     }
 }

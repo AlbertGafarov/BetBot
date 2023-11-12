@@ -17,11 +17,14 @@ import ru.gafarov.bet.grpcInterface.Proto.User;
 import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
 import ru.gafarov.betservice.telegram.bot.controller.BetTelegramBot;
 
+import java.util.Collection;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor(onConstructor_ = {@Lazy})
 public class BotService {
-
+    public final static int READ_ONE_CHAR_MS = 50;
+    public final static int WAIT_NEXT_MESSAGE_MS = 50;
     @Lazy
     private final BetTelegramBot bot;
     private final DeleteMessageService deleteMessageService;
@@ -43,7 +46,7 @@ public class BotService {
         return id;
     }
 
-    public int send(BetSendMessage sendMessage) {
+    public int sendTimeIsUpMessage(BetSendMessage sendMessage) {
         try {
             return bot.execute(sendMessage).getMessageId();
         } catch (TelegramApiException e) {
@@ -53,11 +56,20 @@ public class BotService {
     }
 
     public void sendAndSave(BetSendMessage sendMessage, User user, BotMessageType botMessageType) {
+        sendAndSave(sendMessage, user, botMessageType, null);
+    }
+
+    public void sendAndSave(BetSendMessage sendMessage, User user, BotMessageType botMessageType, DraftBet draftBet) {
         sendMessage.setParseMode(ParseMode.HTML);
         try {
             int id = bot.execute(sendMessage).getMessageId();
-            botMessageService.save(BotMessage.newBuilder().setTgMessageId(id)
-                    .setType(botMessageType).setUser(user).build());
+            BotMessage.Builder builder = BotMessage.newBuilder().setTgMessageId(id)
+                    .setType(botMessageType).setUser(user);
+            if (draftBet != null) {
+                builder.setDraftBet(draftBet);
+            }
+            botMessageService.save(builder.build());
+
             if (sendMessage.getDelTime() > 0) {
                 DeleteMessage deleteMessage = new DeleteMessage();
                 deleteMessage.setMessageId(id);
@@ -69,18 +81,13 @@ public class BotService {
         }
     }
 
-    public void sendAndSave(BetSendMessage sendMessage, User user, BotMessageType botMessageType, DraftBet draftBet) {
+    public void sendTimeIsUpMessage(Collection<BetSendMessage> sendMessages) {
         try {
-            int id = bot.execute(sendMessage).getMessageId();
-            botMessageService.save(BotMessage.newBuilder().setTgMessageId(id)
-                    .setType(botMessageType).setUser(user).setDraftBet(draftBet).build());
-            if (sendMessage.getDelTime() > 0) {
-                DeleteMessage deleteMessage = new DeleteMessage();
-                deleteMessage.setMessageId(id);
-                deleteMessage.setChatId(sendMessage.getChatId());
-                deleteMessageService.deleteAsync(deleteMessage, sendMessage.getDelTime());
+            for (BetSendMessage sendMessage : sendMessages) {
+                sendAndSave(sendMessage, sendMessage.getUser(), sendMessage.getBotMessageType());
+                Thread.sleep(WAIT_NEXT_MESSAGE_MS);
             }
-        } catch (TelegramApiException e) {
+        } catch (InterruptedException e) {
             log.error(e.getLocalizedMessage());
         }
     }

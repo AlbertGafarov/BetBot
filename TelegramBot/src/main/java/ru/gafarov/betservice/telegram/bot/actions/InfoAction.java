@@ -27,7 +27,7 @@ public class InfoAction implements Action {
     private final UserService userService;
 
     @Override
-    public List<BetSendMessage> handle(Update update) {
+    public void handle(Update update) {
         long chatId = update.getMessage().getChatId();
         User user = userService.getUser(chatId);
 
@@ -61,12 +61,10 @@ public class InfoAction implements Action {
         sendMessage.setReplyMarkup(markupInline);
         botService.delete(update);
         botService.sendAndSave(sendMessage, user, BotMessageType.INFO);
-
-        return new ArrayList<>();
     }
 
     @Override
-    public List<BetSendMessage> callback(Update update) {
+    public void callback(Update update) {
         long chatId = update.getCallbackQuery().getFrom().getId();
         Proto.User user = userService.getUser(chatId);
         String[] command = update.getCallbackQuery().getData().split("/");
@@ -95,6 +93,5 @@ public class InfoAction implements Action {
             sendMessage.setReplyMarkup(Buttons.closeButton());
             botService.sendAndSave(sendMessage, user, BotMessageType.INFO);
         }
-        return  new ArrayList<>();
     }
 }

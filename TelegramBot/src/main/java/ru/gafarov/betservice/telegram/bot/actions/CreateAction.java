@@ -13,9 +13,6 @@ import ru.gafarov.betservice.telegram.bot.service.BotService;
 import ru.gafarov.betservice.telegram.bot.service.UserService;
 import ru.gafarov.betservice.telegram.bot.service.draftBet.DraftBetService;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import static ru.gafarov.betservice.telegram.bot.components.Buttons.wantChoseFromFriends;
 
 @Component
@@ -28,7 +25,7 @@ public class CreateAction implements Action {
     private final BotMessageService botMessageService;
 
     @Override
-    public List<BetSendMessage> handle(Update update) {
+    public void handle(Update update) {
         long chatId = update.getMessage().getChatId();
         User user = userService.getUser(chatId);
         DraftBet draftBet = DraftBet.newBuilder()
@@ -43,11 +40,9 @@ public class CreateAction implements Action {
         botMessageService.deleteWithoutDraft(draftBet, user);
         botService.sendAndSave(sendMessage, user, BotMessageType.ENTER_USERNAME, draftBet);
         botService.delete(update);
-        return new ArrayList<>();
     }
 
     @Override
-    public List<BetSendMessage> callback(Update update) {
-        return null;
+    public void callback(Update update) {
     }
 }
