@@ -21,13 +21,4 @@ public class BetSendMessage extends SendMessage {
         this.setChatId(chatId);
         this.setDelTime(delTime);
     }
-    public BetSendMessage(User user, int delTime) {
-        this.setChatId(user.getChatId());
-        this.setDelTime(delTime);
-        this.setUser(user);
-    }
-    public BetSendMessage(User user) {
-        this.setChatId(user.getChatId());
-        this.setUser(user);
-    }
 }

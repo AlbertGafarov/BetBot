@@ -21,7 +21,8 @@ public class BetNotifier {
 
     public Proto.ResponseMessage notifyOfExpiredBets(Proto.Bets bets) {
         List<BetSendMessage> sendMessageList = bets.getBetsList().stream().map(b -> {
-            BetSendMessage sendMessage = new BetSendMessage(b.getInitiator());
+                    BetSendMessage sendMessage = new BetSendMessage(b.getInitiator().getChatId());
+                    sendMessage.setUser(b.getInitiator());
                     sendMessage.setText("<b>Наступила дата окончания:</b>\n" + prettyPrinter.printBet(b));
                     sendMessage.setReplyMarkup(Buttons.nextStatusesButtons(b.getInitiatorNextStatusesList(), b.getId()));
                     sendMessage.setBotMessageType(Proto.BotMessageType.BET_TIME_IS_UP);
@@ -30,10 +31,11 @@ public class BetNotifier {
         ).collect(Collectors.toList());
 
         List<BetSendMessage> sendMessageToOpponentList = bets.getBetsList().stream().map(b -> {
-            BetSendMessage sendMessage = new BetSendMessage(b.getOpponent());
+                    BetSendMessage sendMessage = new BetSendMessage(b.getOpponent().getChatId());
+                    sendMessage.setUser(b.getOpponent());
                     sendMessage.setText("<b>Наступила дата окончания:</b>\n" + prettyPrinter.printBet(b));
                     sendMessage.setReplyMarkup(Buttons.nextStatusesButtons(b.getOpponentNextStatusesList(), b.getId()));
-            sendMessage.setBotMessageType(Proto.BotMessageType.BET_TIME_IS_UP);
+                    sendMessage.setBotMessageType(Proto.BotMessageType.BET_TIME_IS_UP);
                     return sendMessage;
                 }
         ).collect(Collectors.toList());
