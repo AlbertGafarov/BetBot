@@ -14,4 +14,6 @@ public interface BotMessageService {
     Proto.ResponseBotMessage delete(Proto.BotMessage botMessage);
 
     Proto.ResponseBotMessage getWithout(Proto.DraftBet draftBet);
+
+    Proto.ResponseBotMessage getAllByType(Proto.BotMessage request);
 }

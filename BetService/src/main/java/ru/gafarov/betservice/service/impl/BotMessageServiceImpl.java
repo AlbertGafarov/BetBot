@@ -93,12 +93,12 @@ public class BotMessageServiceImpl implements BotMessageService {
     @Override
     public Proto.ResponseBotMessage delete(Proto.BotMessage botMessage) {
 
-        if(botMessage.getTgMessageId() > 0) {
+        if (botMessage.getTgMessageId() > 0) {
             botMessageRepository.markDeletedByTgId(botMessage.getTgMessageId());
             return Proto.ResponseBotMessage.newBuilder().setStatus(Proto.Status.SUCCESS).build();
         } else {
             log.error("tg_message_id: {} невозможен", botMessage.getTgMessageId());
-        return Proto.ResponseBotMessage.newBuilder().setStatus(Proto.Status.ERROR).build();
+            return Proto.ResponseBotMessage.newBuilder().setStatus(Proto.Status.ERROR).build();
         }
     }
 
@@ -112,5 +112,18 @@ public class BotMessageServiceImpl implements BotMessageService {
             return Proto.ResponseBotMessage.newBuilder().addAllBotMessages(botMessageList).setStatus(Proto.Status.NOT_FOUND).build();
         }
         return Proto.ResponseBotMessage.newBuilder().addAllBotMessages(botMessageList).setStatus(Proto.Status.SUCCESS).build();
+    }
+
+    @Override
+    public Proto.ResponseBotMessage getAllByType(Proto.BotMessage request) {
+        List<BotMessage> botMessages = botMessageRepository.getAllByType(request.getUser().getId(), request.getType().toString());
+        if (!botMessages.isEmpty()) {
+            return Proto.ResponseBotMessage.newBuilder()
+                    .setStatus(Proto.Status.SUCCESS)
+                    .addAllBotMessages(botMessages.stream().map(converter::toProtoBotMessage).collect(Collectors.toList()))
+                    .build();
+        } else {
+            return Proto.ResponseBotMessage.newBuilder().setStatus(Proto.Status.NOT_FOUND).build();
+        }
     }
 }

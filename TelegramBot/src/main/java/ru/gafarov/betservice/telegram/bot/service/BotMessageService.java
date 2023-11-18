@@ -83,4 +83,15 @@ public class BotMessageService {
             }
         }
     }
+
+    public void deleteByBotMessageType(User user, BotMessageType botMessageType) {
+        ResponseBotMessage response = grpcStub.getBotMessagesByType(BotMessage.newBuilder().setUser(user).setType(botMessageType).build());
+        log.info("Получено {} сообщений", response.getBotMessagesCount());
+        if (response.getStatus().equals(Status.SUCCESS)) {
+            response.getBotMessagesList().forEach(a -> {
+                DeleteMessage deleteMessage = new DeleteMessage(String.valueOf(user.getChatId()), a.getTgMessageId());
+                deleteMessageService.deleteSync(deleteMessage);
+            });
+        }
+    }
 }

@@ -39,10 +39,11 @@ public class DeleteMessageService {
         try {
             if (botMessageService.isNotDeleted(deleteMessage.getMessageId())) {
                 bot.execute(deleteMessage);
-                botMessageService.markDeleted(deleteMessage);
             }
         } catch (TelegramApiException e) {
-            e.printStackTrace();
+            log.error(e.getLocalizedMessage());
+        } finally {
+            botMessageService.markDeleted(deleteMessage);
         }
     }
 

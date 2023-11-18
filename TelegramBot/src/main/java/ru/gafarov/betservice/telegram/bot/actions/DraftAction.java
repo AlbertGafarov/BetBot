@@ -50,13 +50,12 @@ public class DraftAction implements Action {
             sendMessage.setText(stringBuilder);
             sendMessage.setReplyMarkup(Buttons.approveDraftBetButtons(draftBet.getId()));
 
+        botService.sendAndSave(sendMessage, user, BotMessageType.DRAFT_BET, true);
         } else {
             sendMessage.setText("У вас нет черновиков спора");
             sendMessage.setDelTime(5000);
+        botService.sendAndSave(sendMessage, user, BotMessageType.YOU_HAVE_NOT_DRAFT_BET, true);
         }
-        botService.sendTimeIsUpMessage(sendMessage);
-
-        // Удаление сообщения у того кто нажал
         botService.delete(update);
     }
 

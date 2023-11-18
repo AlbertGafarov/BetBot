@@ -24,6 +24,11 @@ public interface BotMessageRepository extends JpaRepository<BotMessage, Long> {
             , nativeQuery = true)
     List<BotMessage> getByDraftBet(long userId, long draftBetId);
 
+    @Query(value = "select * from bot_message where user_id = ?1 and message_type = ?2 and status != 'DELETED'"
+            , nativeQuery = true)
+    List<BotMessage> getAllByType(long id, String type);
+
+
     @Modifying
     @Transactional
     @Query(value = "update bot_message set status = 'DELETED' where id in :identifications", nativeQuery = true)

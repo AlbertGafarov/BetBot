@@ -132,6 +132,7 @@ enum ChatStatus {
 
 enum BotMessageType {
   ENTER_USERNAME = 0;
+  START_MESSAGE = 31;
   CHOOSE_OPPONENT = 7;
   ENTER_CODE = 1;
   ENTER_WAGER = 2;
@@ -150,6 +151,7 @@ enum BotMessageType {
   FRIEND_LIST = 14;
   YOU_HAVE_NOT_FRIENDS = 15;
   DRAFT_BET = 16;
+  YOU_HAVE_NOT_DRAFT_BET = 30;
   HELLO = 17;
   INFO = 18;
   CODE = 19;
@@ -191,4 +193,5 @@ service BetService {
   rpc deleteBotMessage(BotMessage) returns (ResponseBotMessage);
   rpc addSubscribe(Subscribe) returns (Response);
   rpc deleteSubscribe(Subscribe) returns (Response);
+  rpc getBotMessagesByType(BotMessage) returns (ResponseBotMessage);
 }

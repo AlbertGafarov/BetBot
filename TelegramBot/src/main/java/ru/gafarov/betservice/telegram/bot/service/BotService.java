@@ -59,6 +59,13 @@ public class BotService {
         sendAndSave(sendMessage, user, botMessageType, null);
     }
 
+    public void sendAndSave(BetSendMessage sendMessage, User user, BotMessageType botMessageType, boolean deleteOther) {
+        if(deleteOther){
+            botMessageService.deleteByBotMessageType(user, botMessageType);
+        }
+        sendAndSave(sendMessage, user, botMessageType, null);
+    }
+
     public void sendAndSave(BetSendMessage sendMessage, User user, BotMessageType botMessageType, DraftBet draftBet) {
         sendMessage.setParseMode(ParseMode.HTML);
         try {

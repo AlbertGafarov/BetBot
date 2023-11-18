@@ -5,12 +5,10 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
-import ru.gafarov.bet.grpcInterface.Proto.BotMessage;
 import ru.gafarov.bet.grpcInterface.Proto.BotMessageType;
 import ru.gafarov.bet.grpcInterface.Proto.Status;
 import ru.gafarov.bet.grpcInterface.Proto.User;
 import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
-import ru.gafarov.betservice.telegram.bot.service.BotMessageService;
 import ru.gafarov.betservice.telegram.bot.service.BotService;
 import ru.gafarov.betservice.telegram.bot.service.SubscribeService;
 import ru.gafarov.betservice.telegram.bot.service.UserService;
@@ -27,7 +25,6 @@ public class FriendsAction implements Action {
 
     private final BotService botService;
     private final UserService userService;
-    private final BotMessageService botMessageService;
     private final SubscribeService subscribeService;
 
     @Override
@@ -43,8 +40,7 @@ public class FriendsAction implements Action {
             friendListMessage.setReplyMarkup(closeButton());
             friendListMessage.setDelTime(30_000);
 
-            botMessageService.save(BotMessage.newBuilder().setTgMessageId(botService.sendTimeIsUpMessage(friendListMessage))
-                    .setType(BotMessageType.YOU_HAVE_NOT_FRIENDS).setUser(user).build());
+            botService.sendAndSave(friendListMessage, user, BotMessageType.YOU_HAVE_NOT_FRIENDS, true);
         } else {
             List<List<InlineKeyboardButton>> buttons = friends.stream().map(a -> {
                 InlineKeyboardButton nameButton = new InlineKeyboardButton(a.getUsername() + " " + a.getCode());
@@ -59,8 +55,7 @@ public class FriendsAction implements Action {
             friendListMessage.setReplyMarkup(markupInline);
             friendListMessage.setText("Ваши друзья:");
 
-            botMessageService.save(BotMessage.newBuilder().setTgMessageId(botService.sendTimeIsUpMessage(friendListMessage))
-                    .setType(BotMessageType.FRIEND_LIST).setUser(user).build());
+            botService.sendAndSave(friendListMessage, user, BotMessageType.FRIEND_LIST, true);
             botService.delete(update);
         }
     }

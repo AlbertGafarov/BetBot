@@ -43,7 +43,7 @@ public class AuthorizationService {
                 sendMessage.setText("Привет! \nВаш username: " + response.getUser().getUsername() +
                         "\nВаш код: " + response.getUser().getCode() + "\nInfo о боте: /info");
                 sendMessage.setReplyMarkup(closeButton());
-                botService.sendAndSave(sendMessage, response.getUser(), BotMessageType.INFO);
+                botService.sendAndSave(sendMessage, response.getUser(), BotMessageType.START_MESSAGE);
             }
         } else {
 
@@ -53,7 +53,7 @@ public class AuthorizationService {
         sendMessage.setText("Привет <b>" + responseMessage.getUser().getUsername() + "</b>!\nInfo о боте: /info");
         userService.setChatStatus(responseMessage.getUser(), ChatStatus.START);
         sendMessage.setReplyMarkup(Buttons.codeButtons());
-        botService.sendAndSave(sendMessage, responseMessage.getUser(), BotMessageType.HELLO);
+        botService.sendAndSave(sendMessage, responseMessage.getUser(), BotMessageType.HELLO, true);
     }
 
     public void getCode(long chatId) {
@@ -65,6 +65,6 @@ public class AuthorizationService {
         } else {
             sendMessage.setText("Вашего кода еще не существует. Нажмите /start");
         }
-        botService.sendAndSave(sendMessage, response.getUser(), BotMessageType.CODE);
+        botService.sendAndSave(sendMessage, response.getUser(), BotMessageType.CODE, true);
     }
 }

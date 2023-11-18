@@ -23,13 +23,13 @@ public class MyReferenceAction implements Action {
         BetSendMessage sendInfoMessage = new BetSendMessage(chatId);
         sendInfoMessage.setText("Перешлите следующее сообщение вашему собеседнику, чтобы он переслал его в Бот:");
         sendInfoMessage.setDelTime(60_000);
-        botService.sendAndSave(sendInfoMessage, user, BotMessageType.MY_REFERENCE_INFO);
+        botService.sendAndSave(sendInfoMessage, user, BotMessageType.MY_REFERENCE_INFO, true);
 
         BetSendMessage sendMessage = new BetSendMessage(chatId);
         sendMessage.setText("/addMe/"+ user.getUsername() + "/" + user.getCode() + "/\n<i>\"Перешлите это сообщение в Бот," +
                 " чтобы добавить " + user.getUsername() + "\"</i>");
         sendMessage.setDelTime(60_000);
-        botService.sendAndSave(sendMessage, user, BotMessageType.MY_REFERENCE);
+        botService.sendAndSave(sendMessage, user, BotMessageType.MY_REFERENCE, true);
         botService.delete(update);
     }
 

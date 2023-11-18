@@ -60,7 +60,7 @@ public class InfoAction implements Action {
         markupInline.setKeyboard(buttons);
         sendMessage.setReplyMarkup(markupInline);
         botService.delete(update);
-        botService.sendAndSave(sendMessage, user, BotMessageType.INFO);
+        botService.sendAndSave(sendMessage, user, BotMessageType.INFO, true);
     }
 
     @Override
@@ -73,25 +73,25 @@ public class InfoAction implements Action {
         if("aboutBot".equals(command[2])){
             BetSendMessage sendMessage = infoService.getInfo(InfoType.ABOUT_BOT, chatId);
             sendMessage.setReplyMarkup(Buttons.closeButton());
-            botService.sendAndSave(sendMessage, user, BotMessageType.INFO_ABOUT_BOT);
+            botService.sendAndSave(sendMessage, user, BotMessageType.INFO_ABOUT_BOT, true);
 
             // /info/howAddFriend
         } else if ("howAddFriend".equals(command[2])){
             BetSendMessage sendMessage = infoService.getInfo(InfoType.HOW_ADD_FRIEND, chatId);
             sendMessage.setReplyMarkup(Buttons.closeButton());
-            botService.sendAndSave(sendMessage, user, BotMessageType.INFO_HOW_ADD_FRIEND);
+            botService.sendAndSave(sendMessage, user, BotMessageType.INFO_HOW_ADD_FRIEND, true);
 
             // /info/howCreateBet
         } else if ("howCreateBet".equals(command[2])){
             BetSendMessage sendMessage = infoService.getInfo(InfoType.HOW_CREATE_BET, chatId);
             sendMessage.setReplyMarkup(Buttons.closeButton());
-            botService.sendAndSave(sendMessage, user, BotMessageType.INFO_HOW_CREATE_BET);
+            botService.sendAndSave(sendMessage, user, BotMessageType.INFO_HOW_CREATE_BET, true);
 
             // /info/howCreateBet
         } else if ("aboutPersonalData".equals(command[2])){
             BetSendMessage sendMessage = infoService.getInfo(InfoType.ABOUT_PERSONAL_DATA, chatId);
             sendMessage.setReplyMarkup(Buttons.closeButton());
-            botService.sendAndSave(sendMessage, user, BotMessageType.INFO_ABOUT_PERSONAL_DATA);
+            botService.sendAndSave(sendMessage, user, BotMessageType.INFO_ABOUT_PERSONAL_DATA, true);
         }
     }
 }

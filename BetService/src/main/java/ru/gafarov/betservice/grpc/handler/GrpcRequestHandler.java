@@ -49,6 +49,12 @@ public class GrpcRequestHandler extends BetServiceGrpc.BetServiceImplBase {
     }
 
     @Override
+    public void getBotMessagesByType(Proto.BotMessage request, StreamObserver<Proto.ResponseBotMessage> responseObserver) {
+        responseObserver.onNext(botMessageService.getAllByType(request));
+        responseObserver.onCompleted();
+    }
+
+    @Override
     public void addDraftBet(Proto.DraftBet request, StreamObserver<Proto.ResponseDraftBet> responseObserver) {
         responseObserver.onNext(draftBetService.save(request));
         responseObserver.onCompleted();
