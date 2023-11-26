@@ -1,8 +1,9 @@
-package ru.gafarov.betservice.model;
+package ru.gafarov.betservice.entity;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.gafarov.bet.grpcInterface.Proto;
+import ru.gafarov.bet.grpcInterface.ProtoBet;
+import ru.gafarov.betservice.model.Status;
 
 import javax.persistence.*;
 import java.util.Objects;
@@ -20,17 +21,17 @@ public class BetFinalStatusRule {
 
     @Column(name = "initiator_status")
     @Enumerated(EnumType.STRING)
-    private Proto.BetStatus initiatorBetStatus;
+    private ProtoBet.UserBetStatus initiatorBetStatus;
 
     @Column(name = "opponent_status")
     @Enumerated(EnumType.STRING)
-    private Proto.BetStatus opponentBetStatus;
+    private ProtoBet.UserBetStatus opponentBetStatus;
 
     @Column(name = "bet_final_status")
     @Enumerated(EnumType.STRING)
     private Status betFinalStatus;
 
-    public BetFinalStatusRule(Proto.BetStatus initiatorBetStatus, Proto.BetStatus opponentBetStatus, Status betFinalStatus) {
+    public BetFinalStatusRule(ProtoBet.UserBetStatus initiatorBetStatus, ProtoBet.UserBetStatus opponentBetStatus, Status betFinalStatus) {
         this.initiatorBetStatus = initiatorBetStatus;
         this.opponentBetStatus = opponentBetStatus;
         this.betFinalStatus = betFinalStatus;

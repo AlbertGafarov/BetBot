@@ -10,10 +10,11 @@ import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageRe
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import ru.gafarov.bet.grpcInterface.Proto.BotMessage;
-import ru.gafarov.bet.grpcInterface.Proto.BotMessageType;
-import ru.gafarov.bet.grpcInterface.Proto.DraftBet;
-import ru.gafarov.bet.grpcInterface.Proto.User;
+import ru.gafarov.bet.grpcInterface.BotMessageOuterClass.BotMessage;
+import ru.gafarov.bet.grpcInterface.BotMessageOuterClass.BotMessageType;
+import ru.gafarov.bet.grpcInterface.DrBet.DraftBet;
+import ru.gafarov.bet.grpcInterface.ProtoBet.*;
+import ru.gafarov.bet.grpcInterface.UserOuterClass.User;
 import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
 import ru.gafarov.betservice.telegram.bot.controller.BetTelegramBot;
 
@@ -56,17 +57,32 @@ public class BotService {
     }
 
     public void sendAndSave(BetSendMessage sendMessage, User user, BotMessageType botMessageType) {
-        sendAndSave(sendMessage, user, botMessageType, null);
+        sendAndSave(sendMessage, user, botMessageType, null, null, null);
     }
 
     public void sendAndSave(BetSendMessage sendMessage, User user, BotMessageType botMessageType, boolean deleteOther) {
-        if(deleteOther){
+        if (deleteOther) {
             botMessageService.deleteByBotMessageType(user, botMessageType);
         }
-        sendAndSave(sendMessage, user, botMessageType, null);
+        sendAndSave(sendMessage, user, botMessageType, null, null, null);
     }
 
-    public void sendAndSave(BetSendMessage sendMessage, User user, BotMessageType botMessageType, DraftBet draftBet) {
+    public void sendAndSaveDraftBet(BetSendMessage sendMessage, User user, BotMessageType botMessageType, DraftBet draftBet) {
+        sendAndSave(sendMessage, user, botMessageType, draftBet, null, null);
+    }
+
+    public void sendAndSaveBet(BetSendMessage sendMessage, User user, BotMessageType botMessageType, Bet bet) {
+        botMessageService.deleteBotMessagesByTemplate(user, botMessageType, null, bet);
+        sendAndSave(sendMessage, user, botMessageType, null, bet, null);
+    }
+
+    public void sendAndSaveFriend(BetSendMessage sendMessage, User user, BotMessageType botMessageType, User friend) {
+        botMessageService.deleteBotMessagesByTemplate(user, botMessageType, friend, null);
+        sendAndSave(sendMessage, user, botMessageType, null, null, friend);
+    }
+
+    public void sendAndSave(BetSendMessage sendMessage, User user, BotMessageType botMessageType, DraftBet draftBet
+            , Bet bet, User friend) {
         sendMessage.setParseMode(ParseMode.HTML);
         try {
             int id = bot.execute(sendMessage).getMessageId();
@@ -74,6 +90,12 @@ public class BotService {
                     .setType(botMessageType).setUser(user);
             if (draftBet != null) {
                 builder.setDraftBet(draftBet);
+            }
+            if (friend != null) {
+                builder.setFriend(friend);
+            }
+            if (bet != null) {
+                builder.setBet(bet);
             }
             botMessageService.save(builder.build());
 
@@ -120,7 +142,7 @@ public class BotService {
         try {
             bot.execute(editMessageText);
         } catch (TelegramApiException e) {
-            e.printStackTrace();
+            log.error(e.getLocalizedMessage());
         }
     }
 
@@ -128,7 +150,7 @@ public class BotService {
         try {
             bot.execute(editMessageReplyMarkup);
         } catch (TelegramApiException e) {
-            e.printStackTrace();
+            log.error(e.getLocalizedMessage());
         }
     }
 }

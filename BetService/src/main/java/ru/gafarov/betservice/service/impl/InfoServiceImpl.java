@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.gafarov.bet.grpcInterface.Info;
-import ru.gafarov.betservice.model.InfoEntity;
+import ru.gafarov.betservice.entity.InfoEntity;
 import ru.gafarov.betservice.repository.InfoRepository;
 import ru.gafarov.betservice.service.InfoService;
 

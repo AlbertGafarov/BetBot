@@ -1,0 +1,77 @@
+syntax = "proto3";
+package ru.gafarov.bet.grpcInterface;
+
+import "google/protobuf/timestamp.proto";
+import "user.proto";
+import "rs.proto";
+
+message Bet {
+  int64 id = 1;
+  string wager = 2;
+  google.protobuf.Timestamp finishDate = 3;
+  User initiator = 4;
+  User opponent = 5;
+  string definition = 6;
+  UserBetStatus initiatorStatus = 7;
+  UserBetStatus opponentStatus = 8;
+  repeated UserBetStatus initiatorNextStatuses = 9;
+  repeated UserBetStatus opponentNextStatuses = 10;
+  bool inverseDefinition = 11;
+  BetStatus betStatus = 12;
+}
+
+message ChangeStatusBetMessage {
+  User user = 1;
+  Bet bet = 2;
+  UserBetStatus newStatus = 3;
+}
+
+message ResponseMessage {
+  string messageForInitiator = 1;
+  string messageForOpponent = 2;
+  Status status = 3;
+  User user = 4;
+  Bet bet = 5;
+  repeated Bet bets = 7;
+}
+
+message ResponseBet {
+  Status status = 1;
+  Bet bet = 2;
+  repeated Bet bets = 3;
+}
+
+message Bets {
+  repeated Bet bets = 1;
+}
+
+enum UserBetStatus {
+  OFFERED = 0; // Предложен
+  NOT_READ = 1; // Не рассмотрен оппонентом
+  ACCEPTED = 2; // Принят
+  WIN = 3;    // Победил
+  LOSE = 4;   // Проиграл
+  STANDOFF = 5;   // Ничья
+  WAGERPAID = 6;  // Выигрыш оплатил
+  WAGERRECIEVED = 7;  // Выигрыш получил
+  CANCELED = 8;  // Спор отклонен
+}
+
+enum BetStatus {
+  OFFER = 0; // Спор предложен
+  CANCEL = 1;  // Спор отклонен
+  ACTIVE = 2; // Спор активен
+  DISAGREEMENT = 3; // Разногласия по результату спора
+  WAIT_WAGER_PAY = 4;    // Спор в ожидании оплаты
+  CLOSED = 5; //Спор завершен
+}
+
+service BetService {
+  rpc addBet(Bet) returns (ResponseBet);
+  rpc changeStatusBet(ChangeStatusBetMessage) returns (ResponseMessage);
+  rpc getActiveBets(User) returns (ResponseMessage);
+  rpc getBet(Bet) returns (ResponseMessage);
+  rpc getBetsByTemplate(Bet) returns (ResponseBet);
+  rpc notifyOfExpiredBets(Bets) returns (ResponseMessage);
+  rpc changeChatStatus(User) returns (ResponseMessage);
+}

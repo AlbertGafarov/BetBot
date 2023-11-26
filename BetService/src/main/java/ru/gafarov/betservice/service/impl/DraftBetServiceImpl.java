@@ -3,9 +3,11 @@ package ru.gafarov.betservice.service.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.gafarov.bet.grpcInterface.Proto;
+import ru.gafarov.bet.grpcInterface.DrBet;
+import ru.gafarov.bet.grpcInterface.Rs;
+import ru.gafarov.bet.grpcInterface.UserOuterClass;
 import ru.gafarov.betservice.converter.Converter;
-import ru.gafarov.betservice.model.DraftBet;
+import ru.gafarov.betservice.entity.DraftBet;
 import ru.gafarov.betservice.model.Status;
 import ru.gafarov.betservice.repository.DraftBetRepository;
 import ru.gafarov.betservice.service.DraftBetService;
@@ -22,7 +24,7 @@ public class DraftBetServiceImpl implements DraftBetService {
     private final Converter converter;
 
     @Override
-    public Proto.ResponseDraftBet save(Proto.DraftBet protoDraftBet) {
+    public DrBet.ResponseDraftBet save(DrBet.DraftBet protoDraftBet) {
 
         DraftBet draftBet = new DraftBet();
         draftBet.setInitiator(converter.toUser(protoDraftBet.getInitiator()));
@@ -34,93 +36,93 @@ public class DraftBetServiceImpl implements DraftBetService {
         draftBet.setWager(protoDraftBet.getWager());
         draftBet = draftBetRepository.save(draftBet);
 
-        return Proto.ResponseDraftBet.newBuilder().setDraftBet(Proto.DraftBet.newBuilder(protoDraftBet).setId(draftBet.getId()).build()).build();
+        return DrBet.ResponseDraftBet.newBuilder().setDraftBet(DrBet.DraftBet.newBuilder(protoDraftBet).setId(draftBet.getId()).build()).build();
 
     }
 
     @Override
-    public Proto.ResponseDraftBet setOpponentName(Proto.DraftBet draftBet) {
+    public DrBet.ResponseDraftBet setOpponentName(DrBet.DraftBet draftBet) {
         LocalDateTime localDateTime = LocalDateTime.now();
         draftBetRepository.setOpponentName(draftBet.getId(), draftBet.getOpponentName(), localDateTime);
         return null;
     }
 
     @Override
-    public Proto.ResponseDraftBet setOpponentCodeAndName(Proto.DraftBet draftBet) {
+    public DrBet.ResponseDraftBet setOpponentCodeAndName(DrBet.DraftBet draftBet) {
         LocalDateTime localDateTime = LocalDateTime.now();
         try {
             draftBetRepository.setOpponentCodeAndName(draftBet.getId(), draftBet.getOpponentCode(), draftBet.getOpponentName(), localDateTime);
-            return Proto.ResponseDraftBet.newBuilder().setStatus(Proto.Status.SUCCESS).build();
-        } catch (Exception exception) {
-            exception.printStackTrace();
-            return Proto.ResponseDraftBet.newBuilder().setStatus(Proto.Status.ERROR).build();
+            return DrBet.ResponseDraftBet.newBuilder().setStatus(Rs.Status.SUCCESS).build();
+        } catch (Exception e) {
+            log.error(e.getLocalizedMessage());
+            return DrBet.ResponseDraftBet.newBuilder().setStatus(Rs.Status.ERROR).build();
         }
     }
 
     @Override
-    public Proto.ResponseDraftBet setDefinition(Proto.DraftBet protoDraftBet) {
+    public DrBet.ResponseDraftBet setDefinition(DrBet.DraftBet protoDraftBet) {
         LocalDateTime localDateTime = LocalDateTime.now();
         if (protoDraftBet.getId() == 0) {
             DraftBet draftBet = converter.toDraftBet(protoDraftBet);
             draftBet.setStatus(Status.ACTIVE);
             draftBet = draftBetRepository.save(draftBet);
-            return Proto.ResponseDraftBet.newBuilder().setDraftBet(converter.toProtoDraftBet(draftBet)).build();
+            return DrBet.ResponseDraftBet.newBuilder().setDraftBet(converter.toProtoDraftBet(draftBet)).build();
         } else {
             draftBetRepository.setDefinition(protoDraftBet.getId(), protoDraftBet.getDefinition(), localDateTime);
             Optional<DraftBet> optionalDraftBet = draftBetRepository.findById(protoDraftBet.getId());
-            return optionalDraftBet.map(bet -> Proto.ResponseDraftBet.newBuilder()
+            return optionalDraftBet.map(bet -> DrBet.ResponseDraftBet.newBuilder()
                     .setDraftBet(converter.toProtoDraftBet(bet))
-                    .setStatus(Proto.Status.SUCCESS).build()).orElseGet(() -> Proto.ResponseDraftBet.newBuilder()
-                    .setStatus(Proto.Status.ERROR).build());
+                    .setStatus(Rs.Status.SUCCESS).build()).orElseGet(() -> DrBet.ResponseDraftBet.newBuilder()
+                    .setStatus(Rs.Status.ERROR).build());
         }
     }
 
     @Override
-    public Proto.ResponseDraftBet setWager(Proto.DraftBet draftBet) {
+    public DrBet.ResponseDraftBet setWager(DrBet.DraftBet draftBet) {
         LocalDateTime localDateTime = LocalDateTime.now();
         draftBetRepository.setWager(draftBet.getId(), draftBet.getWager(), localDateTime);
         return null;
     }
 
     @Override
-    public Proto.ResponseDraftBet setFinishDate(Proto.DraftBet protoDraftBet) {
+    public DrBet.ResponseDraftBet setFinishDate(DrBet.DraftBet protoDraftBet) {
         LocalDateTime finishDate = LocalDateTime.now().plusDays(protoDraftBet.getDaysToFinish());
         LocalDateTime localDateTime = LocalDateTime.now();
         draftBetRepository.setFinishDate(protoDraftBet.getId(), finishDate, localDateTime);
 
         Optional<DraftBet> optionalDraftBet = draftBetRepository.findById(protoDraftBet.getId());
         if (optionalDraftBet.isPresent()) {
-            return Proto.ResponseDraftBet.newBuilder()
-                    .setDraftBet(converter.toProtoDraftBet(optionalDraftBet.get())).setStatus(Proto.Status.SUCCESS).build();
+            return DrBet.ResponseDraftBet.newBuilder()
+                    .setDraftBet(converter.toProtoDraftBet(optionalDraftBet.get())).setStatus(Rs.Status.SUCCESS).build();
         } else {
             log.error("Не найдено ни одного draftBet с id: {}", protoDraftBet.getId());
-            return Proto.ResponseDraftBet.newBuilder().setStatus(Proto.Status.ERROR).build();
+            return DrBet.ResponseDraftBet.newBuilder().setStatus(Rs.Status.ERROR).build();
         }
     }
 
     @Override
-    public Proto.ResponseDraftBet getLastDraftBet(Proto.User user) {
-        return Proto.ResponseDraftBet.newBuilder()
+    public DrBet.ResponseDraftBet getLastDraftBet(UserOuterClass.User user) {
+        return DrBet.ResponseDraftBet.newBuilder()
                 .setDraftBet(converter.toProtoDraftBet(draftBetRepository.getLastDraftBet(user.getId()))).build();
     }
 
     @Override
-    public Proto.ResponseDraftBet delete(Proto.DraftBet draftBet) {
+    public DrBet.ResponseDraftBet delete(DrBet.DraftBet draftBet) {
         LocalDateTime localDateTime = LocalDateTime.now();
         draftBetRepository.setStatus(draftBet.getId(), Status.DELETED.toString(), localDateTime);
-        return Proto.ResponseDraftBet.newBuilder().setStatus(Proto.Status.SUCCESS).build();
+        return DrBet.ResponseDraftBet.newBuilder().setStatus(Rs.Status.SUCCESS).build();
     }
 
     @Override
-    public Proto.ResponseDraftBet getDraftBet(Proto.DraftBet protoDraftBet) {
+    public DrBet.ResponseDraftBet getDraftBet(DrBet.DraftBet protoDraftBet) {
         Optional<DraftBet> optionalDraftBet = draftBetRepository.findById(protoDraftBet.getId());
         if (optionalDraftBet.isPresent()) {
             DraftBet draftBet = optionalDraftBet.get();
-            return Proto.ResponseDraftBet.newBuilder().setDraftBet(converter.toProtoDraftBet(draftBet))
-                    .setStatus(Proto.Status.SUCCESS).build();
+            return DrBet.ResponseDraftBet.newBuilder().setDraftBet(converter.toProtoDraftBet(draftBet))
+                    .setStatus(Rs.Status.SUCCESS).build();
         } else {
             log.error("Не найдено ни одного draftBet с id: {}", protoDraftBet.getId());
-            return Proto.ResponseDraftBet.newBuilder().setStatus(Proto.Status.ERROR).build();
+            return DrBet.ResponseDraftBet.newBuilder().setStatus(Rs.Status.ERROR).build();
         }
     }
 }

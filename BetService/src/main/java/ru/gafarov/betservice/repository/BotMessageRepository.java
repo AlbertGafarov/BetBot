@@ -4,7 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import ru.gafarov.betservice.model.BotMessage;
+import ru.gafarov.betservice.entity.BotMessage;
 
 import javax.transaction.Transactional;
 import java.util.List;
@@ -24,9 +24,15 @@ public interface BotMessageRepository extends JpaRepository<BotMessage, Long> {
             , nativeQuery = true)
     List<BotMessage> getByDraftBet(long userId, long draftBetId);
 
-    @Query(value = "select * from bot_message where user_id = ?1 and message_type = ?2 and status != 'DELETED'"
+    @Query(value = "select * from bot_message " +
+            "where user_id = ?1 " +
+            "and (message_type = ?2 or ?2 = '') " +
+            "and (draft_bet_id = ?3 or ?3 = 0) " +
+            "and (bet_id = ?4 or ?4 = 0) " +
+            "and (friend_id = ?5 or ?5 = 0) " +
+            "and status != 'DELETED'"
             , nativeQuery = true)
-    List<BotMessage> getAllByType(long id, String type);
+    List<BotMessage> getAllByTemplate(long userId, String type, long draftBetId, long betId, long friendId);
 
 
     @Modifying

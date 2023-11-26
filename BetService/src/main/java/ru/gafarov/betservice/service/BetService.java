@@ -1,14 +1,17 @@
 package ru.gafarov.betservice.service;
 
-import ru.gafarov.bet.grpcInterface.Proto;
+import ru.gafarov.bet.grpcInterface.ProtoBet;
+import ru.gafarov.bet.grpcInterface.UserOuterClass;
 
 public interface BetService {
 
-    Proto.ResponseBet save(Proto.Bet protoBet);
+    ProtoBet.ResponseBet save(ProtoBet.Bet protoBet);
 
-    Proto.ResponseMessage showBet(Proto.Bet protoBet);
+    ProtoBet.ResponseMessage showBet(ProtoBet.Bet protoBet);
 
-    Proto.ResponseMessage changeBetStatus(Proto.ChangeStatusBetMessage protoChangeStatusBetMessage);
+    ProtoBet.ResponseMessage changeBetStatus(ProtoBet.ChangeStatusBetMessage protoChangeStatusBetMessage);
 
-    Proto.ResponseMessage getActiveBets(Proto.User protoUser);
+    ProtoBet.ResponseMessage getActiveBets(UserOuterClass.User protoUser);
+
+    ProtoBet.ResponseBet getBets(ProtoBet.Bet request);
 }

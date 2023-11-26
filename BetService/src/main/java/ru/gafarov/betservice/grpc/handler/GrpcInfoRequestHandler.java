@@ -4,11 +4,9 @@ import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
 import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.stereotype.Component;
-import ru.gafarov.bet.grpcInterface.BetServiceGrpc;
 import ru.gafarov.bet.grpcInterface.Info;
 import ru.gafarov.bet.grpcInterface.InfoServiceGrpc;
-import ru.gafarov.bet.grpcInterface.Proto;
-import ru.gafarov.betservice.service.*;
+import ru.gafarov.betservice.service.InfoService;
 
 @Component
 @GrpcService

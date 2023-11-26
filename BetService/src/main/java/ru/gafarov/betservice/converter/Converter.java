@@ -3,8 +3,15 @@ package ru.gafarov.betservice.converter;
 import com.google.protobuf.Timestamp;
 import lombok.val;
 import org.springframework.stereotype.Component;
-import ru.gafarov.bet.grpcInterface.Proto;
-import ru.gafarov.betservice.model.*;
+import ru.gafarov.bet.grpcInterface.BotMessageOuterClass;
+import ru.gafarov.bet.grpcInterface.DrBet;
+import ru.gafarov.bet.grpcInterface.ProtoBet;
+import ru.gafarov.bet.grpcInterface.UserOuterClass;
+import ru.gafarov.betservice.entity.Bet;
+import ru.gafarov.betservice.entity.BotMessage;
+import ru.gafarov.betservice.entity.DraftBet;
+import ru.gafarov.betservice.entity.User;
+import ru.gafarov.betservice.model.Status;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -13,8 +20,8 @@ import java.time.ZoneId;
 @Component
 public class Converter {
 
-    public Proto.DraftBet toProtoDraftBet(DraftBet draftBet) {
-        Proto.DraftBet.Builder builder = Proto.DraftBet.newBuilder()
+    public DrBet.DraftBet toProtoDraftBet(DraftBet draftBet) {
+        DrBet.DraftBet.Builder builder = DrBet.DraftBet.newBuilder()
                 .setId(draftBet.getId())
                 .setInverseDefinition(draftBet.isInverseDefinition());
         if (draftBet.getInitiator() != null) {
@@ -39,8 +46,8 @@ public class Converter {
         return builder.build();
     }
 
-    public Proto.Bet toProtoBet(Bet bet) {
-        Proto.Bet.Builder builder = Proto.Bet.newBuilder()
+    public ProtoBet.Bet toProtoBet(Bet bet) {
+        ProtoBet.Bet.Builder builder = ProtoBet.Bet.newBuilder()
                 .setId(bet.getId())
                 .setOpponent(toProtoUser(bet.getOpponent()))
                 .setInitiator(toProtoUser(bet.getInitiator()))
@@ -57,9 +64,9 @@ public class Converter {
         return builder.build();
     }
 
-    public Proto.User toProtoUser(User user) {
+    public UserOuterClass.User toProtoUser(User user) {
         if (user == null) return null;
-        Proto.User.Builder builder = Proto.User.newBuilder()
+        UserOuterClass.User.Builder builder = UserOuterClass.User.newBuilder()
                 .setId(user.getId())
                 .setUsername(user.getUsername())
                 .setCode(user.getCode())
@@ -83,7 +90,7 @@ public class Converter {
                 .toLocalDateTime();
     }
 
-    public User toUser(Proto.User protoUser) {
+    public User toUser(UserOuterClass.User protoUser) {
         User user = new User();
         user.setId(protoUser.getId());
         user.setCode(protoUser.getCode());
@@ -92,10 +99,16 @@ public class Converter {
         return user;
     }
 
-    public BotMessage toBotMessage(Proto.BotMessage protoBotMessage) {
+    public BotMessage toBotMessage(BotMessageOuterClass.BotMessage protoBotMessage) {
         BotMessage botMessage = new BotMessage();
         if (protoBotMessage.getDraftBet().getId() > 0) {
             botMessage.setDraftBet(toDraftBet(protoBotMessage.getDraftBet()));
+        }
+        if (protoBotMessage.getFriend().getId() > 0) {
+            botMessage.setFriend(toUser(protoBotMessage.getFriend()));
+        }
+        if (protoBotMessage.getBet().getId() > 0) {
+            botMessage.setBet(toBet(protoBotMessage.getBet()));
         }
         botMessage.setTgMessageId(protoBotMessage.getTgMessageId());
         botMessage.setUser(toUser(protoBotMessage.getUser()));
@@ -104,7 +117,15 @@ public class Converter {
         return botMessage;
     }
 
-    public DraftBet toDraftBet(Proto.DraftBet protoDraftBet) {
+    private Bet toBet(ProtoBet.Bet protoBet) {
+        Bet bet = new Bet();
+        if (protoBet.getId() > 0) {
+            bet.setId(protoBet.getId());
+        }
+        return bet;
+    }
+
+    public DraftBet toDraftBet(DrBet.DraftBet protoDraftBet) {
         DraftBet draftBet = new DraftBet();
         draftBet.setId(protoDraftBet.getId());
         draftBet.setInitiator(toUser(protoDraftBet.getInitiator()));
@@ -120,8 +141,8 @@ public class Converter {
         return draftBet;
     }
 
-    public Proto.BotMessage toProtoBotMessage(BotMessage botMessage) {
-        val builder = Proto.BotMessage.newBuilder()
+    public BotMessageOuterClass.BotMessage toProtoBotMessage(BotMessage botMessage) {
+        val builder = BotMessageOuterClass.BotMessage.newBuilder()
                 .setId(botMessage.getId())
                 .setTgMessageId(botMessage.getTgMessageId())
                 .setType(botMessage.getMessageType())

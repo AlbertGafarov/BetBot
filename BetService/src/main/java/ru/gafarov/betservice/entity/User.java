@@ -1,9 +1,9 @@
-package ru.gafarov.betservice.model;
+package ru.gafarov.betservice.entity;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import ru.gafarov.bet.grpcInterface.Proto;
+import ru.gafarov.bet.grpcInterface.UserOuterClass;
 
 import javax.persistence.*;
 
@@ -25,5 +25,5 @@ public class User extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "chat_status")
-    private Proto.ChatStatus chatStatus;
+    private UserOuterClass.ChatStatus chatStatus;
 }

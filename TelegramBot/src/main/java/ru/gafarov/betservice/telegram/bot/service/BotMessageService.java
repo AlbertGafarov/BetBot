@@ -2,17 +2,25 @@ package ru.gafarov.betservice.telegram.bot.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
-import ru.gafarov.bet.grpcInterface.BetServiceGrpc;
-import ru.gafarov.bet.grpcInterface.Proto.*;
+import ru.gafarov.bet.grpcInterface.BotMessageOuterClass.BotMessage;
+import ru.gafarov.bet.grpcInterface.BotMessageOuterClass.BotMessageType;
+import ru.gafarov.bet.grpcInterface.BotMessageOuterClass.BotMessages;
+import ru.gafarov.bet.grpcInterface.BotMessageOuterClass.ResponseBotMessage;
+import ru.gafarov.bet.grpcInterface.BotMessageServiceGrpc;
+import ru.gafarov.bet.grpcInterface.DrBet.DraftBet;
+import ru.gafarov.bet.grpcInterface.ProtoBet.*;
+import ru.gafarov.bet.grpcInterface.Rs.Status;
+import ru.gafarov.bet.grpcInterface.UserOuterClass.User;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class BotMessageService {
 
-    private final BetServiceGrpc.BetServiceBlockingStub grpcStub;
+    private final BotMessageServiceGrpc.BotMessageServiceBlockingStub grpcStub;
     private final DeleteMessageService deleteMessageService;
 
     public void save(BotMessage botMessage) {
@@ -85,7 +93,30 @@ public class BotMessageService {
     }
 
     public void deleteByBotMessageType(User user, BotMessageType botMessageType) {
-        ResponseBotMessage response = grpcStub.getBotMessagesByType(BotMessage.newBuilder().setUser(user).setType(botMessageType).build());
+        ResponseBotMessage response = grpcStub.getBotMessagesByTemplate(BotMessage.newBuilder().setUser(user).setType(botMessageType).build());
+        log.info("Получено {} сообщений", response.getBotMessagesCount());
+        if (response.getStatus().equals(Status.SUCCESS)) {
+            response.getBotMessagesList().forEach(a -> {
+                DeleteMessage deleteMessage = new DeleteMessage(String.valueOf(user.getChatId()), a.getTgMessageId());
+                deleteMessageService.deleteSync(deleteMessage);
+            });
+        }
+    }
+
+    public void deleteBotMessagesByTemplate(User user, BotMessageType botMessageType, User friend, Bet bet) {
+
+        val builder = BotMessage.newBuilder().setUser(user);
+        if (botMessageType != null){
+            builder.setType(botMessageType);
+        }
+        if (friend != null){
+            builder.setFriend(friend);
+        }
+        if (bet != null){
+            builder.mergeBet(bet).setBet(bet);
+        }
+
+        ResponseBotMessage response = grpcStub.getBotMessagesByTemplate(builder.build());
         log.info("Получено {} сообщений", response.getBotMessagesCount());
         if (response.getStatus().equals(Status.SUCCESS)) {
             response.getBotMessagesList().forEach(a -> {

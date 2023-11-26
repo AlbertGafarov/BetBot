@@ -5,11 +5,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import ru.gafarov.bet.grpcInterface.BetServiceGrpc;
-import ru.gafarov.bet.grpcInterface.Proto;
+import ru.gafarov.bet.grpcInterface.ProtoBet;
+import ru.gafarov.bet.grpcInterface.Rs;
 import ru.gafarov.betservice.converter.Converter;
+import ru.gafarov.betservice.entity.Bet;
+import ru.gafarov.betservice.entity.NotifyExpiredStatus;
 import ru.gafarov.betservice.enums.NotifyStatus;
-import ru.gafarov.betservice.model.Bet;
-import ru.gafarov.betservice.model.NotifyExpiredStatus;
 import ru.gafarov.betservice.model.Status;
 import ru.gafarov.betservice.repository.BetRepository;
 import ru.gafarov.betservice.repository.ChangeStatusBetRuleRepository;
@@ -37,7 +38,7 @@ public class ExpiredBetsNotificator {
     public void checkExpiredBets() {
         log.info("Запущена проверка истекших споров");
         List<Bet> betList = betRepository.getExpiredBets(LocalDateTime.now());
-        List<Proto.Bet> protoBetList = betList.stream()
+        List<ProtoBet.Bet> protoBetList = betList.stream()
                 .map(b -> {
                     b.setNextOpponentBetStatusList(ruleRepository.getNextStatuses(OPPONENT.toString()
                             , b.getOpponentBetStatus().toString()
@@ -52,9 +53,9 @@ public class ExpiredBetsNotificator {
 
         log.info("Найдено {}", betList.size());
         if (!betList.isEmpty()) {
-            Proto.Bets protoBets = Proto.Bets.newBuilder().addAllBets(protoBetList).build();
-            Proto.ResponseMessage response = grpcStub.notifyOfExpiredBets(protoBets);
-            if (Proto.Status.SUCCESS.equals(response.getStatus())) {
+            ProtoBet.Bets protoBets = ProtoBet.Bets.newBuilder().addAllBets(protoBetList).build();
+            ProtoBet.ResponseMessage response = grpcStub.notifyOfExpiredBets(protoBets);
+            if (Rs.Status.SUCCESS.equals(response.getStatus())) {
                 for (Bet bet : betList) {
                     NotifyExpiredStatus notify = new NotifyExpiredStatus();
                     notify.setBet(bet);

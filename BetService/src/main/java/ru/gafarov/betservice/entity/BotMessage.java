@@ -1,7 +1,7 @@
-package ru.gafarov.betservice.model;
+package ru.gafarov.betservice.entity;
 
 import lombok.*;
-import ru.gafarov.bet.grpcInterface.Proto;
+import ru.gafarov.bet.grpcInterface.BotMessageOuterClass;
 
 import javax.persistence.*;
 
@@ -19,7 +19,15 @@ public class BotMessage extends BaseEntity {
 
     @ManyToOne
     @JoinColumn(name = "draft_bet_id")
-    private DraftBet draftBet; // пользователь, которому адресовано сообщение
+    private DraftBet draftBet;
+
+    @ManyToOne
+    @JoinColumn(name = "friend_id")
+    private User friend;
+
+    @ManyToOne
+    @JoinColumn(name = "bet_id")
+    private Bet bet;
 
     @Column(name = "tg_message_id")
     private int tgMessageId; // Идентификатор сообщения в Телеграмм
@@ -27,5 +35,5 @@ public class BotMessage extends BaseEntity {
     @NonNull
     @Enumerated(EnumType.STRING)
     @Column(name = "message_type")
-    private Proto.BotMessageType messageType; // Тип сообщения
+    private BotMessageOuterClass.BotMessageType messageType; // Тип сообщения
 }

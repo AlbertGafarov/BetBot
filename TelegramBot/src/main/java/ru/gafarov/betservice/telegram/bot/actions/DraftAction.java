@@ -9,7 +9,11 @@ import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageTe
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
-import ru.gafarov.bet.grpcInterface.Proto.*;
+import ru.gafarov.bet.grpcInterface.BotMessageOuterClass.BotMessage;
+import ru.gafarov.bet.grpcInterface.BotMessageOuterClass.BotMessageType;
+import ru.gafarov.bet.grpcInterface.DrBet.DraftBet;
+import ru.gafarov.bet.grpcInterface.UserOuterClass.ChatStatus;
+import ru.gafarov.bet.grpcInterface.UserOuterClass.User;
 import ru.gafarov.betservice.telegram.bot.components.BetEditMessageText;
 import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
 import ru.gafarov.betservice.telegram.bot.components.Buttons;
@@ -99,7 +103,7 @@ public class DraftAction implements Action {
 
             BetSendMessage sendMessage = new BetSendMessage(chatId);
 
-            List<User> friends = userService.getFriends(user);
+            List<User> friends = userService.getSubscribes(user);
             if (friends != null) {
                 List<List<InlineKeyboardButton>> rowsInLine = friends.stream().limit(100).map(a ->
                         (List<InlineKeyboardButton>) new ArrayList<InlineKeyboardButton>() {{
@@ -155,7 +159,7 @@ public class DraftAction implements Action {
             botService.edit(editMessageText);
 
             replyMessage.setText("Введите количество дней до завершения спора");
-            botService.sendAndSave(replyMessage, user, BotMessageType.ENTER_FINISH_DATE, draftBet);
+            botService.sendAndSaveDraftBet(replyMessage, user, BotMessageType.ENTER_FINISH_DATE, draftBet);
         }
     }
 }

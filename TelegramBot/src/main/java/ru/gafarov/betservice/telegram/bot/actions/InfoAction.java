@@ -5,10 +5,9 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+import ru.gafarov.bet.grpcInterface.BotMessageOuterClass.BotMessageType;
 import ru.gafarov.bet.grpcInterface.Info.InfoType;
-import ru.gafarov.bet.grpcInterface.Proto;
-import ru.gafarov.bet.grpcInterface.Proto.BotMessageType;
-import ru.gafarov.bet.grpcInterface.Proto.User;
+import ru.gafarov.bet.grpcInterface.UserOuterClass.User;
 import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
 import ru.gafarov.betservice.telegram.bot.components.Buttons;
 import ru.gafarov.betservice.telegram.bot.service.BotService;
@@ -66,7 +65,7 @@ public class InfoAction implements Action {
     @Override
     public void callback(Update update) {
         long chatId = update.getCallbackQuery().getFrom().getId();
-        Proto.User user = userService.getUser(chatId);
+        User user = userService.getUser(chatId);
         String[] command = update.getCallbackQuery().getData().split("/");
 
         // /info/aboutBot

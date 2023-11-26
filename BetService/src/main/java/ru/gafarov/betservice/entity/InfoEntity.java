@@ -1,30 +1,33 @@
-package ru.gafarov.betservice.model;
+package ru.gafarov.betservice.entity;
 
 import lombok.Data;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import ru.gafarov.bet.grpcInterface.Info;
+import ru.gafarov.betservice.model.Status;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
-@MappedSuperclass
 @Data
+@Entity
+@Table(name = "info")
 @EntityListeners(AuditingEntityListener.class)
-public class BaseEntity {
+public class InfoEntity {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Enumerated(EnumType.STRING)
+    Info.InfoType type;
+
+    private String text;
 
     @CreatedDate
-    @Column(name = "created")
     private LocalDateTime created;
 
     @LastModifiedDate
-    @Column(name = "updated")
     private LocalDateTime updated;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status")
     private Status status;
 }

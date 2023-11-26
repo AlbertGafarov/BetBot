@@ -5,7 +5,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import ru.gafarov.bet.grpcInterface.BetServiceGrpc;
-import ru.gafarov.bet.grpcInterface.Proto.*;
+import ru.gafarov.bet.grpcInterface.DrBet.DraftBet;
+import ru.gafarov.bet.grpcInterface.ProtoBet.*;
+import ru.gafarov.bet.grpcInterface.Rs.Status;
+import ru.gafarov.bet.grpcInterface.UserOuterClass.User;
 
 @Slf4j
 @Service
@@ -36,7 +39,7 @@ public class BetService {
         }
     }
 
-    public ResponseMessage setStatus(User user, long betId, BetStatus betStatus) {
+    public ResponseMessage setStatus(User user, long betId, UserBetStatus betStatus) {
         ChangeStatusBetMessage changeStatusBetMessage = ChangeStatusBetMessage.newBuilder()
                 .setUser(user)
                 .setNewStatus(betStatus)
@@ -45,7 +48,7 @@ public class BetService {
         return grpcStub.changeStatusBet(changeStatusBetMessage);
     }
 
-    public ResponseMessage  showActiveBets(User user) {
+    public ResponseMessage showActiveBets(User user) {
         return grpcStub.getActiveBets(user);
     }
 
@@ -54,4 +57,12 @@ public class BetService {
         return grpcStub.getBet(bet);
     }
 
+    public ResponseBet showBetsWithFriend(User user, long friend_id, BetStatus betStatus) {
+        Bet template = Bet.newBuilder()
+                .setInitiator(user)
+                .setOpponent(User.newBuilder().setId(friend_id).build())
+                .setBetStatus(betStatus)
+                .build();
+        return grpcStub.getBetsByTemplate(template);
+    }
 }

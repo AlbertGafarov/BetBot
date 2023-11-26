@@ -3,10 +3,11 @@ package ru.gafarov.betservice.service.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.gafarov.bet.grpcInterface.Proto;
-import ru.gafarov.betservice.model.Bet;
+import ru.gafarov.bet.grpcInterface.Friend;
+import ru.gafarov.bet.grpcInterface.Rs;
+import ru.gafarov.betservice.entity.Bet;
+import ru.gafarov.betservice.entity.Subscribe;
 import ru.gafarov.betservice.model.Status;
-import ru.gafarov.betservice.model.Subscribe;
 import ru.gafarov.betservice.repository.SubscribeRepository;
 import ru.gafarov.betservice.service.SubscribeService;
 
@@ -55,7 +56,7 @@ public class SubscribeServiceImpl implements SubscribeService {
     }
 
     @Override
-    public Proto.Response addSubscribe(Proto.Subscribe protoSubscribe) {
+    public Rs.Response addSubscribe(Friend.Subscribe protoSubscribe) {
         Subscribe subscribe;
         try {
             Optional<Subscribe> optional = subscribeRepository.findBySubscriberIdAndSubscribedId(protoSubscribe.getSubscriber().getId()
@@ -63,7 +64,7 @@ public class SubscribeServiceImpl implements SubscribeService {
             if (optional.isPresent()) {
                 subscribe = optional.get();
                 if (subscribe.getStatus().equals(Status.ACTIVE)) {
-                    return Proto.Response.newBuilder().setStatus(Proto.Status.REDUNDANT).build();
+                    return Rs.Response.newBuilder().setStatus(Rs.Status.REDUNDANT).build();
                 }
             } else {
                 subscribe = new Subscribe();
@@ -73,15 +74,15 @@ public class SubscribeServiceImpl implements SubscribeService {
             subscribe.setStatus(Status.ACTIVE);
 
             subscribeRepository.save(subscribe);
-            return Proto.Response.newBuilder().setStatus(Proto.Status.SUCCESS).build();
+            return Rs.Response.newBuilder().setStatus(Rs.Status.SUCCESS).build();
         } catch (Exception e) {
             e.printStackTrace();
-            return Proto.Response.newBuilder().setStatus(Proto.Status.ERROR).build();
+            return Rs.Response.newBuilder().setStatus(Rs.Status.ERROR).build();
         }
     }
 
     @Override
-    public Proto.Response delete(Proto.Subscribe protoSubscribe) {
+    public Rs.Response delete(Friend.Subscribe protoSubscribe) {
         try {
             Optional<Subscribe> optional = subscribeRepository.findBySubscriberIdAndSubscribedId(protoSubscribe.getSubscriber().getId()
             , protoSubscribe.getSubscribed().getId());
@@ -89,13 +90,13 @@ public class SubscribeServiceImpl implements SubscribeService {
                 Subscribe subscribe = optional.get();
                 subscribe.setStatus(Status.DELETED);
                 subscribeRepository.save(subscribe);
-            return Proto.Response.newBuilder().setStatus(Proto.Status.SUCCESS).build();
+            return Rs.Response.newBuilder().setStatus(Rs.Status.SUCCESS).build();
             } else {
-                return Proto.Response.newBuilder().setStatus(Proto.Status.NOT_FOUND).build();
+                return Rs.Response.newBuilder().setStatus(Rs.Status.NOT_FOUND).build();
             }
         } catch (Exception e) {
             e.printStackTrace();
-            return Proto.Response.newBuilder().setStatus(Proto.Status.ERROR).build();
+            return Rs.Response.newBuilder().setStatus(Rs.Status.ERROR).build();
         }
     }
 }

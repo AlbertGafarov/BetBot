@@ -1,14 +1,16 @@
 package ru.gafarov.betservice.service;
 
-import ru.gafarov.bet.grpcInterface.Proto;
-import ru.gafarov.betservice.model.User;
+import ru.gafarov.bet.grpcInterface.Friend;
+import ru.gafarov.bet.grpcInterface.ProtoBet;
+import ru.gafarov.bet.grpcInterface.UserOuterClass;
+import ru.gafarov.betservice.entity.User;
 
 public interface UserService {
 
-    Proto.ResponseUser saveUser(Proto.User protoUser);
-    Proto.ResponseUser findFriend(Proto.Subscribe subscribe);
-    User getUser(Proto.User protoUser);
-    Proto.ResponseUser getProtoUser(Proto.User protoUser);
-    Proto.ResponseMessage changeChatStatus(Proto.User request);
-    Proto.ResponseUser getFriends(Proto.User protoUser);
+    UserOuterClass.ResponseUser saveUser(UserOuterClass.User protoUser);
+    UserOuterClass.ResponseUser findFriend(Friend.Subscribe subscribe);
+    User getUser(UserOuterClass.User protoUser);
+    UserOuterClass.ResponseUser getProtoUser(UserOuterClass.User protoUser);
+    ProtoBet.ResponseMessage changeChatStatus(UserOuterClass.User request);
+    UserOuterClass.ResponseUser getSubscribes(UserOuterClass.User protoUser);
 }

@@ -1,0 +1,34 @@
+syntax = "proto3";
+package ru.gafarov.bet.grpcInterface;
+
+import "ProtoBet.proto";
+import "user.proto";
+import "rs.proto";
+
+message ResponseFriendInfo {
+  Status status = 1;
+  FriendInfo friendInfo = 2;
+}
+message FriendInfo {
+  User user = 1;
+  bool subscribed = 2;
+  double totalWinPercent = 3;
+  double totalStandoffPercent = 4;
+  int32 closedBetCount = 5;
+  double winPercent = 6;
+  double standoffPercent = 7;
+  int32 activeBetCount = 8;
+}
+
+message Subscribe {
+  User subscriber = 1;
+  User subscribed = 2;
+}
+
+service FriendService {
+  rpc getFriendInfo(Subscribe) returns (ResponseFriendInfo);
+  rpc findFriend(Subscribe) returns (ResponseUser);
+  rpc getSubscribes(User) returns (ResponseUser);
+  rpc addSubscribe(Subscribe) returns (Response);
+  rpc deleteSubscribe(Subscribe) returns (Response);
+}

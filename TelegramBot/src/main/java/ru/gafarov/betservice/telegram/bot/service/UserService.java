@@ -4,7 +4,17 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.gafarov.bet.grpcInterface.BetServiceGrpc;
-import ru.gafarov.bet.grpcInterface.Proto.*;
+import ru.gafarov.bet.grpcInterface.DrBet.DraftBet;
+import ru.gafarov.bet.grpcInterface.DrBet.ResponseDraftBet;
+import ru.gafarov.bet.grpcInterface.DrBetServiceGrpc;
+import ru.gafarov.bet.grpcInterface.Friend.Subscribe;
+import ru.gafarov.bet.grpcInterface.FriendServiceGrpc;
+import ru.gafarov.bet.grpcInterface.ProtoBet.*;
+import ru.gafarov.bet.grpcInterface.Rs.Status;
+import ru.gafarov.bet.grpcInterface.UserOuterClass.ChatStatus;
+import ru.gafarov.bet.grpcInterface.UserOuterClass.ResponseUser;
+import ru.gafarov.bet.grpcInterface.UserOuterClass.User;
+import ru.gafarov.bet.grpcInterface.UserServiceGrpc;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,16 +24,19 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserService {
     private final BetServiceGrpc.BetServiceBlockingStub grpcStub;
+    private final FriendServiceGrpc.FriendServiceBlockingStub grpcFriendStub;
+    private final UserServiceGrpc.UserServiceBlockingStub grpcUserStub;
+    private final DrBetServiceGrpc.DrBetServiceBlockingStub grpcDrBetStub;
 
     public User getUser(long chatId) {
-        ResponseUser responseMessage = grpcStub.getUser(User.newBuilder().setChatId(chatId).build());
+        ResponseUser responseMessage = grpcUserStub.getUser(User.newBuilder().setChatId(chatId).build());
         if (responseMessage.hasUser()) {
             return responseMessage.getUser();
         }
         return null;
     }
     public User getUserById(long id) {
-        ResponseUser responseMessage = grpcStub.getUser(User.newBuilder().setId(id).build());
+        ResponseUser responseMessage = grpcUserStub.getUser(User.newBuilder().setId(id).build());
         if (responseMessage.hasUser()) {
             return responseMessage.getUser();
         }
@@ -40,7 +53,7 @@ public class UserService {
     }
 
     public User getUser(String username, int code) {
-        ResponseUser response = grpcStub.getUser(User.newBuilder()
+        ResponseUser response = grpcUserStub.getUser(User.newBuilder()
                 .setUsername(username)
                 .setCode(code).build());
         if (response.hasUser()) {
@@ -50,15 +63,15 @@ public class UserService {
     }
 
     public DraftBet getLastDraftBet(User user) {
-        ResponseDraftBet response = grpcStub.getLastDraftBet(user);
+        ResponseDraftBet response = grpcDrBetStub.getLastDraftBet(user);
         if (response.getStatus().equals(Status.SUCCESS)) {
             return response.getDraftBet();
         }
         return null;
     }
 
-    public User findFriend(User subscriber, long chatId) {
-        ResponseUser response = grpcStub.findFriend(Subscribe.newBuilder()
+    public User findFriendByChatId(User subscriber, long chatId) {
+        ResponseUser response = grpcFriendStub.findFriend(Subscribe.newBuilder()
                 .setSubscriber(subscriber)
                 .setSubscribed(User.newBuilder().setChatId(chatId).build())
                 .build());
@@ -68,8 +81,19 @@ public class UserService {
         return null;
     }
 
-    public List<User> getFriends(User user) {
-        ResponseUser response = grpcStub.getFriends(user);
+    public User findFriendById(User subscriber, long friendId) {
+        ResponseUser response = grpcFriendStub.findFriend(Subscribe.newBuilder()
+                .setSubscriber(subscriber)
+                .setSubscribed(User.newBuilder().setId(friendId).build())
+                .build());
+        if (response.getStatus().equals(Status.SUCCESS)) {
+            return response.getUser();
+        }
+        return null;
+    }
+
+    public List<User> getSubscribes(User user) {
+        ResponseUser response = grpcFriendStub.getSubscribes(user);
         if (response.getStatus().equals(Status.SUCCESS)) {
             return response.getUsersList();
         } else if (response.getStatus().equals(Status.NOT_FOUND)){

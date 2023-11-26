@@ -1,19 +1,21 @@
 package ru.gafarov.betservice.service;
 
-import ru.gafarov.bet.grpcInterface.Proto;
+import ru.gafarov.bet.grpcInterface.BotMessageOuterClass;
+import ru.gafarov.bet.grpcInterface.DrBet;
+import ru.gafarov.bet.grpcInterface.ProtoBet;
 
 public interface BotMessageService {
-    Proto.ResponseMessage save(Proto.BotMessage request);
+    ProtoBet.ResponseMessage save(BotMessageOuterClass.BotMessage request);
 
-    Proto.ResponseBotMessage get(Proto.BotMessage request);
+    BotMessageOuterClass.ResponseBotMessage get(BotMessageOuterClass.BotMessage request);
 
-    Proto.ResponseBotMessage getAll(Proto.DraftBet request);
+    BotMessageOuterClass.ResponseBotMessage getAll(DrBet.DraftBet request);
 
-    Proto.ResponseBotMessage deleteAll(Proto.BotMessages request);
+    BotMessageOuterClass.ResponseBotMessage deleteAll(BotMessageOuterClass.BotMessages request);
 
-    Proto.ResponseBotMessage delete(Proto.BotMessage botMessage);
+    BotMessageOuterClass.ResponseBotMessage delete(BotMessageOuterClass.BotMessage botMessage);
 
-    Proto.ResponseBotMessage getWithout(Proto.DraftBet draftBet);
+    BotMessageOuterClass.ResponseBotMessage getWithout(DrBet.DraftBet draftBet);
 
-    Proto.ResponseBotMessage getAllByType(Proto.BotMessage request);
+    BotMessageOuterClass.ResponseBotMessage getAllByTemplate(BotMessageOuterClass.BotMessage request);
 }

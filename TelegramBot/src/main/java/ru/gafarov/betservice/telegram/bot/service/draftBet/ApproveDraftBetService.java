@@ -4,7 +4,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import ru.gafarov.bet.grpcInterface.Proto.*;
+import ru.gafarov.bet.grpcInterface.BotMessageOuterClass.BotMessageType;
+import ru.gafarov.bet.grpcInterface.DrBet.DraftBet;
+import ru.gafarov.bet.grpcInterface.ProtoBet.*;
+import ru.gafarov.bet.grpcInterface.UserOuterClass.ChatStatus;
+import ru.gafarov.bet.grpcInterface.UserOuterClass.User;
 import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
 import ru.gafarov.betservice.telegram.bot.components.Buttons;
 import ru.gafarov.betservice.telegram.bot.prettyPrint.PrettyPrinter;
@@ -62,7 +66,7 @@ public class ApproveDraftBetService {
                     msgToInitiator.setText("Спор отклонен. Черновик удален");
                     msgToInitiator.setDelTime(10_000);
 
-                    botService.sendAndSave(msgToInitiator, user, BotMessageType.CANCEL_DRAFT, draftBet);
+                    botService.sendAndSaveDraftBet(msgToInitiator, user, BotMessageType.CANCEL_DRAFT, draftBet);
                     break;
             }
         }

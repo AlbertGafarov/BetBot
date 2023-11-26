@@ -1,8 +1,9 @@
-package ru.gafarov.betservice.model;
+package ru.gafarov.betservice.entity;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.gafarov.bet.grpcInterface.Proto;
+import ru.gafarov.bet.grpcInterface.ProtoBet;
+import ru.gafarov.betservice.model.BetRole;
 
 import javax.persistence.*;
 import java.util.Objects;
@@ -20,15 +21,15 @@ public class ChangeStatusBetRule {
 
     @Column(name = "current_bet_status")
     @Enumerated(EnumType.STRING)
-    private Proto.BetStatus currentBetStatus;
+    private ProtoBet.UserBetStatus currentBetStatus;
 
     @Column(name = "new_bet_status")
     @Enumerated(EnumType.STRING)
-    private Proto.BetStatus newBetStatus;
+    private ProtoBet.UserBetStatus newBetStatus;
 
     @Column(name = "new_rival_bet_status")
     @Enumerated(EnumType.STRING)
-    private Proto.BetStatus newRivalBetStatus;
+    private ProtoBet.UserBetStatus newRivalBetStatus;
 
     @Column(name = "message_for_initiator")
     private String messageForInitiator;
@@ -43,7 +44,7 @@ public class ChangeStatusBetRule {
     @Column(name = "valid")
     private boolean valid;
 
-    public ChangeStatusBetRule(Proto.BetStatus currentBetStatus, Proto.BetStatus newBetStatus, BetRole betRole) {
+    public ChangeStatusBetRule(ProtoBet.UserBetStatus currentBetStatus, ProtoBet.UserBetStatus newBetStatus, BetRole betRole) {
         this.currentBetStatus = currentBetStatus;
         this.newBetStatus = newBetStatus;
         this.betRole = betRole;

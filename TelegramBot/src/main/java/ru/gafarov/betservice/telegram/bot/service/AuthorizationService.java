@@ -4,8 +4,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import ru.gafarov.bet.grpcInterface.BetServiceGrpc;
-import ru.gafarov.bet.grpcInterface.Proto.*;
+import ru.gafarov.bet.grpcInterface.BotMessageOuterClass.BotMessageType;
+import ru.gafarov.bet.grpcInterface.DrBet.DraftBet;
+import ru.gafarov.bet.grpcInterface.UserOuterClass.ChatStatus;
+import ru.gafarov.bet.grpcInterface.UserOuterClass.ResponseUser;
+import ru.gafarov.bet.grpcInterface.UserOuterClass.User;
+import ru.gafarov.bet.grpcInterface.UserServiceGrpc;
 import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
 import ru.gafarov.betservice.telegram.bot.components.Buttons;
 
@@ -16,14 +20,14 @@ import static ru.gafarov.betservice.telegram.bot.components.Buttons.closeButton;
 @RequiredArgsConstructor
 public class AuthorizationService {
 
-    private final BetServiceGrpc.BetServiceBlockingStub grpcStub;
+    private final UserServiceGrpc.UserServiceBlockingStub grpcUserStub;
     private final UserService userService;
     private final BotMessageService botMessageService;
     private final BotService botService;
 
     public void authorization(Update update) {
         long chatId = update.getMessage().getChatId();
-        ResponseUser responseMessage = grpcStub.getUser(User.newBuilder().setChatId(chatId).build());
+        ResponseUser responseMessage = grpcUserStub.getUser(User.newBuilder().setChatId(chatId).build());
         if (!responseMessage.hasUser()) {
             String username = update.getMessage().getFrom().getUserName();
             if (username == null || username.isEmpty()) {
@@ -36,7 +40,7 @@ public class AuthorizationService {
                     .setUsername(username)
                     .setChatId(chatId)
                     .build();
-            ResponseUser response = grpcStub.addUser(protoUser);
+            ResponseUser response = grpcUserStub.addUser(protoUser);
 
             if (response.hasUser()) {
                 BetSendMessage sendMessage = new BetSendMessage(chatId);
@@ -57,7 +61,7 @@ public class AuthorizationService {
     }
 
     public void getCode(long chatId) {
-        ResponseUser response = grpcStub.getUser(User.newBuilder().setChatId(chatId).build());
+        ResponseUser response = grpcUserStub.getUser(User.newBuilder().setChatId(chatId).build());
         BetSendMessage sendMessage = new BetSendMessage(chatId);
         if (response.hasUser()) {
             sendMessage.setText("Ваш код: " + response.getUser().getCode());

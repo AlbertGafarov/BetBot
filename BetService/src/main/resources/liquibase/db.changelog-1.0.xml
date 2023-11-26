@@ -678,25 +678,283 @@
         </createTable>
         <sql>insert into info (type, text) values ('MENU', '&lt;b>Выберите пункт меню для ознакомления:&lt;/b>')</sql>
         <sql>insert into info (type, text) values ('ABOUT_BOT', E'&lt;b>О боте:&lt;/b>
-    Этот бот запомнит Ваш спор с оппонентом и напомнит о нем, когда придет время.
-    Вы можете предложить спор оппоненту, только если Вы знаете его username и код или он добавлен в Ваши друзья.
-    Незнакомый человек не сможет предложить Вам спор, если он не знает Ваши username и код.
-    Вы можете указать вознаграждению тому, кто окажется прав в споре, но бот не отвечает за ваши расчеты.
-    Бот не может быть судьей. Решение о том, кто прав вы принимаете сами. Вы сможете это сделать когда наступит дата завершения')
+            Этот бот запомнит Ваш спор с оппонентом и напомнит о нем, когда придет время.
+            Вы можете предложить спор оппоненту, только если Вы знаете его username и код или он добавлен в Ваши друзья.
+            Незнакомый человек не сможет предложить Вам спор, если он не знает Ваши username и код.
+            Вы можете указать вознаграждению тому, кто окажется прав в споре, но бот не отвечает за ваши расчеты.
+            Бот не может быть судьей. Решение о том, кто прав вы принимаете сами. Вы сможете это сделать когда наступит
+            дата завершения')
         </sql>
         <sql>insert into info (type, text) values ('HOW_ADD_FRIEND', E'&lt;b>Как добавить друга:&lt;/b>
-    Чтобы добавить друга, нужно сформировать ссылку командой /reference, а затем переслать ее другу в личном сообщении. Друг должен переслать эту ссылку в бот и после этого вы получите сообщение о том, что вы стали друзьями.
-    Также, когда оппонент принимает спор, оппонент и инициатор становятся друзьями автоматически.
-    Чтобы удалить друга вызовите команду /friends и нажмите на 🗑 справа от его имени')
+            Чтобы добавить друга, нужно сформировать ссылку командой /reference, а затем переслать ее другу в личном
+            сообщении. Друг должен переслать эту ссылку в бот и после этого вы получите сообщение о том, что вы стали
+            друзьями.
+            Также, когда оппонент принимает спор, оппонент и инициатор становятся друзьями автоматически.
+            Чтобы удалить друга вызовите команду /friends и нажмите на 🗑 справа от его имени')
         </sql>
         <sql>insert into info (type, text) values ('HOW_CREATE_BET', '&lt;b>Как создать спор:&lt;/b>
-    Чтобы создать спор, выберите команду /create и следуйте подсказкам')
+            Чтобы создать спор, выберите команду /create и следуйте подсказкам')
         </sql>
         <sql>insert into info (type, text) values ('ABOUT_PERSONAL_DATA', E'&lt;b>О персональных данных:&lt;/b>
-    Бот не хранит персональные данные такие как номер телефона, адрес электронной почты.
-    Для идентификации пользователя используется chat id telegramm и nickname или сочетание имя_фамилия.
-    Бот хранит ваши споры. Пожалуйста, не вносите туда персональные данные, номера банковских карт и прочую чувствительную информацию.
-    Продолжая использование бота, Вы соглашаетесь с этими условиями')
+            Бот не хранит персональные данные такие как номер телефона, адрес электронной почты.
+            Для идентификации пользователя используется chat id telegramm и nickname или сочетание имя_фамилия.
+            Бот хранит ваши споры. Пожалуйста, не вносите туда персональные данные, номера банковских карт и прочую
+            чувствительную информацию.
+            Продолжая использование бота, Вы соглашаетесь с этими условиями')
+        </sql>
+    </changeSet>
+    <changeSet id="1.0.83" author="albert.gafarov">
+        <addColumn tableName="bot_message">
+            <column name="friend_id" type="integer">
+                <constraints foreignKeyName="fk_friend_id_users" referencedTableName="users" referencedColumnNames="id"
+                             nullable="true"/>
+            </column>
+            <column name="bet_id" type="integer">
+                <constraints foreignKeyName="fk_bet_id_bets" referencedTableName="bets" referencedColumnNames="id"
+                             nullable="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
+    <changeSet id="1.0.84" author="albert.gafarov">
+        <addColumn tableName="bets">
+            <column name="bet_status" type="varchar(25)"/>
+        </addColumn>
+        <createTable tableName="bet_status_rule">
+            <column name="initiator_status" type="varchar(25)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="opponent_status" type="varchar(25)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="bet_status" type="varchar(25)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addUniqueConstraint tableName="bet_status_rule" columnNames="initiator_status,opponent_status"/>
+    </changeSet>
+
+    <changeSet id="1.0.85" author="albert.gafarov">
+        <insert tableName="bet_status_rule">
+            <column name="initiator_status" value="WIN"/>
+            <column name="opponent_status" value="LOSE"/>
+            <column name="bet_status" value="WAIT_WAGER_PAY"/>
+        </insert>
+        <insert tableName="bet_status_rule">
+            <column name="initiator_status" value="WIN"/>
+            <column name="opponent_status" value="WIN"/>
+            <column name="bet_status" value="DISAGREEMENT"/>
+        </insert>
+        <insert tableName="bet_status_rule">
+            <column name="initiator_status" value="WIN"/>
+            <column name="opponent_status" value="STANDOFF"/>
+            <column name="bet_status" value="DISAGREEMENT"/>
+        </insert>
+        <insert tableName="bet_status_rule">
+            <column name="initiator_status" value="LOSE"/>
+            <column name="opponent_status" value="LOSE"/>
+            <column name="bet_status" value="DISAGREEMENT"/>
+        </insert>
+        <insert tableName="bet_status_rule">
+            <column name="initiator_status" value="LOSE"/>
+            <column name="opponent_status" value="WIN"/>
+            <column name="bet_status" value="WAIT_WAGER_PAY"/>
+        </insert>
+        <insert tableName="bet_status_rule">
+            <column name="initiator_status" value="LOSE"/>
+            <column name="opponent_status" value="STANDOFF"/>
+            <column name="bet_status" value="DISAGREEMENT"/>
+        </insert>
+        <insert tableName="bet_status_rule">
+            <column name="initiator_status" value="STANDOFF"/>
+            <column name="opponent_status" value="LOSE"/>
+            <column name="bet_status" value="DISAGREEMENT"/>
+        </insert>
+        <insert tableName="bet_status_rule">
+            <column name="initiator_status" value="STANDOFF"/>
+            <column name="opponent_status" value="WIN"/>
+            <column name="bet_status" value="DISAGREEMENT"/>
+        </insert>
+        <insert tableName="bet_status_rule">
+            <column name="initiator_status" value="STANDOFF"/>
+            <column name="opponent_status" value="STANDOFF"/>
+            <column name="bet_status" value="CLOSED"/>
+        </insert>
+        <insert tableName="bet_status_rule">
+            <column name="initiator_status" value="WAGERRECIEVED"/>
+            <column name="opponent_status" value="WAGERPAID"/>
+            <column name="bet_status" value="CLOSED"/>
+        </insert>
+        <insert tableName="bet_status_rule">
+            <column name="initiator_status" value="WAGERPAID"/>
+            <column name="opponent_status" value="WAGERRECIEVED"/>
+            <column name="bet_status" value="CLOSED"/>
+        </insert>
+        <insert tableName="bet_status_rule">
+            <column name="initiator_status" value="WAGERPAID"/>
+            <column name="opponent_status" value="WIN"/>
+            <column name="bet_status" value="WAIT_WAGER_PAY"/>
+        </insert>
+        <insert tableName="bet_status_rule">
+            <column name="initiator_status" value="OFFERED"/>
+            <column name="opponent_status" value="OFFERED"/>
+            <column name="bet_status" value="OFFER"/>
+        </insert>
+        <insert tableName="bet_status_rule">
+            <column name="initiator_status" value="ACCEPTED"/>
+            <column name="opponent_status" value="ACCEPTED"/>
+            <column name="bet_status" value="ACTIVE"/>
+        </insert>
+        <insert tableName="bet_status_rule">
+            <column name="initiator_status" value="CANCELED"/>
+            <column name="opponent_status" value="CANCELED"/>
+            <column name="bet_status" value="CANCEL"/>
+        </insert>
+    </changeSet>
+    <changeSet id="1.0.86" author="albert.gafarov">
+        <insert tableName="bet_status_rule">
+            <column name="initiator_status" value="WAGERRECIEVED"/>
+            <column name="opponent_status" value="STANDOFF"/>
+            <column name="bet_status" value="DISAGREEMENT"/>
+        </insert>
+        <insert tableName="bet_status_rule">
+            <column name="initiator_status" value="ACCEPTED"/>
+            <column name="opponent_status" value="LOSE"/>
+            <column name="bet_status" value="DISAGREEMENT"/>
+        </insert>
+        <insert tableName="bet_status_rule">
+            <column name="initiator_status" value="WAGERPAID"/>
+            <column name="opponent_status" value="WAGERPAID"/>
+            <column name="bet_status" value="DISAGREEMENT"/>
+        </insert>
+        <insert tableName="bet_status_rule">
+            <column name="initiator_status" value="STANDOFF"/>
+            <column name="opponent_status" value="WAGERPAID"/>
+            <column name="bet_status" value="DISAGREEMENT"/>
+        </insert>
+    </changeSet>
+    <changeSet id="1.0.87" author="albert.gafarov">
+        <sql>
+            update betbot.bets set bet_status = r.bet_status
+            from betbot.bet_status_rule r
+            WHERE betbot.bets.opponent_bet_status = r.opponent_status AND betbot.bets.initiator_bet_status =
+            r.initiator_status;
+        </sql>
+    </changeSet>
+    <changeSet id="1.0.88" author="albert.gafarov">
+        <addColumn tableName="status">
+            <column name="current_rival_bet_status" type="varchar(25)"/>
+        </addColumn>
+        <sql>
+            update betbot.status set message_for_opponent = 'Вы победили!',
+            new_rival_bet_status = 'WIN'
+            where current_bet_status = 'ACCEPTED' and new_bet_status = 'LOSE';
+        </sql>
+        <sql>update betbot.status set new_rival_bet_status = 'WAGERPAID', current_rival_bet_status = 'LOSE'
+            where current_bet_status = 'WIN' and new_bet_status = 'WAGERRECIEVED';
+        </sql>
+    </changeSet>
+    <changeSet id="1.0.89" author="albert.gafarov">
+        <dropUniqueConstraint tableName="status"
+                              constraintName="status_bet_role_current_bet_status_new_bet_status_key"/>
+        <addUniqueConstraint tableName="status"
+                             columnNames="bet_role,current_bet_status,new_bet_status,current_rival_bet_status"/>
+        <insert tableName="status">
+            <column name="bet_role" value="OPPONENT"/>
+            <column name="current_bet_status" value="WIN"/>
+            <column name="new_bet_status" value="LOSE"/>
+            <column name="valid" value="true"/>
+            <column name="current_rival_bet_status" value="WIN"/>
+            <column name="message_for_opponent" value="Вы признали поражение"/>
+            <column name="message_for_initiator" value="Оппонент признал поражение. Вы победили!"/>
+        </insert>
+        <insert tableName="status">
+            <column name="bet_role" value="INITIATOR"/>
+            <column name="current_bet_status" value="WIN"/>
+            <column name="new_bet_status" value="LOSE"/>
+            <column name="valid" value="true"/>
+            <column name="current_rival_bet_status" value="WIN"/>
+            <column name="message_for_opponent" value="Вы признали поражение"/>
+            <column name="message_for_initiator" value="Оппонент признал поражение. Вы победили!"/>
+        </insert>
+        <insert tableName="status">
+            <column name="bet_role" value="OPPONENT"/>
+            <column name="current_bet_status" value="STANDOFF"/>
+            <column name="new_bet_status" value="LOSE"/>
+            <column name="valid" value="true"/>
+            <column name="current_rival_bet_status" value="WIN"/>
+            <column name="message_for_opponent" value="Вы признали поражение"/>
+            <column name="message_for_initiator" value="Оппонент признал поражение. Вы победили!"/>
+        </insert>
+        <insert tableName="status">
+            <column name="bet_role" value="INITIATOR"/>
+            <column name="current_bet_status" value="STANDOFF"/>
+            <column name="new_bet_status" value="LOSE"/>
+            <column name="valid" value="true"/>
+            <column name="current_rival_bet_status" value="WIN"/>
+            <column name="message_for_opponent" value="Вы признали поражение"/>
+            <column name="message_for_initiator" value="Оппонент признал поражение. Вы победили!"/>
+        </insert>
+        <insert tableName="status">
+            <column name="bet_role" value="OPPONENT"/>
+            <column name="current_bet_status" value="WIN"/>
+            <column name="new_bet_status" value="STANDOFF"/>
+            <column name="valid" value="true"/>
+            <column name="current_rival_bet_status" value="WIN"/>
+            <column name="message_for_opponent" value="Вы согласны на ничью"/>
+            <column name="message_for_initiator" value="Оппонент согласен на ничью"/>
+        </insert>
+        <insert tableName="status">
+            <column name="bet_role" value="INITIATOR"/>
+            <column name="current_bet_status" value="WIN"/>
+            <column name="new_bet_status" value="STANDOFF"/>
+            <column name="valid" value="true"/>
+            <column name="current_rival_bet_status" value="WIN"/>
+            <column name="message_for_opponent" value="Вы согласны на ничью"/>
+            <column name="message_for_initiator" value="Оппонент согласен на ничью"/>
+        </insert>
+        <insert tableName="status">
+            <column name="bet_role" value="OPPONENT"/>
+            <column name="current_bet_status" value="WIN"/>
+            <column name="new_bet_status" value="STANDOFF"/>
+            <column name="valid" value="true"/>
+            <column name="current_rival_bet_status" value="STANDOFF"/>
+            <column name="message_for_opponent" value="Вы согласны на ничью"/>
+            <column name="message_for_initiator" value="Оппонент согласен на ничью"/>
+        </insert>
+        <insert tableName="status">
+            <column name="bet_role" value="INITIATOR"/>
+            <column name="current_bet_status" value="WIN"/>
+            <column name="new_bet_status" value="STANDOFF"/>
+            <column name="valid" value="true"/>
+            <column name="current_rival_bet_status" value="STANDOFF"/>
+            <column name="message_for_opponent" value="Вы согласны на ничью"/>
+            <column name="message_for_initiator" value="Оппонент согласен на ничью"/>
+        </insert>
+    </changeSet>
+    <changeSet id="1.0.90" author="albert.gafarov">
+        <insert tableName="status">
+            <column name="bet_role" value="INITIATOR"/>
+            <column name="current_bet_status" value="WIN"/>
+            <column name="new_bet_status" value="WAGERRECIEVED"/>
+            <column name="valid" value="true"/>
+            <column name="current_rival_bet_status" value="WAGERPAID"/>
+            <column name="message_for_opponent" value="Получение выигрыша подтверждено"/>
+            <column name="message_for_initiator" value="Выигрыш получен!"/>
+        </insert>
+        <insert tableName="status">
+            <column name="bet_role" value="OPPONENT"/>
+            <column name="current_bet_status" value="WIN"/>
+            <column name="new_bet_status" value="WAGERRECIEVED"/>
+            <column name="valid" value="true"/>
+            <column name="current_rival_bet_status" value="WAGERPAID"/>
+            <column name="message_for_opponent" value="Выигрыш получен!"/>
+            <column name="message_for_initiator" value="Получение выигрыша подтверждено"/>
+        </insert>
+    </changeSet>
+    <changeSet id="1.0.91" author="albert.gafarov">
+        <sql>update betbot.status set message_for_opponent = 'Оппонент согласен на ничью', message_for_initiator = 'Вы
+            согласны на ничью'
+            where bet_role = 'INITIATOR' and current_bet_status = 'WIN' and new_bet_status = 'STANDOFF'
         </sql>
     </changeSet>
 </databaseChangeLog>

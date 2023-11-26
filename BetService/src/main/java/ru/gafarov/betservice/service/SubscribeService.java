@@ -1,14 +1,15 @@
 package ru.gafarov.betservice.service;
 
-import ru.gafarov.bet.grpcInterface.Proto;
-import ru.gafarov.betservice.model.Bet;
+import ru.gafarov.bet.grpcInterface.Friend;
+import ru.gafarov.bet.grpcInterface.Rs;
+import ru.gafarov.betservice.entity.Bet;
 
 public interface SubscribeService {
     void checkAndPutForInitiator(Bet bet);
 
     void checkAndPutForOpponent(Bet bet);
 
-    Proto.Response addSubscribe(Proto.Subscribe request);
+    Rs.Response addSubscribe(Friend.Subscribe request);
 
-    Proto.Response delete(Proto.Subscribe request);
+    Rs.Response delete(Friend.Subscribe request);
 }

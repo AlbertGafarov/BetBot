@@ -4,7 +4,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import ru.gafarov.bet.grpcInterface.Proto;
+import ru.gafarov.bet.grpcInterface.BotMessageOuterClass.BotMessageType;
+import ru.gafarov.bet.grpcInterface.ProtoBet.*;
+import ru.gafarov.bet.grpcInterface.Rs.Status;
+import ru.gafarov.bet.grpcInterface.UserOuterClass.User;
 import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
 import ru.gafarov.betservice.telegram.bot.components.Buttons;
 import ru.gafarov.betservice.telegram.bot.prettyPrint.PrettyPrinter;
@@ -27,12 +30,13 @@ public class ShowBetAction implements Action {
         long chatId = update.getMessage().getChatId();
         String[] command = update.getMessage().getText().split("/");
         long betId = Long.parseLong(command[2]);
-        Proto.User user = userService.getUser(chatId);
+        User user = userService.getUser(chatId);
 
         BetSendMessage msgToUser = new BetSendMessage(chatId);
-        Proto.ResponseMessage response = betService.showBet(user, betId);
-        if (Proto.Status.SUCCESS.equals(response.getStatus()) && response.hasBet()) {
-            Proto.Bet bet = response.getBet();
+        ResponseMessage response = betService.showBet(user, betId);
+        Bet bet = null;
+        if (Status.SUCCESS.equals(response.getStatus()) && response.hasBet()) {
+            bet = response.getBet();
 
             if (bet.getInitiator().getUsername().equals(user.getUsername())
                     && bet.getInitiator().getCode() == user.getCode()) {
@@ -44,7 +48,7 @@ public class ShowBetAction implements Action {
         } else {
             msgToUser.setText("Спор с указанным id не найден");
         }
-        botService.sendAndSave(msgToUser, user, Proto.BotMessageType.BET);
+        botService.sendAndSaveBet(msgToUser, user, BotMessageType.BET, bet);
         //Удаление вызывающей команды
         botService.delete(update);
     }
@@ -56,12 +60,13 @@ public class ShowBetAction implements Action {
         long chatId = update.getCallbackQuery().getFrom().getId();
         String[] command = update.getCallbackQuery().getData().split("/");
         long betId = Long.parseLong(command[2]);
-        Proto.User user = userService.getUser(chatId);
+        User user = userService.getUser(chatId);
         BetSendMessage msgToUser = new BetSendMessage(chatId);
 
-        Proto.ResponseMessage response = betService.showBet(user, betId);
-        if (Proto.Status.SUCCESS.equals(response.getStatus()) && response.hasBet()) {
-            Proto.Bet bet = response.getBet();
+        ResponseMessage response = betService.showBet(user, betId);
+        Bet bet = null;
+        if (Status.SUCCESS.equals(response.getStatus()) && response.hasBet()) {
+            bet = response.getBet();
             if (bet.getInitiator().getUsername().equals(user.getUsername())
                     && bet.getInitiator().getCode() == user.getCode()) {
                 msgToUser.setReplyMarkup(Buttons.nextStatusesButtons(bet.getInitiatorNextStatusesList(), bet.getId()));
@@ -72,7 +77,7 @@ public class ShowBetAction implements Action {
         } else {
             msgToUser.setText("Спор с указанным id не найден");
         }
-        botService.sendAndSave(msgToUser, user, Proto.BotMessageType.BET);
+        botService.sendAndSaveBet(msgToUser, user, BotMessageType.BET, bet);
         //Удаление вызывающей команды
         botService.delete(update);
     }
