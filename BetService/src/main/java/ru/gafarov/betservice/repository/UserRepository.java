@@ -42,74 +42,82 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> getSubscribes(long id);
 
     @Query(value = "with " +
-            //друг подписчик
-            "subscribed as ( " +
-            "select case when count(*) > 0 then true else false end as subscribed from subscribe where status = 'ACTIVE' " +
-            "and subscriber_id = ?1 " +
-            "and subscribed_id = ?2), " +
-
-            //Всего побед
-            "win_total_cnt as ( " +
-            "select cast(count(*) as real) as win_total_cnt from bets " +
-            "where initiator_id = ?2 and initiator_bet_status in ('WIN','WAGERRECIEVED') " +
-            "and opponent_bet_status in ('LOSE','WAGERPAID') " +
-            "or opponent_id = ?2 and opponent_bet_status in ('WIN','WAGERRECIEVED') and initiator_bet_status  in ('LOSE','WAGERPAID') " +
-            "and status != 'DELETED'), " +
-
-            //Всего оконченных споров, может и неоплаченных
-            "not_cancel_bets as ( " +
-            "select count(*) as not_cancel_bets from bets where bet_status IN ('CLOSED','WAIT_WAGER_PAY') " +
-            "and initiator_id = ?2 or opponent_id = ?2 " +
-            "and status != 'DELETED'), " +
-
-            //Всего ничьих
-            "standoff_total_cnt as ( " +
-            "select cast(count(*) as real) as standoff_total_cnt from bets where initiator_id = ?2 and initiator_bet_status = 'STANDOFF' " +
-            "and opponent_bet_status in ('LOSE','STANDOFF') " +
-            "or opponent_id = ?2 and opponent_bet_status = 'STANDOFF' and initiator_bet_status  in ('LOSE','STANDOFF') " +
-            "and status != 'DELETED'), " +
-
-            //Наших оконченных споров, может и неоплаченных
-            " ourNotCancelBets as ( " +
-            " select CAST(count(*) as real) as our_not_cancel_bets from bets where status IN ('CLOSED','WAIT_WAGER_PAY') " +
-            " and initiator_id = ?2 and opponent_id = ?1 or opponent_id = ?2 and initiator_id = ?1), " +
-
-            //Наших закрытых споров
-            "closedBetCount as ( " +
-            "select count(*) as closed_bet_count from bets where (initiator_id = ?2 and opponent_id = ?1 " +
-            "or initiator_id = ?1 and opponent_id = ?2) and bet_status = 'CLOSED' " +
-            "and status != 'DELETED'), " +
-
-            // Наших активных споров
-            "activeBetCount as ( " +
-            "select count(*) as active_bet_count from bets where (initiator_id = ?2 and opponent_id = ?1 " +
-            "or initiator_id = ?1 and opponent_id = ?2) and bet_status = 'ACTIVE' " +
-            "and status != 'DELETED'), " +
-
-            // Всего побед среди наших
-            "win_cnt as ( " +
-            "select  cast(count(*) as real) as win_cnt from bets where initiator_id = ?2 and opponent_id = ?1 " +
-            "and initiator_bet_status in ('WIN','WAGERRECIEVED') and opponent_bet_status in ('LOSE','WAGERPAID') " +
-            "or opponent_id = ?2 and initiator_id = ?1 and opponent_bet_status in ('WIN','WAGERRECIEVED') " +
-            "and initiator_bet_status  in ('LOSE','WAGERPAID') " +
-            "and status != 'DELETED'), " +
-
-            //Всего наших ничьих
-            "standoff_cnt as ( " +
-            "select cast(count(*) as real) as standoff_cnt from bets where initiator_id = ?2 and opponent_id = ?1 " +
-            "and initiator_bet_status = 'STANDOFF' and opponent_bet_status in ('LOSE','STANDOFF') " +
-            "or opponent_id = ?2 and initiator_id = ?1 and opponent_bet_status = 'STANDOFF' " +
-            "and initiator_bet_status  in ('LOSE','STANDOFF') " +
-            "and status != 'DELETED') " +
-
+            // друг подписчик 
+            "   subscribed as ( " +
+            "      select case when count(*) > 0 then true else false end as subscribed " +
+            "      from betbot.subscribe where status = 'ACTIVE' " +
+            "         and subscriber_id = ?1 " +
+            "         and subscribed_id = ?2), " +
+   
+            // Всего побед 
+            "   win_total_cnt as ( " +
+            "       select CAST(count(*) as real) as win_total_cnt " +
+            "      from betbot.bets " +
+            "      where (initiator_id = ?2 and initiator_bet_status in ('WIN','WAGERRECIEVED') and opponent_bet_status in ('LOSE','WAGERPAID') " +
+            "               or opponent_id = ?2 and opponent_bet_status in ('WIN','WAGERRECIEVED') and initiator_bet_status in ('LOSE','WAGERPAID')) " +
+            "         and status != 'DELETED'), " +
+   
+            // Всего оконченных споров, может и неоплаченных 
+            "   not_cancel_bets as ( " +
+            "       select CAST(count(*) as real) as not_cancel_bets " +
+            "      from betbot.bets where bet_status IN ('CLOSED','WAIT_WAGER_PAY') " +
+            "           and (initiator_id = ?2 or opponent_id = ?2) " +
+            "         and status != 'DELETED'), " +
+   
+            // Всего ничьих 
+            "    standoff_total_cnt as ( " +
+            "      select CAST(count(*) as real) as standoff_total_cnt " +
+            "      from betbot.bets " +
+            "         where (initiator_id = ?2 and initiator_bet_status = 'STANDOFF' and opponent_bet_status in ('LOSE','STANDOFF') " +
+            "             or opponent_id = ?2 and opponent_bet_status = 'STANDOFF' and initiator_bet_status  in ('LOSE','STANDOFF')) " +
+            "          and status != 'DELETED'), " +
+   
+            // Наших оконченных споров, может и неоплаченных 
+            "   ourNotCancelBets as ( " +
+            "      select CAST(count(*) as real) as our_not_cancel_bets " +
+            "      from betbot.bets " +
+            "         where bet_status IN ('CLOSED','WAIT_WAGER_PAY') and (initiator_id = ?2 and opponent_id = ?1 " +
+            "            or opponent_id = ?2 and initiator_id = ?1) " +
+            "         and status != 'DELETED'), " +
+   
+            // Наших закрытых споров 
+            "   closedBetCount as ( " +
+            "      select count(*) as closed_bet_count " +
+            "      from betbot.bets " +
+            "      where (initiator_id = ?2 and opponent_id = ?1 " +
+            "           or initiator_id = ?1 and opponent_id = ?2) " +
+            "      and bet_status = 'CLOSED' and status != 'DELETED'), " +
+   
+            //  Наших активных споров 
+            "   activeBetCount as ( " +
+            "      select count(*) as active_bet_count " +
+            "      from betbot.bets where (initiator_id = ?2 and opponent_id = ?1 " +
+            "              or initiator_id = ?1 and opponent_id = ?2) " +
+            "         and bet_status = 'ACTIVE' and status != 'DELETED'), " +
+   
+            //  Всего побед среди наших 
+            "   win_cnt as ( " +
+            "      select CAST(count(*) as real) as win_cnt from betbot.bets " +
+            "         where (initiator_id = ?2 and opponent_id = ?1 and initiator_bet_status in ('WIN','WAGERRECIEVED') and opponent_bet_status in ('LOSE','WAGERPAID') " +
+            "               or opponent_id = ?2 and initiator_id = ?1 and opponent_bet_status in ('WIN','WAGERRECIEVED') and initiator_bet_status in ('LOSE','WAGERPAID')) " +
+            "         and status != 'DELETED'), " +
+   
+            // Всего наших ничьих 
+            "    standoff_cnt as ( " +
+            "       select CAST(count(*) as real) as standoff_cnt " +
+            "      from betbot.bets " +
+            "      where (initiator_id = ?2 and opponent_id = ?1 and initiator_bet_status = 'STANDOFF' and opponent_bet_status in ('LOSE','STANDOFF') " +
+            "            or opponent_id = ?2 and initiator_id = ?1 and opponent_bet_status = 'STANDOFF' and initiator_bet_status  in ('LOSE','STANDOFF')) " +
+            "      and status != 'DELETED') " +
+   
             "select " +
-            "subscribed, " +
-            "CAST(win_total_cnt*100/not_cancel_bets as real) as totalwinpercent, " +
-            "CAST(standoff_total_cnt*100/not_cancel_bets as real) as totalstandoffpercent, " +
-            "CAST(win_cnt*100/our_not_cancel_bets as real) as winpercent, " +
-            "CAST(standoff_cnt*100/our_not_cancel_bets as real)  as standoffpercent, " +
-            "CAST(closedbetcount.closed_bet_count as integer) as closedBetCount, " +
-            "CAST(activebetcount.active_bet_count as integer) as activeBetCount " +
+            "   subscribed, " +
+            "   CAST(win_total_cnt*100/not_cancel_bets as real) as totalwinpercent, " +
+            "    CAST(standoff_total_cnt*100/not_cancel_bets as real) as totalstandoffpercent, " +
+            "    CAST(win_cnt*100/our_not_cancel_bets as real) as winpercent, " +
+            "    CAST(standoff_cnt*100/our_not_cancel_bets as real)  as standoffpercent, " +
+            "    CAST(closedbetcount.closed_bet_count as integer) as closedBetCount, " +
+            "    CAST(activebetcount.active_bet_count as integer) as activeBetCount " +
             "from win_total_cnt, win_cnt, not_cancel_bets, standoff_total_cnt, closedBetCount, activeBetCount, subscribed, standoff_cnt, ourNotCancelBets"
             , nativeQuery = true)
     Optional<FriendInfo> getFriendInfo(long user_id, long friend_id);
