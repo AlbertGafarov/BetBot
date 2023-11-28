@@ -388,4 +388,573 @@
     <changeSet id="1.0.44" author="albert.gafarov">
         <addUniqueConstraint tableName="notify_expired_status" columnNames="bet_id"/>
     </changeSet>
+    <changeSet id="1.0.46" author="albert.gafarov">
+        <dropColumn tableName="users" columnName="draft_bet_id"/>
+    </changeSet>
+    <changeSet id="1.0.45" author="albert.gafarov">
+        <comment>Очищаем таблицу черновиков</comment>
+        <sql splitStatements="true">
+            TRUNCATE TABLE draft_bets;
+        </sql>
+    </changeSet>
+    <changeSet id="1.0.47" author="albert.gafarov">
+        <addColumn tableName="draft_bets">
+            <column name="initiator_id" type="integer">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+    <changeSet id="1.0.48" author="albert.gafarov">
+        <createTable tableName="bot_message">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="tg_message_id" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="message_type" type="varchar(25)">
+            </column>
+            <column name="created" type="timestamp" defaultValueDate="current_timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated" type="timestamp" defaultValueDate="current_timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="varchar(25)" defaultValue="ACTIVE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="1.0.49" author="albert.gafarov">
+        <addNotNullConstraint tableName="draft_bets" columnName="updated"/>
+    </changeSet>
+    <changeSet id="1.0.50" author="albert.gafarov">
+        <addColumn tableName="bot_message">
+            <column name="draft_bet_id" type="integer">
+                <constraints foreignKeyName="fk_botMessage_draft_bet" nullable="true"
+                             referencedTableName="draft_bets" referencedColumnNames="id"/>
+            </column>
+        </addColumn>
+    </changeSet>
+    <changeSet id="1.0.51" author="albert.gafarov">
+        <createIndex tableName="bot_message" indexName="index_bot_message_draft_bet_id">
+            <column name="draft_bet_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="1.0.52" author="albert.gafarov">
+        <createIndex tableName="bot_message" indexName="index_bot_message_user_id">
+            <column name="user_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="1.0.53" author="albert.gafarov">
+        <createIndex tableName="bets" indexName="index_bets_initiator_id">
+            <column name="initiator_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="1.0.54" author="albert.gafarov">
+        <createIndex tableName="bets" indexName="index_bets_opponent_id">
+            <column name="opponent_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="1.0.55" author="albert.gafarov">
+        <createIndex tableName="bets" indexName="index_bets_id" unique="true">
+            <column name="id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="1.0.56" author="albert.gafarov">
+        <createIndex tableName="bets" indexName="index_bets_finish_date">
+            <column name="finish_date"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="1.0.57" author="albert.gafarov">
+        <createIndex tableName="notify_expired_status" indexName="index_notify_expired_status_bet_id" unique="true">
+            <column name="bet_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="1.0.58" author="albert.gafarov">
+        <createIndex tableName="users" indexName="index_users_id" unique="true">
+            <column name="id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="1.0.59" author="albert.gafarov">
+        <createIndex tableName="users" indexName="index_users_chat_id" unique="true">
+            <column name="chat_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="1.0.60" author="albert.gafarov">
+        <comment>Составной индекс по выражению</comment>
+        <sql splitStatements="true">
+            CREATE INDEX index_users_username ON users (upper(username), code);
+        </sql>
+    </changeSet>
+    <changeSet id="1.0.61" author="albert.gafarov">
+        <createIndex tableName="draft_bets" indexName="index_draft_bets_id" unique="true">
+            <column name="id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="1.0.62" author="albert.gafarov">
+        <createIndex tableName="draft_bets" indexName="index_draft_bets_initiator_id">
+            <column name="initiator_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="1.0.63" author="albert.gafarov">
+        <createIndex tableName="draft_bets" indexName="index_draft_bets_updated" unique="true">
+            <column name="updated"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="1.0.64" author="albert.gafarov">
+        <createTable tableName="bet_final_status_rule">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="initiator_status" type="varchar(25)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="opponent_status" type="varchar(25)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="bet_final_status" type="varchar(25)">
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="1.0.65" author="albert.gafarov">
+        <insert tableName="bet_final_status_rule">
+            <column name="initiator_status" value="WIN"/>
+            <column name="opponent_status" value="LOSE"/>
+            <column name="bet_final_status" value="NOT_ACTIVE"/>
+        </insert>
+    </changeSet>
+    <changeSet id="1.0.66" author="albert.gafarov">
+        <insert tableName="bet_final_status_rule">
+            <column name="initiator_status" value="WIN"/>
+            <column name="opponent_status" value="WIN"/>
+            <column name="bet_final_status" value="NOT_ACTIVE"/>
+        </insert>
+    </changeSet>
+    <changeSet id="1.0.67" author="albert.gafarov">
+        <insert tableName="bet_final_status_rule">
+            <column name="initiator_status" value="WIN"/>
+            <column name="opponent_status" value="STANDOFF"/>
+            <column name="bet_final_status" value="NOT_ACTIVE"/>
+        </insert>
+    </changeSet>
+    <changeSet id="1.0.68" author="albert.gafarov">
+        <insert tableName="bet_final_status_rule">
+            <column name="initiator_status" value="LOSE"/>
+            <column name="opponent_status" value="LOSE"/>
+            <column name="bet_final_status" value="NOT_ACTIVE"/>
+        </insert>
+    </changeSet>
+    <changeSet id="1.0.69" author="albert.gafarov">
+        <insert tableName="bet_final_status_rule">
+            <column name="initiator_status" value="LOSE"/>
+            <column name="opponent_status" value="WIN"/>
+            <column name="bet_final_status" value="NOT_ACTIVE"/>
+        </insert>
+    </changeSet>
+    <changeSet id="1.0.70" author="albert.gafarov">
+        <insert tableName="bet_final_status_rule">
+            <column name="initiator_status" value="LOSE"/>
+            <column name="opponent_status" value="STANDOFF"/>
+            <column name="bet_final_status" value="NOT_ACTIVE"/>
+        </insert>
+    </changeSet>
+    <changeSet id="1.0.71" author="albert.gafarov">
+        <insert tableName="bet_final_status_rule">
+            <column name="initiator_status" value="STANDOFF"/>
+            <column name="opponent_status" value="LOSE"/>
+            <column name="bet_final_status" value="NOT_ACTIVE"/>
+        </insert>
+    </changeSet>
+    <changeSet id="1.0.72" author="albert.gafarov">
+        <insert tableName="bet_final_status_rule">
+            <column name="initiator_status" value="STANDOFF"/>
+            <column name="opponent_status" value="WIN"/>
+            <column name="bet_final_status" value="NOT_ACTIVE"/>
+        </insert>
+    </changeSet>
+    <changeSet id="1.0.73" author="albert.gafarov">
+        <insert tableName="bet_final_status_rule">
+            <column name="initiator_status" value="STANDOFF"/>
+            <column name="opponent_status" value="STANDOFF"/>
+            <column name="bet_final_status" value="NOT_ACTIVE"/>
+        </insert>
+    </changeSet>
+    <changeSet id="1.0.74" author="albert.gafarov">
+        <insert tableName="bet_final_status_rule">
+            <column name="initiator_status" value="WAGERRECIEVED"/>
+            <column name="opponent_status" value="WAGERPAID"/>
+            <column name="bet_final_status" value="CLOSED"/>
+        </insert>
+    </changeSet>
+    <changeSet id="1.0.75" author="albert.gafarov">
+        <insert tableName="bet_final_status_rule">
+            <column name="initiator_status" value="WAGERPAID"/>
+            <column name="opponent_status" value="WAGERRECIEVED"/>
+            <column name="bet_final_status" value="CLOSED"/>
+        </insert>
+    </changeSet>
+    <changeSet id="1.0.76" author="albert.gafarov">
+        <insert tableName="bet_final_status_rule">
+            <column name="initiator_status" value="WAGERPAID"/>
+            <column name="opponent_status" value="WIN"/>
+            <column name="bet_final_status" value="NOT_ACTIVE"/>
+        </insert>
+    </changeSet>
+    <changeSet id="1.0.77" author="albert.gafarov">
+        <addUniqueConstraint tableName="bet_final_status_rule" columnNames="initiator_status,opponent_status"/>
+    </changeSet>
+    <changeSet id="1.0.78" author="albert.gafarov">
+        <createTable tableName="subscribe">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="subscriber_id" type="integer">
+                <constraints foreignKeyName="fk_subscriber_user_id"
+                             referencedTableName="users"
+                             referencedColumnNames="id"
+                             nullable="false"/>
+            </column>
+            <column name="subscribed_id" type="integer">
+                <constraints foreignKeyName="fk_subscribed_user_id"
+                             referencedTableName="users"
+                             referencedColumnNames="id"
+                             nullable="false"/>
+            </column>
+            <column name="created" type="timestamp" defaultValueDate="current_timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated" type="timestamp" defaultValueDate="current_timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="varchar(25)" defaultValue="ACTIVE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addUniqueConstraint tableName="subscribe" columnNames="subscriber_id,subscribed_id"/>
+        <createIndex tableName="subscribe" indexName="subscribe_idx" unique="true">
+            <column name="subscriber_id"/>
+            <column name="subscribed_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="1.0.79" author="albert.gafarov">
+        <dropPrimaryKey tableName="subscribe" constraintName="subscribe_pkey"/>
+        <dropColumn tableName="subscribe" columnName="id"/>
+        <addPrimaryKey tableName="subscribe" columnNames="subscriber_id,subscribed_id"/>
+    </changeSet>
+    <changeSet id="1.0.80" author="albert.gafarov">
+        <addColumn tableName="draft_bets">
+            <column name="inverse_definition" type="boolean" defaultValue="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <addColumn tableName="bets">
+            <column name="inverse_definition" type="boolean" defaultValue="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+    <changeSet id="1.0.81" author="albert.gafarov">
+        <dropNotNullConstraint tableName="bets" columnName="wager"/>
+    </changeSet>
+    <changeSet id="1.0.82" author="albert.gafarov">
+        <createTable tableName="info">
+            <column name="type" type="varchar(128)">
+                <constraints primaryKey="true" unique="true" nullable="false"/>
+            </column>
+            <column name="text" type="clob"/>
+            <column name="created" type="timestamp" defaultValueDate="current_timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated" type="timestamp" defaultValueDate="current_timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="varchar(25)" defaultValue="ACTIVE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <sql>insert into info (type, text) values ('MENU', '&lt;b>Выберите пункт меню для ознакомления:&lt;/b>')</sql>
+        <sql>insert into info (type, text) values ('ABOUT_BOT', E'&lt;b>О боте:&lt;/b>
+            Этот бот запомнит Ваш спор с оппонентом и напомнит о нем, когда придет время.
+            Вы можете предложить спор оппоненту, только если Вы знаете его username и код или он добавлен в Ваши друзья.
+            Незнакомый человек не сможет предложить Вам спор, если он не знает Ваши username и код.
+            Вы можете указать вознаграждению тому, кто окажется прав в споре, но бот не отвечает за ваши расчеты.
+            Бот не может быть судьей. Решение о том, кто прав вы принимаете сами. Вы сможете это сделать когда наступит
+            дата завершения')
+        </sql>
+        <sql>insert into info (type, text) values ('HOW_ADD_FRIEND', E'&lt;b>Как добавить друга:&lt;/b>
+            Чтобы добавить друга, нужно сформировать ссылку командой /reference, а затем переслать ее другу в личном
+            сообщении. Друг должен переслать эту ссылку в бот и после этого вы получите сообщение о том, что вы стали
+            друзьями.
+            Также, когда оппонент принимает спор, оппонент и инициатор становятся друзьями автоматически.
+            Чтобы удалить друга вызовите команду /friends и нажмите на 🗑 справа от его имени')
+        </sql>
+        <sql>insert into info (type, text) values ('HOW_CREATE_BET', '&lt;b>Как создать спор:&lt;/b>
+            Чтобы создать спор, выберите команду /create и следуйте подсказкам')
+        </sql>
+        <sql>insert into info (type, text) values ('ABOUT_PERSONAL_DATA', E'&lt;b>О персональных данных:&lt;/b>
+            Бот не хранит персональные данные такие как номер телефона, адрес электронной почты.
+            Для идентификации пользователя используется chat id telegramm и nickname или сочетание имя_фамилия.
+            Бот хранит ваши споры. Пожалуйста, не вносите туда персональные данные, номера банковских карт и прочую
+            чувствительную информацию.
+            Продолжая использование бота, Вы соглашаетесь с этими условиями')
+        </sql>
+    </changeSet>
+    <changeSet id="1.0.83" author="albert.gafarov">
+        <addColumn tableName="bot_message">
+            <column name="friend_id" type="integer">
+                <constraints foreignKeyName="fk_friend_id_users" referencedTableName="users" referencedColumnNames="id"
+                             nullable="true"/>
+            </column>
+            <column name="bet_id" type="integer">
+                <constraints foreignKeyName="fk_bet_id_bets" referencedTableName="bets" referencedColumnNames="id"
+                             nullable="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
+    <changeSet id="1.0.84" author="albert.gafarov">
+        <addColumn tableName="bets">
+            <column name="bet_status" type="varchar(25)"/>
+        </addColumn>
+        <createTable tableName="bet_status_rule">
+            <column name="initiator_status" type="varchar(25)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="opponent_status" type="varchar(25)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="bet_status" type="varchar(25)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addUniqueConstraint tableName="bet_status_rule" columnNames="initiator_status,opponent_status"/>
+    </changeSet>
+
+    <changeSet id="1.0.85" author="albert.gafarov">
+        <insert tableName="bet_status_rule">
+            <column name="initiator_status" value="WIN"/>
+            <column name="opponent_status" value="LOSE"/>
+            <column name="bet_status" value="WAIT_WAGER_PAY"/>
+        </insert>
+        <insert tableName="bet_status_rule">
+            <column name="initiator_status" value="WIN"/>
+            <column name="opponent_status" value="WIN"/>
+            <column name="bet_status" value="DISAGREEMENT"/>
+        </insert>
+        <insert tableName="bet_status_rule">
+            <column name="initiator_status" value="WIN"/>
+            <column name="opponent_status" value="STANDOFF"/>
+            <column name="bet_status" value="DISAGREEMENT"/>
+        </insert>
+        <insert tableName="bet_status_rule">
+            <column name="initiator_status" value="LOSE"/>
+            <column name="opponent_status" value="LOSE"/>
+            <column name="bet_status" value="DISAGREEMENT"/>
+        </insert>
+        <insert tableName="bet_status_rule">
+            <column name="initiator_status" value="LOSE"/>
+            <column name="opponent_status" value="WIN"/>
+            <column name="bet_status" value="WAIT_WAGER_PAY"/>
+        </insert>
+        <insert tableName="bet_status_rule">
+            <column name="initiator_status" value="LOSE"/>
+            <column name="opponent_status" value="STANDOFF"/>
+            <column name="bet_status" value="DISAGREEMENT"/>
+        </insert>
+        <insert tableName="bet_status_rule">
+            <column name="initiator_status" value="STANDOFF"/>
+            <column name="opponent_status" value="LOSE"/>
+            <column name="bet_status" value="DISAGREEMENT"/>
+        </insert>
+        <insert tableName="bet_status_rule">
+            <column name="initiator_status" value="STANDOFF"/>
+            <column name="opponent_status" value="WIN"/>
+            <column name="bet_status" value="DISAGREEMENT"/>
+        </insert>
+        <insert tableName="bet_status_rule">
+            <column name="initiator_status" value="STANDOFF"/>
+            <column name="opponent_status" value="STANDOFF"/>
+            <column name="bet_status" value="CLOSED"/>
+        </insert>
+        <insert tableName="bet_status_rule">
+            <column name="initiator_status" value="WAGERRECIEVED"/>
+            <column name="opponent_status" value="WAGERPAID"/>
+            <column name="bet_status" value="CLOSED"/>
+        </insert>
+        <insert tableName="bet_status_rule">
+            <column name="initiator_status" value="WAGERPAID"/>
+            <column name="opponent_status" value="WAGERRECIEVED"/>
+            <column name="bet_status" value="CLOSED"/>
+        </insert>
+        <insert tableName="bet_status_rule">
+            <column name="initiator_status" value="WAGERPAID"/>
+            <column name="opponent_status" value="WIN"/>
+            <column name="bet_status" value="WAIT_WAGER_PAY"/>
+        </insert>
+        <insert tableName="bet_status_rule">
+            <column name="initiator_status" value="OFFERED"/>
+            <column name="opponent_status" value="OFFERED"/>
+            <column name="bet_status" value="OFFER"/>
+        </insert>
+        <insert tableName="bet_status_rule">
+            <column name="initiator_status" value="ACCEPTED"/>
+            <column name="opponent_status" value="ACCEPTED"/>
+            <column name="bet_status" value="ACTIVE"/>
+        </insert>
+        <insert tableName="bet_status_rule">
+            <column name="initiator_status" value="CANCELED"/>
+            <column name="opponent_status" value="CANCELED"/>
+            <column name="bet_status" value="CANCEL"/>
+        </insert>
+    </changeSet>
+    <changeSet id="1.0.86" author="albert.gafarov">
+        <insert tableName="bet_status_rule">
+            <column name="initiator_status" value="WAGERRECIEVED"/>
+            <column name="opponent_status" value="STANDOFF"/>
+            <column name="bet_status" value="DISAGREEMENT"/>
+        </insert>
+        <insert tableName="bet_status_rule">
+            <column name="initiator_status" value="ACCEPTED"/>
+            <column name="opponent_status" value="LOSE"/>
+            <column name="bet_status" value="DISAGREEMENT"/>
+        </insert>
+        <insert tableName="bet_status_rule">
+            <column name="initiator_status" value="WAGERPAID"/>
+            <column name="opponent_status" value="WAGERPAID"/>
+            <column name="bet_status" value="DISAGREEMENT"/>
+        </insert>
+        <insert tableName="bet_status_rule">
+            <column name="initiator_status" value="STANDOFF"/>
+            <column name="opponent_status" value="WAGERPAID"/>
+            <column name="bet_status" value="DISAGREEMENT"/>
+        </insert>
+    </changeSet>
+    <changeSet id="1.0.87" author="albert.gafarov">
+        <sql>
+            update betbot.bets set bet_status = r.bet_status
+            from betbot.bet_status_rule r
+            WHERE betbot.bets.opponent_bet_status = r.opponent_status AND betbot.bets.initiator_bet_status =
+            r.initiator_status;
+        </sql>
+    </changeSet>
+    <changeSet id="1.0.88" author="albert.gafarov">
+        <addColumn tableName="status">
+            <column name="current_rival_bet_status" type="varchar(25)"/>
+        </addColumn>
+        <sql>
+            update betbot.status set message_for_opponent = 'Вы победили!',
+            new_rival_bet_status = 'WIN'
+            where current_bet_status = 'ACCEPTED' and new_bet_status = 'LOSE';
+        </sql>
+        <sql>update betbot.status set new_rival_bet_status = 'WAGERPAID', current_rival_bet_status = 'LOSE'
+            where current_bet_status = 'WIN' and new_bet_status = 'WAGERRECIEVED';
+        </sql>
+    </changeSet>
+    <changeSet id="1.0.89" author="albert.gafarov">
+        <dropUniqueConstraint tableName="status"
+                              constraintName="status_bet_role_current_bet_status_new_bet_status_key"/>
+        <addUniqueConstraint tableName="status"
+                             columnNames="bet_role,current_bet_status,new_bet_status,current_rival_bet_status"/>
+        <insert tableName="status">
+            <column name="bet_role" value="OPPONENT"/>
+            <column name="current_bet_status" value="WIN"/>
+            <column name="new_bet_status" value="LOSE"/>
+            <column name="valid" value="true"/>
+            <column name="current_rival_bet_status" value="WIN"/>
+            <column name="message_for_opponent" value="Вы признали поражение"/>
+            <column name="message_for_initiator" value="Оппонент признал поражение. Вы победили!"/>
+        </insert>
+        <insert tableName="status">
+            <column name="bet_role" value="INITIATOR"/>
+            <column name="current_bet_status" value="WIN"/>
+            <column name="new_bet_status" value="LOSE"/>
+            <column name="valid" value="true"/>
+            <column name="current_rival_bet_status" value="WIN"/>
+            <column name="message_for_opponent" value="Вы признали поражение"/>
+            <column name="message_for_initiator" value="Оппонент признал поражение. Вы победили!"/>
+        </insert>
+        <insert tableName="status">
+            <column name="bet_role" value="OPPONENT"/>
+            <column name="current_bet_status" value="STANDOFF"/>
+            <column name="new_bet_status" value="LOSE"/>
+            <column name="valid" value="true"/>
+            <column name="current_rival_bet_status" value="WIN"/>
+            <column name="message_for_opponent" value="Вы признали поражение"/>
+            <column name="message_for_initiator" value="Оппонент признал поражение. Вы победили!"/>
+        </insert>
+        <insert tableName="status">
+            <column name="bet_role" value="INITIATOR"/>
+            <column name="current_bet_status" value="STANDOFF"/>
+            <column name="new_bet_status" value="LOSE"/>
+            <column name="valid" value="true"/>
+            <column name="current_rival_bet_status" value="WIN"/>
+            <column name="message_for_opponent" value="Вы признали поражение"/>
+            <column name="message_for_initiator" value="Оппонент признал поражение. Вы победили!"/>
+        </insert>
+        <insert tableName="status">
+            <column name="bet_role" value="OPPONENT"/>
+            <column name="current_bet_status" value="WIN"/>
+            <column name="new_bet_status" value="STANDOFF"/>
+            <column name="valid" value="true"/>
+            <column name="current_rival_bet_status" value="WIN"/>
+            <column name="message_for_opponent" value="Вы согласны на ничью"/>
+            <column name="message_for_initiator" value="Оппонент согласен на ничью"/>
+        </insert>
+        <insert tableName="status">
+            <column name="bet_role" value="INITIATOR"/>
+            <column name="current_bet_status" value="WIN"/>
+            <column name="new_bet_status" value="STANDOFF"/>
+            <column name="valid" value="true"/>
+            <column name="current_rival_bet_status" value="WIN"/>
+            <column name="message_for_opponent" value="Вы согласны на ничью"/>
+            <column name="message_for_initiator" value="Оппонент согласен на ничью"/>
+        </insert>
+        <insert tableName="status">
+            <column name="bet_role" value="OPPONENT"/>
+            <column name="current_bet_status" value="WIN"/>
+            <column name="new_bet_status" value="STANDOFF"/>
+            <column name="valid" value="true"/>
+            <column name="current_rival_bet_status" value="STANDOFF"/>
+            <column name="message_for_opponent" value="Вы согласны на ничью"/>
+            <column name="message_for_initiator" value="Оппонент согласен на ничью"/>
+        </insert>
+        <insert tableName="status">
+            <column name="bet_role" value="INITIATOR"/>
+            <column name="current_bet_status" value="WIN"/>
+            <column name="new_bet_status" value="STANDOFF"/>
+            <column name="valid" value="true"/>
+            <column name="current_rival_bet_status" value="STANDOFF"/>
+            <column name="message_for_opponent" value="Вы согласны на ничью"/>
+            <column name="message_for_initiator" value="Оппонент согласен на ничью"/>
+        </insert>
+    </changeSet>
+    <changeSet id="1.0.90" author="albert.gafarov">
+        <insert tableName="status">
+            <column name="bet_role" value="INITIATOR"/>
+            <column name="current_bet_status" value="WIN"/>
+            <column name="new_bet_status" value="WAGERRECIEVED"/>
+            <column name="valid" value="true"/>
+            <column name="current_rival_bet_status" value="WAGERPAID"/>
+            <column name="message_for_opponent" value="Получение выигрыша подтверждено"/>
+            <column name="message_for_initiator" value="Выигрыш получен!"/>
+        </insert>
+        <insert tableName="status">
+            <column name="bet_role" value="OPPONENT"/>
+            <column name="current_bet_status" value="WIN"/>
+            <column name="new_bet_status" value="WAGERRECIEVED"/>
+            <column name="valid" value="true"/>
+            <column name="current_rival_bet_status" value="WAGERPAID"/>
+            <column name="message_for_opponent" value="Выигрыш получен!"/>
+            <column name="message_for_initiator" value="Получение выигрыша подтверждено"/>
+        </insert>
+    </changeSet>
+    <changeSet id="1.0.91" author="albert.gafarov">
+        <sql>update betbot.status set message_for_opponent = 'Оппонент согласен на ничью', message_for_initiator = 'Вы
+            согласны на ничью'
+            where bet_role = 'INITIATOR' and current_bet_status = 'WIN' and new_bet_status = 'STANDOFF'
+        </sql>
+    </changeSet>
 </databaseChangeLog>

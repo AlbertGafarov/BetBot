@@ -4,35 +4,102 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.gafarov.bet.grpcInterface.BetServiceGrpc;
-import ru.gafarov.bet.grpcInterface.Proto;
+import ru.gafarov.bet.grpcInterface.DrBet.DraftBet;
+import ru.gafarov.bet.grpcInterface.DrBet.ResponseDraftBet;
+import ru.gafarov.bet.grpcInterface.DrBetServiceGrpc;
+import ru.gafarov.bet.grpcInterface.Friend.Subscribe;
+import ru.gafarov.bet.grpcInterface.FriendServiceGrpc;
+import ru.gafarov.bet.grpcInterface.ProtoBet.*;
+import ru.gafarov.bet.grpcInterface.Rs.Status;
+import ru.gafarov.bet.grpcInterface.UserOuterClass.ChatStatus;
+import ru.gafarov.bet.grpcInterface.UserOuterClass.ResponseUser;
+import ru.gafarov.bet.grpcInterface.UserOuterClass.User;
+import ru.gafarov.bet.grpcInterface.UserServiceGrpc;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserService {
     private final BetServiceGrpc.BetServiceBlockingStub grpcStub;
+    private final FriendServiceGrpc.FriendServiceBlockingStub grpcFriendStub;
+    private final UserServiceGrpc.UserServiceBlockingStub grpcUserStub;
+    private final DrBetServiceGrpc.DrBetServiceBlockingStub grpcDrBetStub;
 
-    public Proto.User getUser(long chatId) {
-        Proto.ResponseMessage responseMessage = grpcStub.getUser(Proto.User.newBuilder().setChatId(chatId).build());
+    public User getUser(long chatId) {
+        ResponseUser responseMessage = grpcUserStub.getUser(User.newBuilder().setChatId(chatId).build());
+        if (responseMessage.hasUser()) {
+            return responseMessage.getUser();
+        }
+        return null;
+    }
+    public User getUserById(long id) {
+        ResponseUser responseMessage = grpcUserStub.getUser(User.newBuilder().setId(id).build());
         if (responseMessage.hasUser()) {
             return responseMessage.getUser();
         }
         return null;
     }
 
-    public void setChatStatus(Proto.User protoUser, Proto.ChatStatus chatStatus) {
-        protoUser = Proto.User.newBuilder(protoUser).setChatStatus(chatStatus).build();
-        log.info("Меняем статус чата: \n{}", protoUser);
-        grpcStub.changeChatStatus(protoUser);
+    public void setChatStatus(User protoUser, ChatStatus chatStatus) {
+        protoUser = User.newBuilder(protoUser).setChatStatus(chatStatus).build();
+        log.debug("Меняем статус чата: \n{}", protoUser);
+        ResponseMessage response = grpcStub.changeChatStatus(protoUser);
+        if (!response.getStatus().equals(Status.SUCCESS)) {
+            log.error("Получена ошибка при попытке установить статус пользователя");
+        }
     }
 
-    public Proto.User getUser(String username, int code) {
-        Proto.ResponseMessage responseMessage = grpcStub.getUser(Proto.User.newBuilder()
+    public User getUser(String username, int code) {
+        ResponseUser response = grpcUserStub.getUser(User.newBuilder()
                 .setUsername(username)
                 .setCode(code).build());
-        if (responseMessage.hasUser()) {
-            return responseMessage.getUser();
+        if (response.hasUser()) {
+            return response.getUser();
         }
+        return null;
+    }
+
+    public DraftBet getLastDraftBet(User user) {
+        ResponseDraftBet response = grpcDrBetStub.getLastDraftBet(user);
+        if (response.getStatus().equals(Status.SUCCESS)) {
+            return response.getDraftBet();
+        }
+        return null;
+    }
+
+    public User findFriendByChatId(User subscriber, long chatId) {
+        ResponseUser response = grpcFriendStub.findFriend(Subscribe.newBuilder()
+                .setSubscriber(subscriber)
+                .setSubscribed(User.newBuilder().setChatId(chatId).build())
+                .build());
+        if (response.hasUser()) {
+            return response.getUser();
+        }
+        return null;
+    }
+
+    public User findFriendById(User subscriber, long friendId) {
+        ResponseUser response = grpcFriendStub.findFriend(Subscribe.newBuilder()
+                .setSubscriber(subscriber)
+                .setSubscribed(User.newBuilder().setId(friendId).build())
+                .build());
+        if (response.getStatus().equals(Status.SUCCESS)) {
+            return response.getUser();
+        }
+        return null;
+    }
+
+    public List<User> getSubscribes(User user) {
+        ResponseUser response = grpcFriendStub.getSubscribes(user);
+        if (response.getStatus().equals(Status.SUCCESS)) {
+            return response.getUsersList();
+        } else if (response.getStatus().equals(Status.NOT_FOUND)){
+            return new ArrayList<>();
+        }
+        log.error("Получена ошибка при попытке получения списка друзей");
         return null;
     }
 }

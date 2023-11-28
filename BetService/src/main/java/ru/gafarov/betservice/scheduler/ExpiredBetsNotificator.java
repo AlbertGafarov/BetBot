@@ -5,14 +5,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import ru.gafarov.bet.grpcInterface.BetServiceGrpc;
-import ru.gafarov.bet.grpcInterface.Proto;
+import ru.gafarov.bet.grpcInterface.ProtoBet;
+import ru.gafarov.bet.grpcInterface.Rs;
 import ru.gafarov.betservice.converter.Converter;
+import ru.gafarov.betservice.entity.Bet;
+import ru.gafarov.betservice.entity.NotifyExpiredStatus;
 import ru.gafarov.betservice.enums.NotifyStatus;
-import ru.gafarov.betservice.model.Bet;
-import ru.gafarov.betservice.model.NotifyExpiredStatus;
 import ru.gafarov.betservice.model.Status;
 import ru.gafarov.betservice.repository.BetRepository;
-import ru.gafarov.betservice.repository.ChangeStatusBetRulesRepository;
+import ru.gafarov.betservice.repository.ChangeStatusBetRuleRepository;
 import ru.gafarov.betservice.repository.NotifyExpiredBetRepository;
 
 import java.time.LocalDateTime;
@@ -30,25 +31,31 @@ public class ExpiredBetsNotificator {
     private final BetRepository betRepository;
     private final Converter converter;
     private final BetServiceGrpc.BetServiceBlockingStub grpcStub;
-    private final ChangeStatusBetRulesRepository statusBetRepository;
+    private final ChangeStatusBetRuleRepository ruleRepository;
     private final NotifyExpiredBetRepository notifyExpiredBetRepository;
 
     @Scheduled(cron = "0 */10 * ? * *")
     public void checkExpiredBets() {
         log.info("Запущена проверка истекших споров");
         List<Bet> betList = betRepository.getExpiredBets(LocalDateTime.now());
-        List<Proto.Bet> protoBetList = betList.stream()
+        List<ProtoBet.Bet> protoBetList = betList.stream()
                 .map(b -> {
-                    b.setNextOpponentBetStatusList(statusBetRepository.getNextStatuses(OPPONENT.toString(), b.getOpponentBetStatus().toString()));
-                    b.setNextInitiatorBetStatusList(statusBetRepository.getNextStatuses(INITIATOR.toString(), b.getInitiatorBetStatus().toString()));
+                    b.setNextOpponentBetStatusList(ruleRepository.getNextStatuses(OPPONENT.toString()
+                            , b.getOpponentBetStatus().toString()
+                            , b.getInitiatorBetStatus().toString()
+                            , b.getFinishDate()));
+                    b.setNextInitiatorBetStatusList(ruleRepository.getNextStatuses(INITIATOR.toString()
+                            , b.getInitiatorBetStatus().toString()
+                            , b.getOpponentBetStatus().toString()
+                            , b.getFinishDate()));
                     return converter.toProtoBet(b);
                 }).collect(Collectors.toList());
 
         log.info("Найдено {}", betList.size());
         if (!betList.isEmpty()) {
-            Proto.Bets protoBets = Proto.Bets.newBuilder().addAllBets(protoBetList).build();
-            Proto.ResponseMessage response = grpcStub.notifyOfExpiredBets(protoBets);
-            if (Proto.RequestStatus.SUCCESS.equals(response.getRequestStatus())) {
+            ProtoBet.Bets protoBets = ProtoBet.Bets.newBuilder().addAllBets(protoBetList).build();
+            ProtoBet.ResponseMessage response = grpcStub.notifyOfExpiredBets(protoBets);
+            if (Rs.Status.SUCCESS.equals(response.getStatus())) {
                 for (Bet bet : betList) {
                     NotifyExpiredStatus notify = new NotifyExpiredStatus();
                     notify.setBet(bet);

@@ -3,38 +3,27 @@ package ru.gafarov.betservice.telegram.bot.actions;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
 import ru.gafarov.betservice.telegram.bot.service.AuthorizationService;
-import ru.gafarov.betservice.telegram.bot.service.DeleteService;
-
-import java.util.List;
+import ru.gafarov.betservice.telegram.bot.service.BotService;
 
 @Component
 @RequiredArgsConstructor
 public class CodeAction implements Action {
 
     private final AuthorizationService authorizationService;
-    private final DeleteService deleteService;
+    private final BotService botService;
 
     @Override
-    public List<BetSendMessage> handle(Update update) {
+    public void handle(Update update) {
         long chatId = update.getMessage().getChatId();
-        String text = authorizationService.getCode(chatId);
-        BetSendMessage sendMessage = new BetSendMessage();
-        sendMessage.setChatId(chatId);
-        sendMessage.setText(text);
-        return List.of(sendMessage);
+        authorizationService.getCode(chatId);
+        botService.delete(update);
     }
 
     @Override
-    public List<BetSendMessage> callback(Update update) {
+    public void callback(Update update) {
         long chatId = update.getCallbackQuery().getFrom().getId();
-        String text = authorizationService.getCode(chatId);
-        BetSendMessage sendMessage = new BetSendMessage();
-        sendMessage.setChatId(chatId);
-        sendMessage.setText(text);
-
-        deleteService.delete(update);
-        return List.of(sendMessage);
+        authorizationService.getCode(chatId);
+        botService.delete(update);
     }
 }

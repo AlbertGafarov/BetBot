@@ -2,25 +2,42 @@ package ru.gafarov.betservice.config;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import ru.gafarov.bet.grpcInterface.BetServiceGrpc;
-import ru.gafarov.betservice.model.ChangeStatusBetRules;
-import ru.gafarov.betservice.repository.ChangeStatusBetRulesRepository;
+import ru.gafarov.betservice.entity.BetFinalStatusRule;
+import ru.gafarov.betservice.entity.BetStatusRule;
+import ru.gafarov.betservice.entity.ChangeStatusBetRule;
+import ru.gafarov.betservice.repository.BetFinalStatusRuleRepository;
+import ru.gafarov.betservice.repository.BetStatusRuleRepository;
+import ru.gafarov.betservice.repository.ChangeStatusBetRuleRepository;
 
 import java.util.List;
 
 @Configuration
+@EnableJpaAuditing
+@RequiredArgsConstructor
 public class BetConfiguration {
 
-    @Autowired
-    ChangeStatusBetRulesRepository changeStatusBetRulesRepository;
+    private final ChangeStatusBetRuleRepository changeStatusBetRuleRepository;
+    private final BetFinalStatusRuleRepository betFinalStatusRuleRepository;
+    private final BetStatusRuleRepository betStatusRuleRepository;
 
     @Bean
-    public List<ChangeStatusBetRules> statusBetList(){
-        return changeStatusBetRulesRepository.findAll();
+    public List<ChangeStatusBetRule> statusBetList(){
+        return changeStatusBetRuleRepository.findAll();
+    }
+
+    @Bean
+    public List<BetFinalStatusRule> betFinalStatusRulesList(){
+        return betFinalStatusRuleRepository.findAll();
+    }
+    @Bean
+    public List<BetStatusRule> betStatusRulesList(){
+        return betStatusRuleRepository.findAll();
     }
 
     @Bean

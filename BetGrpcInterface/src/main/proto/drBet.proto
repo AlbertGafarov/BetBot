@@ -1,0 +1,36 @@
+syntax = "proto3";
+package ru.gafarov.bet.grpcInterface;
+
+import "google/protobuf/timestamp.proto";
+import "ProtoBet.proto";
+import "user.proto";
+import "rs.proto";
+
+message DraftBet {
+  int64 id = 1;
+  string wager = 2;
+  int32 daysToFinish = 3;
+  string opponentName = 5;
+  int32 opponentCode = 6;
+  string definition = 7;
+  google.protobuf.Timestamp finishDate = 8;
+  User initiator = 9;
+  bool inverseDefinition = 11;
+}
+
+message ResponseDraftBet {
+  Status status = 1;
+  DraftBet draftBet = 2;
+}
+
+service DrBetService {
+  rpc addDraftBet(DraftBet) returns (ResponseDraftBet);
+  rpc getDraftBet(DraftBet) returns (ResponseDraftBet);
+  rpc getLastDraftBet(User) returns (ResponseDraftBet);
+  rpc deleteDraftBet(DraftBet) returns (ResponseDraftBet);
+  rpc setOpponentName(DraftBet) returns (ResponseDraftBet);
+  rpc setOpponentCode(DraftBet) returns (ResponseDraftBet);
+  rpc setDefinition(DraftBet) returns (ResponseDraftBet);
+  rpc setWager(DraftBet) returns (ResponseDraftBet);
+  rpc setFinishDate(DraftBet) returns (ResponseDraftBet);
+}

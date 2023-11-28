@@ -1,0 +1,14 @@
+syntax = "proto3";
+package ru.gafarov.bet.grpcInterface;
+
+enum Status {
+  SUCCESS = 0;
+  NOT_SUCCESS = 1;
+  NOT_FOUND = 3;
+  REDUNDANT = 4;
+  ERROR = 2;
+}
+
+message Response {
+  Status status = 1;
+}

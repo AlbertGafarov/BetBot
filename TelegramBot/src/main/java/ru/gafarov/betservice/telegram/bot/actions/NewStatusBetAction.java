@@ -3,18 +3,16 @@ package ru.gafarov.betservice.telegram.bot.actions;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import ru.gafarov.bet.grpcInterface.Proto;
+import ru.gafarov.bet.grpcInterface.BotMessageOuterClass.BotMessageType;
+import ru.gafarov.bet.grpcInterface.ProtoBet.*;
+import ru.gafarov.bet.grpcInterface.UserOuterClass.User;
 import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
 import ru.gafarov.betservice.telegram.bot.components.Buttons;
 import ru.gafarov.betservice.telegram.bot.prettyPrint.PrettyPrinter;
 import ru.gafarov.betservice.telegram.bot.service.BetService;
-import ru.gafarov.betservice.telegram.bot.service.DeleteService;
+import ru.gafarov.betservice.telegram.bot.service.BotService;
 import ru.gafarov.betservice.telegram.bot.service.UserService;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Slf4j
 @Component
@@ -24,56 +22,51 @@ public class NewStatusBetAction implements Action {
     private final BetService betService;
     private final PrettyPrinter prettyPrinter;
     private final UserService userService;
-    private final DeleteService deleteService;
+    private final BotService botService;
 
 
     @Override
-    public List<BetSendMessage> handle(Update update) {
-        return null;
+    public void handle(Update update) {
     }
 
     @Override
-    public List<BetSendMessage> callback(Update update) {
+    public void callback(Update update) {
         long chatId = update.getCallbackQuery().getFrom().getId();
-        Proto.User user = userService.getUser(chatId);
+        User user = userService.getUser(chatId);
         String[] command = update.getCallbackQuery().getData().split("/");
         long betId = Long.parseLong(command[3]);
-        Proto.ResponseMessage response = betService.setStatus(user, betId, Proto.BetStatus.valueOf(command[2]));
-        Proto.Bet bet = response.getBet();
+        ResponseMessage response = betService.setStatus(user, betId, UserBetStatus.valueOf(command[2]));
+        Bet bet = response.getBet();
 
-        List<BetSendMessage> sendMessageList = new ArrayList<>();
         // Оповещение оппонента если оно есть
         if (!response.getMessageForOpponent().isEmpty()) {
-            BetSendMessage msgToOpponent = new BetSendMessage();
-            msgToOpponent.setChatId(bet.getOpponent().getChatId());
+            BetSendMessage msgToOpponent = new BetSendMessage(bet.getOpponent().getChatId());
             msgToOpponent.setText(response.getMessageForOpponent());
-            msgToOpponent.setParseMode(ParseMode.HTML);
+            msgToOpponent.setDelTime(60_000);
+            msgToOpponent.setReplyMarkup(Buttons.closeButton());
+            botService.sendAndSaveBet(msgToOpponent, bet.getOpponent(), BotMessageType.NEW_BET_STATUS, bet);
 
-            BetSendMessage msgBetToOpponent = new BetSendMessage();
-            msgBetToOpponent.setChatId(bet.getOpponent().getChatId());
+            BetSendMessage msgBetToOpponent = new BetSendMessage(bet.getOpponent().getChatId());
             msgBetToOpponent.setText(prettyPrinter.printBet(bet));
             msgBetToOpponent.setReplyMarkup(Buttons.nextStatusesButtons(bet.getOpponentNextStatusesList(), bet.getId()));
-            msgBetToOpponent.setParseMode(ParseMode.HTML);
-            sendMessageList.addAll(List.of(msgBetToOpponent, msgToOpponent));
+            msgBetToOpponent.setDelTime(60_000);
+            botService.sendAndSaveBet(msgBetToOpponent, bet.getOpponent(), BotMessageType.BET, bet);
 
         }
         // Оповещение инициатора если оно есть
         if (!response.getMessageForInitiator().isEmpty()) {
-            BetSendMessage msgToInitiator = new BetSendMessage();
-            msgToInitiator.setChatId(bet.getInitiator().getChatId());
+            BetSendMessage msgToInitiator = new BetSendMessage(bet.getInitiator().getChatId());
             msgToInitiator.setText(response.getMessageForInitiator());
-            msgToInitiator.setParseMode(ParseMode.HTML);
+            msgToInitiator.setDelTime(60_000);
+            msgToInitiator.setReplyMarkup(Buttons.closeButton());
+            botService.sendAndSaveBet(msgToInitiator, bet.getInitiator(), BotMessageType.NEW_BET_STATUS, bet);
 
-            BetSendMessage msgBetToInitiator = new BetSendMessage();
-            msgBetToInitiator.setChatId(bet.getInitiator().getChatId());
+            BetSendMessage msgBetToInitiator = new BetSendMessage(bet.getInitiator().getChatId());
             msgBetToInitiator.setText(prettyPrinter.printBet(bet));
             msgBetToInitiator.setReplyMarkup(Buttons.nextStatusesButtons(bet.getInitiatorNextStatusesList(), bet.getId()));
-            msgBetToInitiator.setParseMode(ParseMode.HTML);
-
-            sendMessageList.addAll(List.of(msgToInitiator, msgBetToInitiator));
+            msgBetToInitiator.setDelTime(60_000);
+            botService.sendAndSaveBet(msgBetToInitiator, bet.getInitiator(), BotMessageType.BET, bet);
         }
-
-        deleteService.delete(update);
-        return sendMessageList;
+        botService.delete(update);
     }
 }

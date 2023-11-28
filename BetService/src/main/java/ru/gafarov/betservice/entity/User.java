@@ -1,8 +1,9 @@
-package ru.gafarov.betservice.model;
+package ru.gafarov.betservice.entity;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import ru.gafarov.bet.grpcInterface.Proto;
+import lombok.ToString;
+import ru.gafarov.bet.grpcInterface.UserOuterClass;
 
 import javax.persistence.*;
 
@@ -10,7 +11,8 @@ import javax.persistence.*;
 @Entity
 @Table(name = "users")
 @Data
-public class User extends BaseEntity{
+@ToString(callSuper = true)
+public class User extends BaseEntity {
 
     @Column(name = "username")
     private String username;
@@ -21,11 +23,7 @@ public class User extends BaseEntity{
     @Column(name = "chat_id")
     private long chatId;
 
-    @ManyToOne
-    @JoinColumn(name = "draft_bet_id")
-    private DraftBet draftBet; // Текущий черновик спора
-
     @Enumerated(EnumType.STRING)
     @Column(name = "chat_status")
-    private Proto.ChatStatus chatStatus;
+    private UserOuterClass.ChatStatus chatStatus;
 }

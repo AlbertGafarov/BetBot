@@ -1,10 +1,11 @@
-package ru.gafarov.betservice.model;
+package ru.gafarov.betservice.entity;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import ru.gafarov.bet.grpcInterface.Proto;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import ru.gafarov.bet.grpcInterface.ProtoBet;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -15,6 +16,7 @@ import java.util.List;
 @Entity
 @Table(name = "bets")
 @NoArgsConstructor
+@EntityListeners(AuditingEntityListener.class)
 public class Bet extends BaseEntity {
 
     @ManyToOne
@@ -29,7 +31,6 @@ public class Bet extends BaseEntity {
     @Column(name = "definition")
     private String definition; // Утверждение, которое инициатор предлагает оспорить оппоненту, либо согласиться.
 
-    @NonNull
     @Column(name = "wager")
     private String wager; // Награда, которую получит победитель спора
 
@@ -40,16 +41,24 @@ public class Bet extends BaseEntity {
     @NonNull
     @Enumerated(EnumType.STRING)
     @Column(name = "initiator_bet_status")
-    private Proto.BetStatus initiatorBetStatus; // Статус спора, по мнению инициатора
+    private ProtoBet.UserBetStatus initiatorBetStatus; // Статус спора, по мнению инициатора
 
     @NonNull
     @Enumerated(EnumType.STRING)
     @Column(name = "opponent_bet_status")
-    private Proto.BetStatus opponentBetStatus; // Статус спора, по мнению оппонента
+    private ProtoBet.UserBetStatus opponentBetStatus; // Статус спора, по мнению оппонента
+
+    @NonNull
+    @Enumerated(EnumType.STRING)
+    @Column(name = "bet_status")
+    private ProtoBet.BetStatus betStatus; // Статус спора
+
+    @Column(name = "inverse_definition")
+    private boolean inverseDefinition;
 
     @Transient
-    private List<Proto.BetStatus> nextOpponentBetStatusList;
+    private List<ProtoBet.UserBetStatus> nextOpponentBetStatusList;
 
     @Transient
-    private List<Proto.BetStatus> nextInitiatorBetStatusList;
+    private List<ProtoBet.UserBetStatus> nextInitiatorBetStatusList;
 }

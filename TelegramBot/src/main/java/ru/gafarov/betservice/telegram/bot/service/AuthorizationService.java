@@ -4,22 +4,30 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import ru.gafarov.bet.grpcInterface.BetServiceGrpc;
-import ru.gafarov.bet.grpcInterface.Proto;
+import ru.gafarov.bet.grpcInterface.BotMessageOuterClass.BotMessageType;
+import ru.gafarov.bet.grpcInterface.DrBet.DraftBet;
+import ru.gafarov.bet.grpcInterface.UserOuterClass.ChatStatus;
+import ru.gafarov.bet.grpcInterface.UserOuterClass.ResponseUser;
+import ru.gafarov.bet.grpcInterface.UserOuterClass.User;
+import ru.gafarov.bet.grpcInterface.UserServiceGrpc;
 import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
 import ru.gafarov.betservice.telegram.bot.components.Buttons;
+
+import static ru.gafarov.betservice.telegram.bot.components.Buttons.closeButton;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class AuthorizationService {
 
-    private final BetServiceGrpc.BetServiceBlockingStub grpcStub;
-    public final UserService userService;
+    private final UserServiceGrpc.UserServiceBlockingStub grpcUserStub;
+    private final UserService userService;
+    private final BotMessageService botMessageService;
+    private final BotService botService;
 
-    public BetSendMessage authorization(Update update) {
+    public void authorization(Update update) {
         long chatId = update.getMessage().getChatId();
-        Proto.ResponseMessage responseMessage = grpcStub.getUser(Proto.User.newBuilder().setChatId(chatId).build());
+        ResponseUser responseMessage = grpcUserStub.getUser(User.newBuilder().setChatId(chatId).build());
         if (!responseMessage.hasUser()) {
             String username = update.getMessage().getFrom().getUserName();
             if (username == null || username.isEmpty()) {
@@ -28,36 +36,39 @@ public class AuthorizationService {
                 username = (firstName + (lastName == null ? "" : "_" + lastName))
                         .trim().replace(" ", "_");
             }
-            Proto.User protoUser = Proto.User.newBuilder()
+            User protoUser = User.newBuilder()
                     .setUsername(username)
                     .setChatId(chatId)
                     .build();
-            Proto.ResponseMessage responseMessage1 = grpcStub.addUser(protoUser);
+            ResponseUser response = grpcUserStub.addUser(protoUser);
 
-            if (responseMessage1.hasUser()) {
-                BetSendMessage sendMessage = new BetSendMessage();
-                sendMessage.setChatId(String.valueOf(chatId));
-                sendMessage.setText("Привет! \nВаш username: " + responseMessage1.getUser().getUsername() +
-                        "\nВаш код: " + responseMessage1.getUser().getCode() +
-                        "\nимя и код нужно отправить вашему оппоненту");
-                return sendMessage;
+            if (response.hasUser()) {
+                BetSendMessage sendMessage = new BetSendMessage(chatId);
+                sendMessage.setText("Привет! \nВаш username: " + response.getUser().getUsername() +
+                        "\nВаш код: " + response.getUser().getCode() + "\nInfo о боте: /info");
+                sendMessage.setReplyMarkup(closeButton());
+                botService.sendAndSave(sendMessage, response.getUser(), BotMessageType.START_MESSAGE);
             }
-        }
-        BetSendMessage sendMessage = new BetSendMessage();
-        sendMessage.setChatId(String.valueOf(chatId));
-        sendMessage.setText("Привет " + responseMessage.getUser().getUsername() + "!");
-        userService.setChatStatus(responseMessage.getUser(), Proto.ChatStatus.START);
-        sendMessage.setReplyMarkup(Buttons.inlineMarkup());
-        return sendMessage;
+        } else {
 
+            botMessageService.deleteWithoutDraft(DraftBet.newBuilder().build(), responseMessage.getUser());
+        }
+        BetSendMessage sendMessage = new BetSendMessage(chatId);
+        sendMessage.setText("Привет <b>" + responseMessage.getUser().getUsername() + "</b>!\nInfo о боте: /info");
+        userService.setChatStatus(responseMessage.getUser(), ChatStatus.START);
+        sendMessage.setReplyMarkup(Buttons.codeButtons());
+        botService.sendAndSave(sendMessage, responseMessage.getUser(), BotMessageType.HELLO, true);
     }
 
-    public String getCode(long chatId) {
-        Proto.ResponseMessage responseMessage = grpcStub.getUser(Proto.User.newBuilder().setChatId(chatId).build());
-        if (responseMessage.hasUser()) {
-            return "Ваш код: " + responseMessage.getUser().getCode();
+    public void getCode(long chatId) {
+        ResponseUser response = grpcUserStub.getUser(User.newBuilder().setChatId(chatId).build());
+        BetSendMessage sendMessage = new BetSendMessage(chatId);
+        if (response.hasUser()) {
+            sendMessage.setText("Ваш код: " + response.getUser().getCode());
+
         } else {
-            return"Вашего кода еще не существует. Нажмите /start";
+            sendMessage.setText("Вашего кода еще не существует. Нажмите /start");
         }
+        botService.sendAndSave(sendMessage, response.getUser(), BotMessageType.CODE, true);
     }
 }

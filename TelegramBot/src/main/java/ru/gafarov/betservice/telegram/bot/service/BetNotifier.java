@@ -3,11 +3,12 @@ package ru.gafarov.betservice.telegram.bot.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.methods.ParseMode;
-import ru.gafarov.bet.grpcInterface.Proto;
+import ru.gafarov.bet.grpcInterface.BotMessageOuterClass.BotMessageType;
+import ru.gafarov.bet.grpcInterface.ProtoBet.Bets;
+import ru.gafarov.bet.grpcInterface.ProtoBet.ResponseMessage;
+import ru.gafarov.bet.grpcInterface.Rs.Status;
 import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
 import ru.gafarov.betservice.telegram.bot.components.Buttons;
-import ru.gafarov.betservice.telegram.bot.controller.BetTelegramBot;
 import ru.gafarov.betservice.telegram.bot.prettyPrint.PrettyPrinter;
 
 import java.util.List;
@@ -19,30 +20,30 @@ import java.util.stream.Collectors;
 public class BetNotifier {
 
     private final PrettyPrinter prettyPrinter;
-    private final BetTelegramBot bot;
+    private final BotService botService;
 
-    public Proto.ResponseMessage notifyOfExpiredBets(Proto.Bets bets) {
+    public ResponseMessage notifyOfExpiredBets(Bets bets) {
         List<BetSendMessage> sendMessageList = bets.getBetsList().stream().map(b -> {
-            BetSendMessage sendMessage = new BetSendMessage();
-                    sendMessage.setChatId(b.getInitiator().getChatId());
+                    BetSendMessage sendMessage = new BetSendMessage(b.getInitiator().getChatId());
+                    sendMessage.setUser(b.getInitiator());
                     sendMessage.setText("<b>Наступила дата окончания:</b>\n" + prettyPrinter.printBet(b));
                     sendMessage.setReplyMarkup(Buttons.nextStatusesButtons(b.getInitiatorNextStatusesList(), b.getId()));
-                    sendMessage.setParseMode(ParseMode.HTML);
+                    sendMessage.setBotMessageType(BotMessageType.BET_TIME_IS_UP);
                     return sendMessage;
                 }
         ).collect(Collectors.toList());
 
         List<BetSendMessage> sendMessageToOpponentList = bets.getBetsList().stream().map(b -> {
-            BetSendMessage sendMessage = new BetSendMessage();
-                    sendMessage.setChatId(b.getOpponent().getChatId());
+                    BetSendMessage sendMessage = new BetSendMessage(b.getOpponent().getChatId());
+                    sendMessage.setUser(b.getOpponent());
                     sendMessage.setText("<b>Наступила дата окончания:</b>\n" + prettyPrinter.printBet(b));
                     sendMessage.setReplyMarkup(Buttons.nextStatusesButtons(b.getOpponentNextStatusesList(), b.getId()));
-                    sendMessage.setParseMode(ParseMode.HTML);
+                    sendMessage.setBotMessageType(BotMessageType.BET_TIME_IS_UP);
                     return sendMessage;
                 }
         ).collect(Collectors.toList());
         sendMessageList.addAll(sendMessageToOpponentList);
-        bot.send(sendMessageList);
-        return Proto.ResponseMessage.newBuilder().setRequestStatus(Proto.RequestStatus.SUCCESS).build();
+        botService.sendTimeIsUpMessage(sendMessageList);
+        return ResponseMessage.newBuilder().setStatus(Status.SUCCESS).build();
     }
 }

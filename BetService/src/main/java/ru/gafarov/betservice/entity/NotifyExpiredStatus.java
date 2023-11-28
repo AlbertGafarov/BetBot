@@ -1,4 +1,4 @@
-package ru.gafarov.betservice.model;
+package ru.gafarov.betservice.entity;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;

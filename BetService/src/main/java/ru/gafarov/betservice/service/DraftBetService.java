@@ -1,18 +1,25 @@
 package ru.gafarov.betservice.service;
 
-import ru.gafarov.bet.grpcInterface.Proto;
+import ru.gafarov.bet.grpcInterface.DrBet;
+import ru.gafarov.bet.grpcInterface.UserOuterClass;
 
 public interface DraftBetService {
 
-    Proto.ResponseMessage save(Proto.DraftBet protoBet);
+    DrBet.ResponseDraftBet save(DrBet.DraftBet protoBet);
 
-    Proto.ResponseMessage setOpponentName(Proto.DraftBet request);
+    DrBet.ResponseDraftBet setOpponentName(DrBet.DraftBet request);
 
-    Proto.ResponseMessage setOpponentCode(Proto.DraftBet request);
+    DrBet.ResponseDraftBet setOpponentCodeAndName(DrBet.DraftBet request);
 
-    Proto.ResponseMessage setDefinition(Proto.DraftBet request);
+    DrBet.ResponseDraftBet setDefinition(DrBet.DraftBet request);
 
-    Proto.ResponseMessage setWager(Proto.DraftBet request);
+    DrBet.ResponseDraftBet setWager(DrBet.DraftBet request);
 
-    Proto.ResponseMessage setFinishDate(Proto.DraftBet request);
+    DrBet.ResponseDraftBet setFinishDate(DrBet.DraftBet request);
+
+    DrBet.ResponseDraftBet getLastDraftBet(UserOuterClass.User request);
+
+    DrBet.ResponseDraftBet delete(DrBet.DraftBet request);
+
+    DrBet.ResponseDraftBet getDraftBet(DrBet.DraftBet request);
 }

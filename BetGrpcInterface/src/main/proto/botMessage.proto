@@ -1,0 +1,75 @@
+syntax = "proto3";
+package ru.gafarov.bet.grpcInterface;
+
+import "google/protobuf/timestamp.proto";
+import "ProtoBet.proto";
+import "user.proto";
+import "rs.proto";
+import "drBet.proto";
+
+message BotMessage {
+  int64 id = 1;
+  int32 tgMessageId = 2;
+  User user = 3;
+  BotMessageType type = 4;
+  DraftBet draftBet = 5;
+  User friend = 6;
+  Bet bet = 7;
+  bool isDeleted = 8;
+}
+
+message BotMessages {
+  repeated BotMessage botMessage = 1;
+}
+
+message ResponseBotMessage {
+  Status status = 1;
+  BotMessage botMessage = 2;
+  repeated BotMessage botMessages = 3;
+}
+
+enum BotMessageType {
+  ENTER_USERNAME = 0;
+  START_MESSAGE = 31;
+  CHOOSE_OPPONENT = 7;
+  ENTER_CODE = 1;
+  ENTER_WAGER = 2;
+  ENTER_DEFINITION = 3;
+  ENTER_FINISH_DATE = 4;
+  WRONG_FINISH_DATE = 5;
+  CODE_WRONG_ENTER_USERNAME = 6;
+  BET = 8;
+  NEW_BET_STATUS = 24;
+  BET_TIME_IS_UP = 25;
+  YOU_HAVE_NOT_BETS = 9;
+  MY_REFERENCE = 10;
+  MY_REFERENCE_INFO = 11;
+  ADD_OPPONENT = 12;
+  REDUNDANT_OPPONENT = 13;
+  FRIEND_LIST = 14;
+  FRIEND_INFO = 32;
+  YOU_HAVE_NOT_FRIENDS = 15;
+  DRAFT_BET = 16;
+  YOU_HAVE_NOT_DRAFT_BET = 30;
+  HELLO = 17;
+  INFO = 18;
+  CODE = 19;
+  APPROVE_DRAFT = 20;
+  CANCEL_DRAFT = 21;
+  OFFER_BET = 22;
+  DELETED_FRIEND = 23;
+  INFO_ABOUT_BOT = 26;
+  INFO_HOW_ADD_FRIEND = 27;
+  INFO_HOW_CREATE_BET = 28;
+  INFO_ABOUT_PERSONAL_DATA = 29;
+}
+
+service BotMessageService {
+  rpc saveBotMessage(BotMessage) returns (ResponseMessage);
+  rpc getBotMessage(BotMessage) returns (ResponseBotMessage);
+  rpc getBotMessages(DraftBet) returns (ResponseBotMessage);
+  rpc getBotMessagesWithout(DraftBet) returns (ResponseBotMessage);
+  rpc deleteBotMessages(BotMessages) returns (ResponseBotMessage);
+  rpc deleteBotMessage(BotMessage) returns (ResponseBotMessage);
+  rpc getBotMessagesByTemplate(BotMessage) returns (ResponseBotMessage);
+}

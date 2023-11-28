@@ -19,17 +19,23 @@ public class BetCommands {
     private final Action draftAction;
     private final Action codeAction;
     private final Action showBetsAction;
-    private final Action approveDraftBetAction;
     private final Action newStatusBetAction;
     private final Action showBetAction;
-    private final Action closeBetAction;
+    private final Action closeAction;
+    private final Action myReferenceAction;
+    private final Action addMeAction;
+    private final Action friendsAction;
+    private final Action infoAction;
     @Getter
     private final Map<String, String> botCommands = new HashMap<>(){{
+        put("/info", "Информация о боте");
         put("/start", "start bot");
         put("/create", "Новый спор");
         put("/draft", "Черновик");
         put("/code", "Мой код");
         put("/bets", "Мои споры");
+        put("/reference", "Моя ссылка");
+        put("/friends", "Мои друзья");
     }};
 
     public List<BotCommand> getBotCommandList(){
@@ -37,16 +43,19 @@ public class BetCommands {
     }
     public Map<String, Action> getActions() {
         return new HashMap<>(){{
-            put("/start", startAction);
-            put("/create", createAction);
-            put("/draft", draftAction);
-            put("/code", codeAction);
-            put("/bets", showBetsAction);
+            put("info", infoAction);
+            put("start", startAction);
+            put("create", createAction);
+            put("draft", draftAction);
             put("code", codeAction);
-            put("draftBet", approveDraftBetAction);
+            put("bets", showBetsAction);
+            put("reference", myReferenceAction);
+            put("addMe", addMeAction);
+            put("friends", friendsAction);
+            put("draftBet", draftAction);
             put("newStatus", newStatusBetAction);
             put("showBet", showBetAction);
-            put("closeBet", closeBetAction);
+            put("close", closeAction);
         }};
     }
 }

@@ -1,0 +1,24 @@
+syntax = "proto3";
+package ru.gafarov.bet.grpcInterface;
+
+enum InfoType {
+  MENU = 0;
+  ABOUT_BOT = 1;
+  HOW_ADD_FRIEND = 3;
+  HOW_CREATE_BET = 4;
+  ABOUT_PERSONAL_DATA = 5;
+}
+
+message RequestInfo {
+  InfoType infoType = 1;
+}
+
+message ResponseInfo {
+  bool success = 3;
+  InfoType infoType = 1;
+  string text = 2;
+}
+
+service InfoService {
+  rpc get(RequestInfo) returns (ResponseInfo);
+}
