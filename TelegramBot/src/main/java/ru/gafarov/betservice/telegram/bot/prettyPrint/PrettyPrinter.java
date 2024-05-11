@@ -4,6 +4,7 @@ import com.google.protobuf.Timestamp;
 import org.springframework.stereotype.Component;
 import ru.gafarov.bet.grpcInterface.DrBet.DraftBet;
 import ru.gafarov.bet.grpcInterface.Friend;
+import ru.gafarov.bet.grpcInterface.ProtoBet;
 import ru.gafarov.bet.grpcInterface.ProtoBet.Bet;
 import ru.gafarov.bet.grpcInterface.UserOuterClass.User;
 
@@ -11,6 +12,9 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
+import java.util.LinkedList;
+import java.util.List;
 
 @Component
 public class PrettyPrinter {
@@ -73,7 +77,16 @@ public class PrettyPrinter {
     public String printBet(Bet bet) {
         User author = bet.getInverseDefinition() ? bet.getOpponent() : bet.getInitiator();
         User rival = bet.getInverseDefinition() ? bet.getInitiator() : bet.getOpponent();
-
+        StringBuilder arguments = new StringBuilder();
+        if (bet.getArgumentsCount() > 0) {
+            List<ProtoBet.Argument> argumentList = new LinkedList<>(bet.getArgumentsList());
+            argumentList.sort(Comparator.comparingLong(a -> a.getTimestamp().getSeconds()));
+            arguments.append("\n<b>Аргументы</b>");
+            for (ProtoBet.Argument argument : argumentList) {
+                arguments.append("\n").append(String.format("%s <b>%s</b>: %s"
+                        , fromGoogleTimestampToStr(argument.getTimestamp()), argument.getAuthor().getUsername(), argument.getText()));
+            }
+        }
         return "<b>Спор</b>\n" +
                 author.getUsername() + " " + author.getCode() +
                 "\nСчитает что: " + bet.getDefinition() +
@@ -81,7 +94,8 @@ public class PrettyPrinter {
                 "\nДата окончания спора: " + fromGoogleTimestampToStr(bet.getFinishDate()) +
                 (bet.getWager().isEmpty() ? "" : "\nВознаграждение победителю: " + bet.getWager()) +
                 "\nСтатус " + bet.getInitiator().getUsername() + ": " + bet.getInitiatorStatus() +
-                "\nСтатус " + bet.getOpponent().getUsername() + ": " + bet.getOpponentStatus();
+                "\nСтатус " + bet.getOpponent().getUsername() + ": " + bet.getOpponentStatus() +
+                arguments;
     }
 
     public String printFriendInfo(Friend.FriendInfo friendInfo) {

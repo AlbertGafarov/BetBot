@@ -5,24 +5,24 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.gafarov.bet.grpcInterface.BotMessageOuterClass.BotMessageType;
 import ru.gafarov.bet.grpcInterface.DrBet.DraftBet;
+import ru.gafarov.bet.grpcInterface.DrBetServiceGrpc;
 import ru.gafarov.bet.grpcInterface.UserOuterClass.ChatStatus;
 import ru.gafarov.bet.grpcInterface.UserOuterClass.User;
 import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
 import ru.gafarov.betservice.telegram.bot.service.BotMessageService;
 import ru.gafarov.betservice.telegram.bot.service.BotService;
 import ru.gafarov.betservice.telegram.bot.service.UserService;
-import ru.gafarov.betservice.telegram.bot.service.draftBet.DraftBetService;
 
-import static ru.gafarov.betservice.telegram.bot.components.Buttons.wantChoseFromFriends;
+import static ru.gafarov.betservice.telegram.bot.components.buttons.Buttons.wantChoseFromFriends;
 
 @Component
 @RequiredArgsConstructor
 public class CreateAction implements Action {
 
-    private final DraftBetService draftBetService;
     private final UserService userService;
     private final BotService botService;
     private final BotMessageService botMessageService;
+    private final DrBetServiceGrpc.DrBetServiceBlockingStub grpcDrBetStub;
 
     @Override
     public void handle(Update update) {
@@ -30,7 +30,7 @@ public class CreateAction implements Action {
         User user = userService.getUser(chatId);
         DraftBet draftBet = DraftBet.newBuilder()
                 .setInitiator(user).build();
-        draftBet = draftBetService.saveDraftBet(draftBet);
+        draftBet = grpcDrBetStub.addDraftBet(draftBet).getDraftBet();
         userService.setChatStatus(user, ChatStatus.WAIT_OPPONENT_NAME);
         BetSendMessage sendMessage = new BetSendMessage(chatId);
         sendMessage.setText("Введите username оппонента");
@@ -58,7 +58,7 @@ public class CreateAction implements Action {
                         .setOpponentName(opponent.getUsername())
                         .setOpponentCode(opponent.getCode())
                         .setInverseDefinition(true).build();
-                draftBet = draftBetService.saveDraftBet(draftBet);
+                draftBet = grpcDrBetStub.addDraftBet(draftBet).getDraftBet();
                 userService.setChatStatus(user, ChatStatus.WAIT_DEFINITION);
                 sendMessage.setText(String.format("Новый спор с %s %s\n Введите суть спора", opponent.getUsername(), opponent.getCode()));
                 botService.sendAndSaveDraftBet(sendMessage, user, BotMessageType.ENTER_DEFINITION, draftBet);

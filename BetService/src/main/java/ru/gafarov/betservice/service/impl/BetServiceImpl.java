@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import ru.gafarov.bet.grpcInterface.ProtoBet;
 import ru.gafarov.bet.grpcInterface.Rs;
 import ru.gafarov.bet.grpcInterface.UserOuterClass;
+import ru.gafarov.betservice.converter.BetConverter;
 import ru.gafarov.betservice.converter.Converter;
 import ru.gafarov.betservice.entity.Bet;
 import ru.gafarov.betservice.entity.BetStatusRule;
@@ -66,7 +67,7 @@ public class BetServiceImpl implements BetService {
                 , bet.getInitiatorBetStatus().toString()
                 , bet.getOpponentBetStatus().toString()
                 , bet.getFinishDate()));
-        protoBet = converter.toProtoBet(bet);
+        protoBet = BetConverter.toProtoBet(bet);
         return ProtoBet.ResponseBet.newBuilder().setStatus(Rs.Status.SUCCESS).setBet(protoBet).build();
     }
 
@@ -75,7 +76,7 @@ public class BetServiceImpl implements BetService {
         List<Bet> activeBets = betRepository.getActiveBets(userId);
         List<ProtoBet.Bet> protoActiveBet = activeBets.stream().map(a -> {
             setNextStatuses(a);
-            return converter.toProtoBet(a);
+            return BetConverter.toProtoBet(a);
         }).collect(Collectors.toList());
         return ProtoBet.ResponseMessage.newBuilder().setStatus(Rs.Status.SUCCESS).addAllBets(protoActiveBet).build();
     }
@@ -92,7 +93,7 @@ public class BetServiceImpl implements BetService {
             return ProtoBet.ResponseBet.newBuilder().setStatus(Rs.Status.SUCCESS)
                     .addAllBets(bets.stream().map(bet -> {
                         setNextStatuses(bet);
-                        return converter.toProtoBet(bet);
+                        return BetConverter.toProtoBet(bet);
                     }).collect(Collectors.toList())).build();
         }
     }
@@ -102,8 +103,9 @@ public class BetServiceImpl implements BetService {
         Bet bet = betRepository.getBet(protoBet.getInitiator().getId(), protoBet.getId());
         if (bet != null) {
             setNextStatuses(bet);
-            return ProtoBet.ResponseMessage.newBuilder().setBet(converter.toProtoBet(bet)).build();
+            return ProtoBet.ResponseMessage.newBuilder().setBet(BetConverter.toProtoBet(bet)).build();
         }
+        log.error("Не найден спор с id: {} user_id: {}", protoBet.getId(), protoBet.getInitiator().getId());
         return ProtoBet.ResponseMessage.newBuilder().setStatus(Rs.Status.ERROR).build();
     }
 
@@ -152,11 +154,11 @@ public class BetServiceImpl implements BetService {
                     return ProtoBet.ResponseMessage.newBuilder().setStatus(Rs.Status.SUCCESS)
                             .setMessageForOpponent(rule.getMessageForOpponent())
                             .setMessageForInitiator(rule.getMessageForInitiator())
-                            .setBet(converter.toProtoBet(bet)).build();
+                            .setBet(BetConverter.toProtoBet(bet)).build();
                 } else {
                     log.warn("Изменение невозможно и не будет выполнено");
                     return ProtoBet.ResponseMessage.newBuilder().setStatus(Rs.Status.NOT_SUCCESS)
-                            .setBet(converter.toProtoBet(bet))
+                            .setBet(BetConverter.toProtoBet(bet))
                             .setMessageForOpponent(Objects.requireNonNullElse(rule.getMessageForOpponent(), ""))
                             .setMessageForInitiator(Objects.requireNonNullElse(rule.getMessageForInitiator(), ""))
                             .build();

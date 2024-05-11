@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import ru.gafarov.bet.grpcInterface.BetServiceGrpc;
 import ru.gafarov.bet.grpcInterface.ProtoBet;
 import ru.gafarov.bet.grpcInterface.Rs;
-import ru.gafarov.betservice.converter.Converter;
+import ru.gafarov.betservice.converter.BetConverter;
 import ru.gafarov.betservice.entity.Bet;
 import ru.gafarov.betservice.entity.NotifyExpiredStatus;
 import ru.gafarov.betservice.enums.NotifyStatus;
@@ -29,7 +29,6 @@ import static ru.gafarov.betservice.model.BetRole.OPPONENT;
 public class ExpiredBetsNotificator {
 
     private final BetRepository betRepository;
-    private final Converter converter;
     private final BetServiceGrpc.BetServiceBlockingStub grpcStub;
     private final ChangeStatusBetRuleRepository ruleRepository;
     private final NotifyExpiredBetRepository notifyExpiredBetRepository;
@@ -48,7 +47,7 @@ public class ExpiredBetsNotificator {
                             , b.getInitiatorBetStatus().toString()
                             , b.getOpponentBetStatus().toString()
                             , b.getFinishDate()));
-                    return converter.toProtoBet(b);
+                    return BetConverter.toProtoBet(b);
                 }).collect(Collectors.toList());
 
         log.info("Найдено {}", betList.size());

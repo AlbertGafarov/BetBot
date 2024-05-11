@@ -16,13 +16,12 @@ import ru.gafarov.bet.grpcInterface.UserOuterClass.ChatStatus;
 import ru.gafarov.bet.grpcInterface.UserOuterClass.User;
 import ru.gafarov.betservice.telegram.bot.components.BetEditMessageText;
 import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
-import ru.gafarov.betservice.telegram.bot.components.Buttons;
+import ru.gafarov.betservice.telegram.bot.components.buttons.Buttons;
 import ru.gafarov.betservice.telegram.bot.prettyPrint.PrettyPrinter;
 import ru.gafarov.betservice.telegram.bot.service.BotMessageService;
 import ru.gafarov.betservice.telegram.bot.service.BotService;
 import ru.gafarov.betservice.telegram.bot.service.UserService;
-import ru.gafarov.betservice.telegram.bot.service.draftBet.ApproveDraftBetService;
-import ru.gafarov.betservice.telegram.bot.service.draftBet.DraftBetService;
+import ru.gafarov.betservice.telegram.bot.service.DraftBetService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +36,6 @@ public class DraftAction implements Action {
     private final PrettyPrinter prettyPrinter;
     private final BotService botService;
     private final BotMessageService botMessageService;
-    private final ApproveDraftBetService approveDraftBetService;
     private final DraftBetService draftBetService;
 
     @Override
@@ -47,7 +45,7 @@ public class DraftAction implements Action {
         BetSendMessage sendMessage = new BetSendMessage(chatId);
 
         // /draft
-        if (ChatStatus.WAIT_APPROVE.equals(user.getChatStatus())) {
+        if (ChatStatus.WAIT_APPROVE.equals(user.getDialogStatus().getChatStatus())) {
             DraftBet draftBet = userService.getLastDraftBet(user).toBuilder().build();
             String stringBuilder = "Новый спор:\n" + prettyPrinter.printDraftBet(draftBet) +
                     "\nПодтверждаете?";
@@ -74,7 +72,7 @@ public class DraftAction implements Action {
 
         // /draftBet/{id}/approve/(ok|cancel)
         if ("approve".equals(command[3])) {
-            approveDraftBetService.approveOrCancelDraft(update);
+            draftBetService.approveOrCancelDraft(update);
 
             // /draftBet/{id}/setOpponent/{opponent_id}
         } else if ("setOpponent".equals(command[3])) {

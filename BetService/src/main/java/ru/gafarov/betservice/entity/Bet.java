@@ -9,6 +9,7 @@ import ru.gafarov.bet.grpcInterface.ProtoBet;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
@@ -55,6 +56,9 @@ public class Bet extends BaseEntity {
 
     @Column(name = "inverse_definition")
     private boolean inverseDefinition;
+
+    @OneToMany(mappedBy = "bet", fetch = FetchType.EAGER, orphanRemoval = true)
+    private List<Argument> arguments = new ArrayList<>();
 
     @Transient
     private List<ProtoBet.UserBetStatus> nextOpponentBetStatusList;

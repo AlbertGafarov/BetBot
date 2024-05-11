@@ -957,4 +957,56 @@
             where bet_role = 'INITIATOR' and current_bet_status = 'WIN' and new_bet_status = 'STANDOFF'
         </sql>
     </changeSet>
+    <changeSet id="1.0.92" author="albert.gafarov">
+        <createTable tableName="argument">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="bet_id" type="integer">
+                <constraints foreignKeyName="argument_bets_fk" referencedTableName="bets" referencedColumnNames="id"
+                nullable="false"/>
+            </column>
+            <column name="bet_role" type="varchar(128)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="text" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created" type="timestamp" defaultValueDate="current_timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated" type="timestamp" defaultValueDate="current_timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="varchar(25)" defaultValue="ACTIVE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createIndex tableName="argument" indexName="index_argument_bet_id">
+            <column name="bet_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="1.0.93" author="albert.gafarov">
+    <createTable tableName="dialog_status">
+        <column name="id" type="serial">
+            <constraints primaryKey="true" nullable="false"/>
+        </column>
+        <column name = "user_id" type="integer">
+            <constraints foreignKeyName="dialog_status_users_fk" referencedTableName="users"
+                         referencedColumnNames="id" nullable="false" unique="true"/>
+        </column>
+        <column name="chat_status" type="varchar(128)">
+            <constraints nullable="false"/>
+        </column>
+        <column name="bet_id" type="integer">
+            <constraints foreignKeyName="dialog_status_bets_fk" referencedTableName="bets" referencedColumnNames="id"/>
+        </column>
+        <column name="updated" type="timestamp" defaultValueDate="current_timestamp">
+            <constraints nullable="false"/>
+        </column>
+    </createTable>
+    </changeSet>
+    <changeSet id="1.0.94" author="albert.gafarov">
+        <dropColumn tableName="users" columnName="chat_status"/>
+    </changeSet>
 </databaseChangeLog>

@@ -9,7 +9,7 @@ import ru.gafarov.bet.grpcInterface.ProtoBet.*;
 import ru.gafarov.bet.grpcInterface.Rs.Status;
 import ru.gafarov.bet.grpcInterface.UserOuterClass.User;
 import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
-import ru.gafarov.betservice.telegram.bot.components.Buttons;
+import ru.gafarov.betservice.telegram.bot.components.buttons.BetButtons;
 import ru.gafarov.betservice.telegram.bot.prettyPrint.PrettyPrinter;
 import ru.gafarov.betservice.telegram.bot.service.BetService;
 import ru.gafarov.betservice.telegram.bot.service.BotService;
@@ -40,9 +40,9 @@ public class ShowBetAction implements Action {
 
             if (bet.getInitiator().getUsername().equals(user.getUsername())
                     && bet.getInitiator().getCode() == user.getCode()) {
-                msgToUser.setReplyMarkup(Buttons.nextStatusesButtons(bet.getInitiatorNextStatusesList(), bet.getId()));
+                msgToUser.setReplyMarkup(BetButtons.getBetButtons(bet, true));
             } else {
-                msgToUser.setReplyMarkup(Buttons.nextStatusesButtons(bet.getOpponentNextStatusesList(), bet.getId()));
+                msgToUser.setReplyMarkup(BetButtons.getBetButtons(bet, false));
             }
             msgToUser.setText(prettyPrinter.printBet(bet));
         } else {
@@ -69,9 +69,9 @@ public class ShowBetAction implements Action {
             bet = response.getBet();
             if (bet.getInitiator().getUsername().equals(user.getUsername())
                     && bet.getInitiator().getCode() == user.getCode()) {
-                msgToUser.setReplyMarkup(Buttons.nextStatusesButtons(bet.getInitiatorNextStatusesList(), bet.getId()));
+                msgToUser.setReplyMarkup(BetButtons.getBetButtons(bet, true));
             } else {
-                msgToUser.setReplyMarkup(Buttons.nextStatusesButtons(bet.getOpponentNextStatusesList(), bet.getId()));
+                msgToUser.setReplyMarkup(BetButtons.getBetButtons(bet, false));
             }
             msgToUser.setText(prettyPrinter.printBet(bet));
         } else {

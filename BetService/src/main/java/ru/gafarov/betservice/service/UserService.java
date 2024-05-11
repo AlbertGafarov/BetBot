@@ -11,6 +11,6 @@ public interface UserService {
     UserOuterClass.ResponseUser findFriend(Friend.Subscribe subscribe);
     User getUser(UserOuterClass.User protoUser);
     UserOuterClass.ResponseUser getProtoUser(UserOuterClass.User protoUser);
-    ProtoBet.ResponseMessage changeChatStatus(UserOuterClass.User request);
+    UserOuterClass.ResponseUser changeChatStatus(UserOuterClass.User request);
     UserOuterClass.ResponseUser getSubscribes(UserOuterClass.User protoUser);
 }

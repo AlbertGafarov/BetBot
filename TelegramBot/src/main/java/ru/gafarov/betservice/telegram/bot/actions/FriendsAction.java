@@ -18,8 +18,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static ru.gafarov.betservice.telegram.bot.components.Buttons.addCloseButton;
-import static ru.gafarov.betservice.telegram.bot.components.Buttons.closeButton;
+import static ru.gafarov.betservice.telegram.bot.components.buttons.Buttons.addCloseButton;
+import static ru.gafarov.betservice.telegram.bot.components.buttons.Buttons.closeButton;
 
 @Component
 @RequiredArgsConstructor

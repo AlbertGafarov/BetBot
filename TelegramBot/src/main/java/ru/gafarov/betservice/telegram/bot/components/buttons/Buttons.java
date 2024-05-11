@@ -1,4 +1,4 @@
-package ru.gafarov.betservice.telegram.bot.components;
+package ru.gafarov.betservice.telegram.bot.components.buttons;
 
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -45,26 +45,7 @@ public class Buttons {
         return markupInline;
     }
 
-    public static InlineKeyboardMarkup nextStatusesButtons(List<UserBetStatus> nextStatuses, long id) {
-        List<InlineKeyboardButton> rowInline = nextStatuses.stream().map(a -> {
-            InlineKeyboardButton button = new InlineKeyboardButton(a.name());
-            button.setCallbackData("/newStatus/" + a.name() + "/" + id);
-            return button;
-        }).collect(Collectors.toList());
-        List<InlineKeyboardButton> secondRowInline = new ArrayList<>() {{
-            InlineKeyboardButton pauseButton = new InlineKeyboardButton("⬇");
-            pauseButton.setCallbackData("/showBet/" + id);
-            InlineKeyboardButton closeButton = new InlineKeyboardButton("✖");
-            closeButton.setCallbackData("/close");
-            add(pauseButton);
-            add(closeButton);
-        }};
-        List<List<InlineKeyboardButton>> rowsInLine = List.of(rowInline, secondRowInline);
-        InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
-        markupInline.setKeyboard(rowsInLine);
 
-        return markupInline;
-    }
 
     public static InlineKeyboardMarkup wantChoseFromFriends(DraftBet draftBet){
         List<InlineKeyboardButton> rowInline = new ArrayList<>() {{

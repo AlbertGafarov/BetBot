@@ -8,7 +8,7 @@ import ru.gafarov.bet.grpcInterface.Friend;
 import ru.gafarov.bet.grpcInterface.FriendServiceGrpc;
 import ru.gafarov.bet.grpcInterface.Rs;
 import ru.gafarov.bet.grpcInterface.UserOuterClass;
-import ru.gafarov.betservice.service.FriendService;
+import ru.gafarov.betservice.service.impl.FriendServiceImpl;
 import ru.gafarov.betservice.service.SubscribeService;
 import ru.gafarov.betservice.service.UserService;
 
@@ -18,7 +18,7 @@ import ru.gafarov.betservice.service.UserService;
 public class GrpcFriendRequestHandler extends FriendServiceGrpc.FriendServiceImplBase {
 
     private final UserService userService;
-    private final FriendService friendService;
+    private final FriendServiceImpl friendService;
     private final SubscribeService subscribeService;
 
     @Override

@@ -25,7 +25,7 @@ public class Converter {
                 .setId(draftBet.getId())
                 .setInverseDefinition(draftBet.isInverseDefinition());
         if (draftBet.getInitiator() != null) {
-            builder.setInitiator(toProtoUser(draftBet.getInitiator()));
+            builder.setInitiator(UserConverter.toProtoUser(draftBet.getInitiator()));
         }
         if (draftBet.getOpponentName() != null) {
             builder.setOpponentName(draftBet.getOpponentName());
@@ -43,35 +43,6 @@ public class Converter {
             builder.setFinishDate(toTimestamp(draftBet.getFinishDate()));
         }
 
-        return builder.build();
-    }
-
-    public ProtoBet.Bet toProtoBet(Bet bet) {
-        ProtoBet.Bet.Builder builder = ProtoBet.Bet.newBuilder()
-                .setId(bet.getId())
-                .setOpponent(toProtoUser(bet.getOpponent()))
-                .setInitiator(toProtoUser(bet.getInitiator()))
-                .setDefinition(bet.getDefinition())
-                .setFinishDate(toTimestamp(bet.getFinishDate()))
-                .setOpponentStatus(bet.getOpponentBetStatus())
-                .setInitiatorStatus(bet.getInitiatorBetStatus())
-                .setInverseDefinition(bet.isInverseDefinition())
-                .addAllInitiatorNextStatuses(bet.getNextInitiatorBetStatusList())
-                .addAllOpponentNextStatuses(bet.getNextOpponentBetStatusList());
-        if (bet.getWager() != null) {
-            builder.setWager(bet.getWager());
-        }
-        return builder.build();
-    }
-
-    public UserOuterClass.User toProtoUser(User user) {
-        if (user == null) return null;
-        UserOuterClass.User.Builder builder = UserOuterClass.User.newBuilder()
-                .setId(user.getId())
-                .setUsername(user.getUsername())
-                .setCode(user.getCode())
-                .setChatId(user.getChatId())
-                .setChatStatus(user.getChatStatus());
         return builder.build();
     }
 
@@ -146,7 +117,7 @@ public class Converter {
                 .setId(botMessage.getId())
                 .setTgMessageId(botMessage.getTgMessageId())
                 .setType(botMessage.getMessageType())
-                .setUser(toProtoUser(botMessage.getUser()));
+                .setUser(UserConverter.toProtoUser(botMessage.getUser()));
         if (botMessage.getDraftBet() != null) {
             builder.setDraftBet(toProtoDraftBet(botMessage.getDraftBet()));
         }

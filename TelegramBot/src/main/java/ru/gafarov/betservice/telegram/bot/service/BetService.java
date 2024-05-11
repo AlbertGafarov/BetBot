@@ -65,4 +65,12 @@ public class BetService {
                 .build();
         return grpcStub.getBetsByTemplate(template);
     }
+
+    public ResponseMessage addArgument(User user, String text) {
+        Argument argument = Argument.newBuilder()
+                .setAuthor(user)
+                .setText(text)
+                .build();
+        return grpcStub.addArgument(argument);
+    }
 }

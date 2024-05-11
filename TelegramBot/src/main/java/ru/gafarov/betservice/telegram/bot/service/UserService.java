@@ -3,14 +3,13 @@ package ru.gafarov.betservice.telegram.bot.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.gafarov.bet.grpcInterface.BetServiceGrpc;
 import ru.gafarov.bet.grpcInterface.DrBet.DraftBet;
 import ru.gafarov.bet.grpcInterface.DrBet.ResponseDraftBet;
 import ru.gafarov.bet.grpcInterface.DrBetServiceGrpc;
 import ru.gafarov.bet.grpcInterface.Friend.Subscribe;
 import ru.gafarov.bet.grpcInterface.FriendServiceGrpc;
-import ru.gafarov.bet.grpcInterface.ProtoBet.*;
 import ru.gafarov.bet.grpcInterface.Rs.Status;
+import ru.gafarov.bet.grpcInterface.UserOuterClass;
 import ru.gafarov.bet.grpcInterface.UserOuterClass.ChatStatus;
 import ru.gafarov.bet.grpcInterface.UserOuterClass.ResponseUser;
 import ru.gafarov.bet.grpcInterface.UserOuterClass.User;
@@ -23,7 +22,6 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class UserService {
-    private final BetServiceGrpc.BetServiceBlockingStub grpcStub;
     private final FriendServiceGrpc.FriendServiceBlockingStub grpcFriendStub;
     private final UserServiceGrpc.UserServiceBlockingStub grpcUserStub;
     private final DrBetServiceGrpc.DrBetServiceBlockingStub grpcDrBetStub;
@@ -35,6 +33,7 @@ public class UserService {
         }
         return null;
     }
+
     public User getUserById(long id) {
         ResponseUser responseMessage = grpcUserStub.getUser(User.newBuilder().setId(id).build());
         if (responseMessage.hasUser()) {
@@ -44,9 +43,14 @@ public class UserService {
     }
 
     public void setChatStatus(User protoUser, ChatStatus chatStatus) {
-        protoUser = User.newBuilder(protoUser).setChatStatus(chatStatus).build();
+        UserOuterClass.DialogStatus dialogStatus = protoUser.getDialogStatus().toBuilder()
+                .setChatStatus(chatStatus).setBetId(0)
+                .build();
+        protoUser = User.newBuilder(protoUser)
+                .setDialogStatus(dialogStatus)
+                .build();
         log.debug("Меняем статус чата: \n{}", protoUser);
-        ResponseMessage response = grpcStub.changeChatStatus(protoUser);
+        ResponseUser response = grpcUserStub.changeChatStatus(protoUser);
         if (!response.getStatus().equals(Status.SUCCESS)) {
             log.error("Получена ошибка при попытке установить статус пользователя");
         }
@@ -96,7 +100,7 @@ public class UserService {
         ResponseUser response = grpcFriendStub.getSubscribes(user);
         if (response.getStatus().equals(Status.SUCCESS)) {
             return response.getUsersList();
-        } else if (response.getStatus().equals(Status.NOT_FOUND)){
+        } else if (response.getStatus().equals(Status.NOT_FOUND)) {
             return new ArrayList<>();
         }
         log.error("Получена ошибка при попытке получения списка друзей");
