@@ -13,6 +13,7 @@ import ru.gafarov.bet.grpcInterface.UserOuterClass.User;
 import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
 import ru.gafarov.betservice.telegram.bot.prettyPrint.PrettyPrinter;
 import ru.gafarov.betservice.telegram.bot.service.*;
+import ru.gafarov.betservice.telegram.bot.service.BotService;
 
 import java.util.ArrayList;
 import java.util.List;

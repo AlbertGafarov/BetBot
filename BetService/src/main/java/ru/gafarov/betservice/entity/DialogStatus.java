@@ -3,6 +3,7 @@ package ru.gafarov.betservice.entity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import ru.gafarov.bet.grpcInterface.UserOuterClass;
@@ -22,6 +23,7 @@ public class DialogStatus {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @ToString.Exclude
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
@@ -30,6 +32,7 @@ public class DialogStatus {
     @Column(name = "chat_status")
     private UserOuterClass.ChatStatus chatStatus;
 
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "bet_id")
     private Bet bet; // Спор

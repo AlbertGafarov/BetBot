@@ -7,6 +7,7 @@ import ru.gafarov.bet.grpcInterface.DrBet;
 import ru.gafarov.bet.grpcInterface.Rs;
 import ru.gafarov.bet.grpcInterface.UserOuterClass;
 import ru.gafarov.betservice.converter.Converter;
+import ru.gafarov.betservice.converter.UserConverter;
 import ru.gafarov.betservice.entity.DraftBet;
 import ru.gafarov.betservice.model.Status;
 import ru.gafarov.betservice.repository.DraftBetRepository;
@@ -27,7 +28,7 @@ public class DraftBetServiceImpl implements DraftBetService {
     public DrBet.ResponseDraftBet save(DrBet.DraftBet protoDraftBet) {
 
         DraftBet draftBet = new DraftBet();
-        draftBet.setInitiator(converter.toUser(protoDraftBet.getInitiator()));
+        draftBet.setInitiator(UserConverter.toUser(protoDraftBet.getInitiator()));
         draftBet.setCreated(LocalDateTime.now());
         draftBet.setUpdated(LocalDateTime.now());
         draftBet.setOpponentName(protoDraftBet.getOpponentName());

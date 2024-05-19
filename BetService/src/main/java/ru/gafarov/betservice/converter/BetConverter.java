@@ -25,7 +25,8 @@ public class BetConverter {
                 .setInitiatorStatus(bet.getInitiatorBetStatus())
                 .setInverseDefinition(bet.isInverseDefinition())
                 .addAllInitiatorNextStatuses(bet.getNextInitiatorBetStatusList())
-                .addAllOpponentNextStatuses(bet.getNextOpponentBetStatusList());
+                .addAllOpponentNextStatuses(bet.getNextOpponentBetStatusList())
+                .setBetStatus(bet.getBetStatus());
         if (bet.getWager() != null) {
             builder.setWager(bet.getWager());
         }

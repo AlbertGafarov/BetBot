@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.gafarov.betservice.telegram.bot.controller.BetTelegramBot;
+import ru.gafarov.betservice.telegram.bot.service.BotMessageService;
 
 @Slf4j
 @Component

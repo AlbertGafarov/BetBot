@@ -6,6 +6,7 @@ import ru.gafarov.bet.grpcInterface.ProtoBet;
 import ru.gafarov.bet.grpcInterface.Rs;
 import ru.gafarov.betservice.converter.ArgumentConverter;
 import ru.gafarov.betservice.entity.Argument;
+import ru.gafarov.betservice.entity.Bet;
 import ru.gafarov.betservice.repository.ArgumentRepository;
 import ru.gafarov.betservice.service.ArgumentService;
 import ru.gafarov.betservice.service.BetService;
@@ -19,10 +20,11 @@ public class ArgumentServiceImpl implements ArgumentService {
 
     @Override
     public ProtoBet.ResponseMessage save(ProtoBet.Argument protoArgument) {
+        Bet bet = betService.getBet(protoArgument.getAuthor().getId(), protoArgument.getAuthor().getDialogStatus().getBetId());
 
-        Argument argument = argumentRepository.save(ArgumentConverter.toArgument(protoArgument));
+        Argument argument = argumentRepository.save(ArgumentConverter.toArgument(protoArgument, bet));
         if (argument.getId() != 0) {
-            return betService.showBet(protoArgument.getBet());
+            return betService.showBet(protoArgument.getAuthor().getId(), bet.getId());
         } else {
             return ProtoBet.ResponseMessage.newBuilder().setStatus(Rs.Status.ERROR).build();
         }

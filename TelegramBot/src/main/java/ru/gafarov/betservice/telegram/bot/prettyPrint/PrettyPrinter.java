@@ -19,6 +19,9 @@ import java.util.List;
 @Component
 public class PrettyPrinter {
 
+    private static final String FINISH_DATE = "\n\uD83D\uDCC5Дата окончания спора: ";
+    private static final String BET = "\uD83E\uDD1D<b>Спор</b>\n";
+
     public String printDraftBet(DraftBet draftBet) {
         if (draftBet.getInverseDefinition()) {
             return "Оппонент: " + draftBet.getOpponentName() +
@@ -26,13 +29,13 @@ public class PrettyPrinter {
                     "\nНаписал(а): " + draftBet.getDefinition() +
                     "\nВы оспариваете это утверждение" +
                     (draftBet.getWager().isEmpty() ? "" : "\nВознаграждение победителю: " + draftBet.getWager()) +
-                    "\nДата окончания спора: " + fromGoogleTimestampToStr(draftBet.getFinishDate());
+                    FINISH_DATE + fromGoogleTimestampToStr(draftBet.getFinishDate());
         }
         return "Оппонент: " + draftBet.getOpponentName() +
                 " " + draftBet.getOpponentCode() +
                 "\nСуть спора: " + draftBet.getDefinition() +
                 (draftBet.getWager().isEmpty() ? "" : "\nВознаграждение победителю: " + draftBet.getWager()) +
-                "\nДата окончания спора: " + fromGoogleTimestampToStr(draftBet.getFinishDate());
+                FINISH_DATE + fromGoogleTimestampToStr(draftBet.getFinishDate());
     }
 
     public String printDraftBetFromForwardMessage(DraftBet draftBet) {
@@ -59,18 +62,18 @@ public class PrettyPrinter {
 
     public String printOfferBet(Bet bet) {
         if (bet.getInverseDefinition()) {
-            return "<b>Спор</b>\n" +
+            return BET +
                     "Вы написали: " + bet.getDefinition() +
                     "\n" + bet.getInitiator().getUsername() + " " + bet.getInitiator().getCode() + " ставит это под сомнение и готов(а) оспорить." +
                     (bet.getWager().isEmpty() ? "" : "\nВознаграждение победителю: " + bet.getWager()) +
-                    "\nДата окончания спора: " + fromGoogleTimestampToStr(bet.getFinishDate()) +
+                    FINISH_DATE + fromGoogleTimestampToStr(bet.getFinishDate()) +
                     "\nВы готовы в этом поучаствовать?";
         }
-        return "<b>Спор</b>\n" + bet.getInitiator().getUsername() + " " + bet.getInitiator().getCode() +
+        return BET + bet.getInitiator().getUsername() + " " + bet.getInitiator().getCode() +
                 "\nсчитает что:\n" + bet.getDefinition() +
                 "\nи предлагает Вам оспорить это утверждение." +
                 (bet.getWager().isEmpty() ? "" : "\nВознаграждение победителю: " + bet.getWager()) +
-                "\nДата окончания спора: " + fromGoogleTimestampToStr(bet.getFinishDate()) +
+                FINISH_DATE + fromGoogleTimestampToStr(bet.getFinishDate()) +
                 "\nГотовы оспорить?";
     }
 
@@ -87,11 +90,11 @@ public class PrettyPrinter {
                         , fromGoogleTimestampToStr(argument.getTimestamp()), argument.getAuthor().getUsername(), argument.getText()));
             }
         }
-        return "<b>Спор</b>\n" +
+        return BET +
                 author.getUsername() + " " + author.getCode() +
                 "\nСчитает что: " + bet.getDefinition() +
                 "\nОспаривает: " + rival.getUsername() + " " + rival.getCode() +
-                "\nДата окончания спора: " + fromGoogleTimestampToStr(bet.getFinishDate()) +
+                FINISH_DATE + fromGoogleTimestampToStr(bet.getFinishDate()) +
                 (bet.getWager().isEmpty() ? "" : "\nВознаграждение победителю: " + bet.getWager()) +
                 "\nСтатус " + bet.getInitiator().getUsername() + ": " + bet.getInitiatorStatus() +
                 "\nСтатус " + bet.getOpponent().getUsername() + ": " + bet.getOpponentStatus() +

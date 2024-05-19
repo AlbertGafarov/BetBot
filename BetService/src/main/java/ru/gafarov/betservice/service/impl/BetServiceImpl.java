@@ -99,14 +99,24 @@ public class BetServiceImpl implements BetService {
     }
 
     @Override
-    public ProtoBet.ResponseMessage showBet(ProtoBet.Bet protoBet) {
-        Bet bet = betRepository.getBet(protoBet.getInitiator().getId(), protoBet.getId());
+    public Bet getBet(long userId, long betId) {
+        return betRepository.getBet(userId, betId);
+    }
+
+    @Override
+    public ProtoBet.ResponseMessage showBet(Long userId, Long id) {
+        Bet bet = betRepository.getBet(userId, id);
         if (bet != null) {
             setNextStatuses(bet);
             return ProtoBet.ResponseMessage.newBuilder().setBet(BetConverter.toProtoBet(bet)).build();
         }
-        log.error("Не найден спор с id: {} user_id: {}", protoBet.getId(), protoBet.getInitiator().getId());
+        log.error("Не найден спор с id: {} user_id: {}", id, userId);
         return ProtoBet.ResponseMessage.newBuilder().setStatus(Rs.Status.ERROR).build();
+    }
+
+    @Override
+    public ProtoBet.ResponseMessage showBet(ProtoBet.Bet protoBet) {
+        return showBet(protoBet.getInitiator().getId(), protoBet.getId());
     }
 
     @Override
@@ -183,6 +193,17 @@ public class BetServiceImpl implements BetService {
                 , bet.getOpponentBetStatus().toString()
                 , bet.getInitiatorBetStatus().toString()
                 , bet.getFinishDate()));
+        // Если спор без вознаграждения, то статусы оплаты и ожидания оплаты не отображаются
+        if (bet.getWager().isEmpty()) {
+            if (bet.getNextInitiatorBetStatusList().equals(List.of(ProtoBet.UserBetStatus.WAGERPAID)) ||
+                    bet.getNextInitiatorBetStatusList().equals(List.of(ProtoBet.UserBetStatus.WAGERRECIEVED))) {
+                bet.getNextInitiatorBetStatusList().clear();
+            }
+            if (bet.getNextOpponentBetStatusList().equals(List.of(ProtoBet.UserBetStatus.WAGERPAID)) ||
+                    bet.getNextOpponentBetStatusList().equals(List.of(ProtoBet.UserBetStatus.WAGERRECIEVED))) {
+                bet.getNextOpponentBetStatusList().clear();
+            }
+        }
     }
 
     private void setBetStatus(Bet bet) {
@@ -190,7 +211,11 @@ public class BetServiceImpl implements BetService {
                 .filter(a -> a.getInitiatorBetStatus().equals(bet.getInitiatorBetStatus()) &&
                         a.getOpponentBetStatus().equals(bet.getOpponentBetStatus())).findFirst();
         if (optional.isPresent()) {
-            bet.setBetStatus(optional.get().getBetStatus());
+            // Если спор без вознаграждения, то статус ожидания оплаты пропускается
+            ProtoBet.BetStatus newBetStatus = bet.getWager().isEmpty() &&
+                    optional.get().getBetStatus().equals(ProtoBet.BetStatus.WAIT_WAGER_PAY) ?
+                    ProtoBet.BetStatus.CLOSED : optional.get().getBetStatus();
+            bet.setBetStatus(newBetStatus);
             betRepository.save(bet);
         }
     }

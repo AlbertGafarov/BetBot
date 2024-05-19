@@ -3,8 +3,10 @@ package ru.gafarov.betservice.converter;
 import lombok.experimental.UtilityClass;
 import ru.gafarov.bet.grpcInterface.ProtoBet;
 import ru.gafarov.betservice.entity.Argument;
+import ru.gafarov.betservice.entity.Bet;
 import ru.gafarov.betservice.entity.User;
 import ru.gafarov.betservice.model.BetRole;
+import ru.gafarov.betservice.model.Status;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,15 +14,16 @@ import java.util.List;
 @UtilityClass
 public class ArgumentConverter {
 
-    public Argument toArgument(ProtoBet.Argument protoArgument) {
+    public Argument toArgument(ProtoBet.Argument protoArgument, Bet bet) {
         Argument argument = new Argument();
-        argument.setBet(BetConverter.toBet(protoArgument.getBet()));
+        argument.setBet(bet);
         argument.setText(protoArgument.getText());
-        if (protoArgument.getAuthor().equals(protoArgument.getBet().getInitiator())) {
+        if (protoArgument.getAuthor().getId() == bet.getInitiator().getId()) {
             argument.setBetRole(BetRole.INITIATOR);
-        } else if (protoArgument.getAuthor().equals(protoArgument.getBet().getOpponent())) {
+        } else if (protoArgument.getAuthor().getId() == bet.getOpponent().getId()) {
             argument.setBetRole(BetRole.OPPONENT);
         }
+        argument.setStatus(Status.ACTIVE);
         return argument;
     }
 

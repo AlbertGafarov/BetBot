@@ -38,7 +38,7 @@ public class CreateAction implements Action {
             sendMessage.setReplyMarkup(wantChoseFromFriends(draftBet));
         }
         botMessageService.deleteWithoutDraft(draftBet, user);
-        botService.sendAndSaveDraftBet(sendMessage, user, BotMessageType.ENTER_USERNAME, draftBet);
+        botService.sendAndSave(sendMessage, user, BotMessageType.ENTER_USERNAME, draftBet);
         botService.delete(update);
     }
 
@@ -61,7 +61,7 @@ public class CreateAction implements Action {
                 draftBet = grpcDrBetStub.addDraftBet(draftBet).getDraftBet();
                 userService.setChatStatus(user, ChatStatus.WAIT_DEFINITION);
                 sendMessage.setText(String.format("Новый спор с %s %s\n Введите суть спора", opponent.getUsername(), opponent.getCode()));
-                botService.sendAndSaveDraftBet(sendMessage, user, BotMessageType.ENTER_DEFINITION, draftBet);
+                botService.sendAndSave(sendMessage, user, BotMessageType.ENTER_DEFINITION, draftBet);
             }
         }
     }

@@ -157,7 +157,7 @@ public class DraftAction implements Action {
             botService.edit(editMessageText);
 
             replyMessage.setText("Введите количество дней до завершения спора");
-            botService.sendAndSaveDraftBet(replyMessage, user, BotMessageType.ENTER_FINISH_DATE, draftBet);
+            botService.sendAndSave(replyMessage, user, BotMessageType.ENTER_FINISH_DATE, draftBet);
         }
     }
 }

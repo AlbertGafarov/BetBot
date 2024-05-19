@@ -46,7 +46,10 @@ public class BetButtons {
         if (optionalArgument.isEmpty() && !forInitiator ||
                 optionalArgument.isPresent() &&
                         (forInitiator && optionalArgument.get().getAuthor().equals(bet.getOpponent()) ||
-                                !forInitiator && optionalArgument.get().getAuthor().equals(bet.getInitiator()))
+                                !forInitiator && optionalArgument.get().getAuthor().equals(bet.getInitiator())) &&
+                        (bet.getBetStatus().equals(ProtoBet.BetStatus.ACTIVE) ||
+                                bet.getBetStatus().equals(ProtoBet.BetStatus.WAIT_WAGER_PAY) ||
+                                bet.getBetStatus().equals(ProtoBet.BetStatus.OFFER))
         ) {
             InlineKeyboardButton writeArgumentButton = new InlineKeyboardButton("\uD83D\uDCAC");
             writeArgumentButton.setCallbackData("/argument/write/" + bet.getId());

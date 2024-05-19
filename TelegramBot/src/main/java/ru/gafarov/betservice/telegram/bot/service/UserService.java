@@ -2,6 +2,7 @@ package ru.gafarov.betservice.telegram.bot.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.springframework.stereotype.Service;
 import ru.gafarov.bet.grpcInterface.DrBet.DraftBet;
 import ru.gafarov.bet.grpcInterface.DrBet.ResponseDraftBet;
@@ -9,7 +10,6 @@ import ru.gafarov.bet.grpcInterface.DrBetServiceGrpc;
 import ru.gafarov.bet.grpcInterface.Friend.Subscribe;
 import ru.gafarov.bet.grpcInterface.FriendServiceGrpc;
 import ru.gafarov.bet.grpcInterface.Rs.Status;
-import ru.gafarov.bet.grpcInterface.UserOuterClass;
 import ru.gafarov.bet.grpcInterface.UserOuterClass.ChatStatus;
 import ru.gafarov.bet.grpcInterface.UserOuterClass.ResponseUser;
 import ru.gafarov.bet.grpcInterface.UserOuterClass.User;
@@ -43,11 +43,17 @@ public class UserService {
     }
 
     public void setChatStatus(User protoUser, ChatStatus chatStatus) {
-        UserOuterClass.DialogStatus dialogStatus = protoUser.getDialogStatus().toBuilder()
-                .setChatStatus(chatStatus).setBetId(0)
-                .build();
+        setChatStatus(protoUser, chatStatus, null);
+    }
+
+    public void setChatStatus(User protoUser, ChatStatus chatStatus, Long betId) {
+        val builder = protoUser.getDialogStatus().toBuilder()
+                .setChatStatus(chatStatus);
+        if (betId != null) {
+            builder.setBetId(betId);
+        }
         protoUser = User.newBuilder(protoUser)
-                .setDialogStatus(dialogStatus)
+                .setDialogStatus(builder.build())
                 .build();
         log.debug("Меняем статус чата: \n{}", protoUser);
         ResponseUser response = grpcUserStub.changeChatStatus(protoUser);

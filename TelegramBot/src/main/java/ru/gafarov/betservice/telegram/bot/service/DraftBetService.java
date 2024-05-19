@@ -19,6 +19,7 @@ import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
 import ru.gafarov.betservice.telegram.bot.components.buttons.BetButtons;
 import ru.gafarov.betservice.telegram.bot.components.buttons.Buttons;
 import ru.gafarov.betservice.telegram.bot.prettyPrint.PrettyPrinter;
+import ru.gafarov.betservice.telegram.bot.service.BotMessageService;
 
 
 @Slf4j
@@ -55,11 +56,11 @@ public class DraftBetService {
 
             replyMessage.setText("Новый спор:\n" + prettyPrinter.printDraftBet(draftBet) + "\nПодтверждаете?");
             replyMessage.setReplyMarkup(Buttons.approveDraftBetButtons(draftBet.getId()));
-            botService.sendAndSaveDraftBet(replyMessage, user, BotMessageType.DRAFT_BET, draftBet);
+            botService.sendAndSave(replyMessage, user, BotMessageType.DRAFT_BET, draftBet);
 
         } catch (NumberFormatException e) {
             replyMessage.setText("Введите количество дней до завершения спора. Это должно быть натуральное число не более 25000");
-            botService.sendAndSaveDraftBet(replyMessage, user, BotMessageType.WRONG_FINISH_DATE, draftBet);
+            botService.sendAndSave(replyMessage, user, BotMessageType.WRONG_FINISH_DATE, draftBet);
         }
     }
 
@@ -79,7 +80,7 @@ public class DraftBetService {
         botService.edit(editMessageText);
 
         replyMessage.setText("Введите количество дней до завершения спора");
-        botService.sendAndSaveDraftBet(replyMessage, user, BotMessageType.ENTER_FINISH_DATE, draftBet);
+        botService.sendAndSave(replyMessage, user, BotMessageType.ENTER_FINISH_DATE, draftBet);
     }
 
     public void setDefinitionToDraftBet(User user, String text, BotMessage.Builder botMessageBuilder
@@ -99,7 +100,7 @@ public class DraftBetService {
 
         replyMessage.setText("Введите вознаграждение");
         replyMessage.setReplyMarkup(Buttons.oneButton("без вознаграждения", "/draftBet/" + draftBet.getId() + "/withoutWager"));
-        botService.sendAndSaveDraftBet(replyMessage, user, BotMessageType.ENTER_WAGER, draftBet);
+        botService.sendAndSave(replyMessage, user, BotMessageType.ENTER_WAGER, draftBet);
     }
 
     public void setOpponentCodeToDraftBet(User user, String text, BetSendMessage replyMessage
@@ -115,7 +116,7 @@ public class DraftBetService {
         if (opponent == null) {
             userService.setChatStatus(user, ChatStatus.WAIT_OPPONENT_NAME);
             replyMessage.setText(" Код не соответствует username. Введите username оппонента");
-            botService.sendAndSaveDraftBet(replyMessage, user, BotMessageType.CODE_WRONG_ENTER_USERNAME, draftBet);
+            botService.sendAndSave(replyMessage, user, BotMessageType.CODE_WRONG_ENTER_USERNAME, draftBet);
 
         } else {
             draftBet = draftBet.toBuilder().setOpponentCode(opponent.getCode()).build();
@@ -128,7 +129,7 @@ public class DraftBetService {
             botService.edit(editMessageText);
 
             replyMessage.setText("Введите суть спора");
-            botService.sendAndSaveDraftBet(replyMessage, user, BotMessageType.ENTER_DEFINITION, draftBet);
+            botService.sendAndSave(replyMessage, user, BotMessageType.ENTER_DEFINITION, draftBet);
         }
     }
 
@@ -148,7 +149,7 @@ public class DraftBetService {
         botService.edit(editMessageText);
         // Отправляем ответное сообщение
         replyMessage.setText("Введите code оппонента");
-        botService.sendAndSaveDraftBet(replyMessage, user, BotMessageType.ENTER_CODE, draftBet);
+        botService.sendAndSave(replyMessage, user, BotMessageType.ENTER_CODE, draftBet);
     }
 
     public void createDraftBetFromFoward(User user, Message message, String text, BetSendMessage replyMessage) {
@@ -162,7 +163,7 @@ public class DraftBetService {
 
             replyMessage.setText(prettyPrinter.printDraftBetFromForwardMessage(draftBet));
             replyMessage.setReplyMarkup(Buttons.oneButton("без вознаграждения", "/draftBet/" + draftBet.getId() + "/withoutWager"));
-            botService.sendAndSaveDraftBet(replyMessage, user, BotMessageType.ENTER_WAGER, draftBet);
+            botService.sendAndSave(replyMessage, user, BotMessageType.ENTER_WAGER, draftBet);
         } else {
             log.warn("Не найден оппонент с chatId: {}", message.getForwardFrom().getId());
             replyMessage.setText("Спор не будет создан, потому что ваш оппонент не найден. " +
@@ -241,7 +242,7 @@ public class DraftBetService {
                     msgToInitiator.setText("Спор отклонен. Черновик удален");
                     msgToInitiator.setDelTime(10_000);
 
-                    botService.sendAndSaveDraftBet(msgToInitiator, user, BotMessageType.CANCEL_DRAFT, draftBet);
+                    botService.sendAndSave(msgToInitiator, user, BotMessageType.CANCEL_DRAFT, draftBet);
                     break;
             }
         }

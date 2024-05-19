@@ -10,6 +10,7 @@ import ru.gafarov.bet.grpcInterface.Rs.Status;
 import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
 import ru.gafarov.betservice.telegram.bot.components.buttons.BetButtons;
 import ru.gafarov.betservice.telegram.bot.prettyPrint.PrettyPrinter;
+import ru.gafarov.betservice.telegram.bot.service.BotService;
 
 import java.util.List;
 import java.util.stream.Collectors;

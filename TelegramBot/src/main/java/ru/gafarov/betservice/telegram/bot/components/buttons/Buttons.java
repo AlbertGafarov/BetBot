@@ -3,11 +3,9 @@ package ru.gafarov.betservice.telegram.bot.components.buttons;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import ru.gafarov.bet.grpcInterface.DrBet.DraftBet;
-import ru.gafarov.bet.grpcInterface.ProtoBet.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class Buttons {
 

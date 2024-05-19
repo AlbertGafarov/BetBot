@@ -1,9 +1,6 @@
 package ru.gafarov.betservice.entity;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
+import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import ru.gafarov.bet.grpcInterface.ProtoBet;
 
@@ -13,9 +10,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
-@Data
 @Entity
 @Table(name = "bets")
+@Getter
+@Setter
+@ToString(callSuper = true)
 @NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
 public class Bet extends BaseEntity {

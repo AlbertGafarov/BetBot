@@ -1,7 +1,6 @@
 package ru.gafarov.betservice.service;
 
 import ru.gafarov.bet.grpcInterface.Friend;
-import ru.gafarov.bet.grpcInterface.ProtoBet;
 import ru.gafarov.bet.grpcInterface.UserOuterClass;
 import ru.gafarov.betservice.entity.User;
 
