@@ -1,9 +1,10 @@
 package ru.gafarov.betservice.service;
 
+import org.springframework.transaction.annotation.Transactional;
 import ru.gafarov.bet.grpcInterface.ProtoBet;
 import ru.gafarov.bet.grpcInterface.UserOuterClass;
 import ru.gafarov.betservice.entity.Bet;
-
+@Transactional
 public interface BetService {
 
     ProtoBet.ResponseBet save(ProtoBet.Bet protoBet);
