@@ -19,8 +19,8 @@ import java.util.List;
 @Component
 public class PrettyPrinter {
 
-    private static final String FINISH_DATE = "\n\uD83D\uDCC5Дата окончания спора: ";
-    private static final String BET = "\uD83E\uDD1D<b>Спор</b>\n";
+    private static final String FINISH_DATE = "\n\uD83D\uDCC5 Дата окончания спора: ";
+    private static final String BET = "\uD83E\uDD1D <b>Спор</b>\n";
 
     public String printDraftBet(DraftBet draftBet) {
         if (draftBet.getInverseDefinition()) {
