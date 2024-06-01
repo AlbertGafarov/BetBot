@@ -1,20 +1,20 @@
 package ru.gafarov.betservice.entity;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
+import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import ru.gafarov.bet.grpcInterface.ProtoBet;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
-@Data
 @Entity
 @Table(name = "bets")
+@Getter
+@Setter
+@ToString(callSuper = true)
 @NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
 public class Bet extends BaseEntity {
@@ -55,6 +55,9 @@ public class Bet extends BaseEntity {
 
     @Column(name = "inverse_definition")
     private boolean inverseDefinition;
+
+    @OneToMany(mappedBy = "bet", fetch = FetchType.EAGER, orphanRemoval = true)
+    private List<Argument> arguments = new ArrayList<>();
 
     @Transient
     private List<ProtoBet.UserBetStatus> nextOpponentBetStatusList;

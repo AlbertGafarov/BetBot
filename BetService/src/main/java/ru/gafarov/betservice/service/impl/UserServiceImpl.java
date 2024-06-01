@@ -4,12 +4,14 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.gafarov.bet.grpcInterface.Friend;
-import ru.gafarov.bet.grpcInterface.ProtoBet;
 import ru.gafarov.bet.grpcInterface.Rs;
 import ru.gafarov.bet.grpcInterface.UserOuterClass;
-import ru.gafarov.betservice.converter.Converter;
+import ru.gafarov.betservice.converter.UserConverter;
+import ru.gafarov.betservice.entity.Bet;
+import ru.gafarov.betservice.entity.DialogStatus;
 import ru.gafarov.betservice.entity.User;
 import ru.gafarov.betservice.model.Status;
+import ru.gafarov.betservice.repository.DialogStatusRepository;
 import ru.gafarov.betservice.repository.UserRepository;
 import ru.gafarov.betservice.service.UserService;
 
@@ -26,7 +28,7 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final Converter converter;
+    private final DialogStatusRepository dialogStatusRepository;
 
     @Override
     public UserOuterClass.ResponseUser saveUser(UserOuterClass.User protoUser) {
@@ -43,9 +45,13 @@ public class UserServiceImpl implements UserService {
         user.setChatId(protoUser.getChatId());
         user.setCreated(LocalDateTime.now());
         user.setUpdated(LocalDateTime.now());
-        user.setChatStatus(UserOuterClass.ChatStatus.START);
         user.setStatus(Status.ACTIVE);
-        userRepository.save(user);
+
+        DialogStatus dialogStatus = new DialogStatus();
+        dialogStatus.setChatStatus(UserOuterClass.ChatStatus.START);
+        user = userRepository.save(user);
+        dialogStatus.setUser(user);
+        dialogStatusRepository.save(dialogStatus);
         return UserOuterClass.ResponseUser.newBuilder().setUser(UserOuterClass.User.newBuilder(protoUser).setCode(code)
                 .build()).build();
     }
@@ -56,7 +62,7 @@ public class UserServiceImpl implements UserService {
         if (protoUser.getId() != 0) {
             Optional<User> optional = userRepository.findById(protoUser.getId());
             if (optional.isPresent()) {
-                return UserOuterClass.ResponseUser.newBuilder().setUser(converter.toProtoUser(optional.get()))
+                return UserOuterClass.ResponseUser.newBuilder().setUser(UserConverter.toProtoUser(optional.get()))
                         .setStatus(Rs.Status.SUCCESS).build();
             } else {
                 log.error("Не найден пользователь с id: {}", protoUser.getId());
@@ -64,7 +70,7 @@ public class UserServiceImpl implements UserService {
             }
             // если известен chatId, то ищем по нему
         } else if (protoUser.getChatId() != 0) {
-            respProtoUser = converter.toProtoUser(userRepository.findByChatId(protoUser.getChatId()));
+            respProtoUser = UserConverter.toProtoUser(userRepository.findByChatId(protoUser.getChatId()));
             if (respProtoUser != null) {
                 return UserOuterClass.ResponseUser.newBuilder().setUser(respProtoUser).setStatus(Rs.Status.SUCCESS).build();
             } else {
@@ -73,7 +79,7 @@ public class UserServiceImpl implements UserService {
             }
             // в противном случае ищем по имени и коду
         } else {
-            respProtoUser = converter.toProtoUser(userRepository.findByUsernameIgnoreCaseAndCode(protoUser.getUsername(), protoUser.getCode()));
+            respProtoUser = UserConverter.toProtoUser(userRepository.findByUsernameIgnoreCaseAndCode(protoUser.getUsername(), protoUser.getCode()));
         }
         if (respProtoUser != null) {
             return UserOuterClass.ResponseUser.newBuilder().setUser(respProtoUser).setStatus(Rs.Status.SUCCESS).build();
@@ -84,10 +90,19 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ProtoBet.ResponseMessage changeChatStatus(UserOuterClass.User protoUser) {
+    public UserOuterClass.ResponseUser changeChatStatus(UserOuterClass.User protoUser) {
 
-        userRepository.changeChatStatus(protoUser.getChatId(), protoUser.getChatStatus().toString());
-        return ProtoBet.ResponseMessage.newBuilder().setUser(converter.toProtoUser(getUser(protoUser)))
+        DialogStatus dialogStatus = new DialogStatus();
+        dialogStatus.setId(protoUser.getDialogStatus().getId());
+        dialogStatus.setChatStatus(protoUser.getDialogStatus().getChatStatus());
+        dialogStatus.setUser(UserConverter.toUser(protoUser));
+        if (protoUser.getDialogStatus().getBetId() > 0) {
+            Bet bet = new Bet();
+            bet.setId(protoUser.getDialogStatus().getBetId());
+            dialogStatus.setBet(bet);
+        }
+        dialogStatusRepository.save(dialogStatus);
+        return UserOuterClass.ResponseUser.newBuilder().setUser(UserConverter.toProtoUser(getUser(protoUser)))
                 .setStatus(Rs.Status.SUCCESS).build();
     }
 
@@ -99,7 +114,7 @@ public class UserServiceImpl implements UserService {
             return UserOuterClass.ResponseUser.newBuilder().setStatus(Rs.Status.NOT_FOUND).build();
         }
         return UserOuterClass.ResponseUser.newBuilder()
-                .addAllUsers(friends.stream().map(converter::toProtoUser).collect(Collectors.toList()))
+                .addAllUsers(friends.stream().map(UserConverter::toProtoUser).collect(Collectors.toList()))
                 .setStatus(Rs.Status.SUCCESS).build();
     }
 
@@ -108,7 +123,7 @@ public class UserServiceImpl implements UserService {
         Optional<User> optional = userRepository.findFriend(subscribe.getSubscriber().getId()
                 , subscribe.getSubscribed().getId()
                 , subscribe.getSubscribed().getChatId());
-        return optional.map(user -> UserOuterClass.ResponseUser.newBuilder().setUser(converter.toProtoUser(user))
+        return optional.map(user -> UserOuterClass.ResponseUser.newBuilder().setUser(UserConverter.toProtoUser(user))
                 .setStatus(Rs.Status.SUCCESS).build()).orElseGet(() -> UserOuterClass.ResponseUser.newBuilder()
                 .setStatus(Rs.Status.NOT_FOUND).build());
     }

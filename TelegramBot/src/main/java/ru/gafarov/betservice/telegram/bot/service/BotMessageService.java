@@ -1,128 +1,25 @@
 package ru.gafarov.betservice.telegram.bot.service;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import lombok.val;
-import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
-import ru.gafarov.bet.grpcInterface.BotMessageOuterClass.BotMessage;
-import ru.gafarov.bet.grpcInterface.BotMessageOuterClass.BotMessageType;
-import ru.gafarov.bet.grpcInterface.BotMessageOuterClass.BotMessages;
-import ru.gafarov.bet.grpcInterface.BotMessageOuterClass.ResponseBotMessage;
-import ru.gafarov.bet.grpcInterface.BotMessageServiceGrpc;
-import ru.gafarov.bet.grpcInterface.DrBet.DraftBet;
-import ru.gafarov.bet.grpcInterface.ProtoBet.*;
-import ru.gafarov.bet.grpcInterface.Rs.Status;
-import ru.gafarov.bet.grpcInterface.UserOuterClass.User;
+import ru.gafarov.bet.grpcInterface.BotMessageOuterClass;
+import ru.gafarov.bet.grpcInterface.DrBet;
+import ru.gafarov.bet.grpcInterface.ProtoBet;
+import ru.gafarov.bet.grpcInterface.UserOuterClass;
 
-@Slf4j
-@Service
-@RequiredArgsConstructor
-public class BotMessageService {
+public interface BotMessageService {
+    void save(BotMessageOuterClass.BotMessage botMessage);
 
-    private final BotMessageServiceGrpc.BotMessageServiceBlockingStub grpcStub;
-    private final DeleteMessageService deleteMessageService;
+    Integer getId(BotMessageOuterClass.BotMessage botMessage);
 
-    public void save(BotMessage botMessage) {
-        ResponseMessage response = grpcStub.saveBotMessage(botMessage);
-        if (!response.getStatus().equals(Status.SUCCESS)) {
-            log.error("Ошибка сохранения botMessage id: {}", botMessage.getTgMessageId());
-        }
-    }
+    void deleteByDraft(DrBet.DraftBet draftBet, UserOuterClass.User user);
 
-    public Integer getId(BotMessage botMessage) {
-        ResponseBotMessage response = grpcStub.getBotMessage(botMessage);
-        if (response.getStatus().equals(Status.SUCCESS)) {
-            return response.getBotMessage().getTgMessageId();
-        }
-        return null;
-    }
+    void markDeleted(DeleteMessage deleteMessage);
 
-    public void deleteByDraft(DraftBet draftBet, User user) {
-        ResponseBotMessage response = grpcStub.getBotMessages(draftBet);
-        if (response.getStatus().equals(Status.ERROR)) {
-            log.error("Получена ошибка при попытке получить botMessages по draftBet c id: {}", draftBet.getId());
-        } else {
-            response.getBotMessagesList().forEach(a -> {
-                DeleteMessage deleteMessage = new DeleteMessage(String.valueOf(user.getChatId()), a.getTgMessageId());
-                deleteMessageService.deleteSync(deleteMessage);
-            });
-            ResponseBotMessage responseBotMessage = grpcStub.deleteBotMessages(BotMessages.newBuilder()
-                    .addAllBotMessage(response.getBotMessagesList()).build());
-            if (!responseBotMessage.getStatus().equals(Status.SUCCESS)) {
-                log.error("Получена ошибка при попытке пометить в БД сообщения от бота удаленными");
-            }
-        }
-    }
+    boolean isNotDeleted(Integer messageId);
 
-    public void markDeleted(DeleteMessage deleteMessage) {
+    void deleteWithoutDraft(DrBet.DraftBet draftBet, UserOuterClass.User user);
 
-        ResponseBotMessage responseBotMessage = grpcStub.deleteBotMessage(BotMessage.newBuilder()
-                .setTgMessageId(deleteMessage.getMessageId()).build());
-        if (!responseBotMessage.getStatus().equals(Status.SUCCESS)) {
-            log.error("Получена ошибка при попытке пометить в БД сообщения от бота удаленными");
-        }
-    }
+    void deleteByBotMessageType(UserOuterClass.User user, BotMessageOuterClass.BotMessageType botMessageType);
 
-    public boolean isNotDeleted(Integer messageId) {
-
-        ResponseBotMessage response = grpcStub.getBotMessage(BotMessage.newBuilder().setTgMessageId(messageId).build());
-        if (response.hasBotMessage()) {
-            return !response.getBotMessage().getIsDeleted();
-        } else {
-            log.error("botMessage с tg_message_id: {} не найден", messageId);
-            return true;
-        }
-    }
-
-    public void deleteWithoutDraft(DraftBet draftBet, User user) {
-        ResponseBotMessage response = grpcStub.getBotMessagesWithout(draftBet);
-        if (response.getStatus().equals(Status.ERROR)) {
-            log.error("Получена ошибка при попытке получить botMessages кроме draftBet c id: {}", draftBet.getId());
-        } else {
-            response.getBotMessagesList().forEach(a -> {
-                DeleteMessage deleteMessage = new DeleteMessage(String.valueOf(user.getChatId()), a.getTgMessageId());
-                deleteMessageService.deleteSync(deleteMessage);
-            });
-            ResponseBotMessage responseBotMessage = grpcStub.deleteBotMessages(BotMessages.newBuilder()
-                    .addAllBotMessage(response.getBotMessagesList()).build());
-            if (responseBotMessage.getStatus().equals(Status.ERROR)) {
-                log.error("Получена ошибка при попытке пометить в БД сообщения от бота удаленными");
-            }
-        }
-    }
-
-    public void deleteByBotMessageType(User user, BotMessageType botMessageType) {
-        ResponseBotMessage response = grpcStub.getBotMessagesByTemplate(BotMessage.newBuilder().setUser(user).setType(botMessageType).build());
-        log.info("Получено {} сообщений", response.getBotMessagesCount());
-        if (response.getStatus().equals(Status.SUCCESS)) {
-            response.getBotMessagesList().forEach(a -> {
-                DeleteMessage deleteMessage = new DeleteMessage(String.valueOf(user.getChatId()), a.getTgMessageId());
-                deleteMessageService.deleteSync(deleteMessage);
-            });
-        }
-    }
-
-    public void deleteBotMessagesByTemplate(User user, BotMessageType botMessageType, User friend, Bet bet) {
-
-        val builder = BotMessage.newBuilder().setUser(user);
-        if (botMessageType != null){
-            builder.setType(botMessageType);
-        }
-        if (friend != null){
-            builder.setFriend(friend);
-        }
-        if (bet != null){
-            builder.mergeBet(bet).setBet(bet);
-        }
-
-        ResponseBotMessage response = grpcStub.getBotMessagesByTemplate(builder.build());
-        log.info("Получено {} сообщений", response.getBotMessagesCount());
-        if (response.getStatus().equals(Status.SUCCESS)) {
-            response.getBotMessagesList().forEach(a -> {
-                DeleteMessage deleteMessage = new DeleteMessage(String.valueOf(user.getChatId()), a.getTgMessageId());
-                deleteMessageService.deleteSync(deleteMessage);
-            });
-        }
-    }
+    void deleteBotMessagesByTemplate(UserOuterClass.User user, BotMessageOuterClass.BotMessageType botMessageType, UserOuterClass.User friend, ProtoBet.Bet bet);
 }

@@ -5,12 +5,8 @@ import lombok.val;
 import org.springframework.stereotype.Component;
 import ru.gafarov.bet.grpcInterface.BotMessageOuterClass;
 import ru.gafarov.bet.grpcInterface.DrBet;
-import ru.gafarov.bet.grpcInterface.ProtoBet;
-import ru.gafarov.bet.grpcInterface.UserOuterClass;
-import ru.gafarov.betservice.entity.Bet;
 import ru.gafarov.betservice.entity.BotMessage;
 import ru.gafarov.betservice.entity.DraftBet;
-import ru.gafarov.betservice.entity.User;
 import ru.gafarov.betservice.model.Status;
 
 import java.time.Instant;
@@ -25,7 +21,7 @@ public class Converter {
                 .setId(draftBet.getId())
                 .setInverseDefinition(draftBet.isInverseDefinition());
         if (draftBet.getInitiator() != null) {
-            builder.setInitiator(toProtoUser(draftBet.getInitiator()));
+            builder.setInitiator(UserConverter.toProtoUser(draftBet.getInitiator()));
         }
         if (draftBet.getOpponentName() != null) {
             builder.setOpponentName(draftBet.getOpponentName());
@@ -46,35 +42,6 @@ public class Converter {
         return builder.build();
     }
 
-    public ProtoBet.Bet toProtoBet(Bet bet) {
-        ProtoBet.Bet.Builder builder = ProtoBet.Bet.newBuilder()
-                .setId(bet.getId())
-                .setOpponent(toProtoUser(bet.getOpponent()))
-                .setInitiator(toProtoUser(bet.getInitiator()))
-                .setDefinition(bet.getDefinition())
-                .setFinishDate(toTimestamp(bet.getFinishDate()))
-                .setOpponentStatus(bet.getOpponentBetStatus())
-                .setInitiatorStatus(bet.getInitiatorBetStatus())
-                .setInverseDefinition(bet.isInverseDefinition())
-                .addAllInitiatorNextStatuses(bet.getNextInitiatorBetStatusList())
-                .addAllOpponentNextStatuses(bet.getNextOpponentBetStatusList());
-        if (bet.getWager() != null) {
-            builder.setWager(bet.getWager());
-        }
-        return builder.build();
-    }
-
-    public UserOuterClass.User toProtoUser(User user) {
-        if (user == null) return null;
-        UserOuterClass.User.Builder builder = UserOuterClass.User.newBuilder()
-                .setId(user.getId())
-                .setUsername(user.getUsername())
-                .setCode(user.getCode())
-                .setChatId(user.getChatId())
-                .setChatStatus(user.getChatStatus());
-        return builder.build();
-    }
-
     public Timestamp toTimestamp(LocalDateTime localDateTime) {
         Instant instant = localDateTime.atZone(ZoneId.systemDefault()).toInstant();
 
@@ -90,14 +57,6 @@ public class Converter {
                 .toLocalDateTime();
     }
 
-    public User toUser(UserOuterClass.User protoUser) {
-        User user = new User();
-        user.setId(protoUser.getId());
-        user.setCode(protoUser.getCode());
-        user.setUsername(protoUser.getUsername());
-        user.setChatId(protoUser.getChatId());
-        return user;
-    }
 
     public BotMessage toBotMessage(BotMessageOuterClass.BotMessage protoBotMessage) {
         BotMessage botMessage = new BotMessage();
@@ -105,30 +64,22 @@ public class Converter {
             botMessage.setDraftBet(toDraftBet(protoBotMessage.getDraftBet()));
         }
         if (protoBotMessage.getFriend().getId() > 0) {
-            botMessage.setFriend(toUser(protoBotMessage.getFriend()));
+            botMessage.setFriend(UserConverter.toUser(protoBotMessage.getFriend()));
         }
         if (protoBotMessage.getBet().getId() > 0) {
-            botMessage.setBet(toBet(protoBotMessage.getBet()));
+            botMessage.setBet(BetConverter.toBet(protoBotMessage.getBet()));
         }
         botMessage.setTgMessageId(protoBotMessage.getTgMessageId());
-        botMessage.setUser(toUser(protoBotMessage.getUser()));
+        botMessage.setUser(UserConverter.toUser(protoBotMessage.getUser()));
         botMessage.setMessageType(protoBotMessage.getType());
 
         return botMessage;
     }
 
-    private Bet toBet(ProtoBet.Bet protoBet) {
-        Bet bet = new Bet();
-        if (protoBet.getId() > 0) {
-            bet.setId(protoBet.getId());
-        }
-        return bet;
-    }
-
     public DraftBet toDraftBet(DrBet.DraftBet protoDraftBet) {
         DraftBet draftBet = new DraftBet();
         draftBet.setId(protoDraftBet.getId());
-        draftBet.setInitiator(toUser(protoDraftBet.getInitiator()));
+        draftBet.setInitiator(UserConverter.toUser(protoDraftBet.getInitiator()));
         draftBet.setOpponentCode(protoDraftBet.getOpponentCode());
         draftBet.setOpponentName(protoDraftBet.getOpponentName());
         draftBet.setDefinition(protoDraftBet.getDefinition());
@@ -146,7 +97,7 @@ public class Converter {
                 .setId(botMessage.getId())
                 .setTgMessageId(botMessage.getTgMessageId())
                 .setType(botMessage.getMessageType())
-                .setUser(toProtoUser(botMessage.getUser()));
+                .setUser(UserConverter.toProtoUser(botMessage.getUser()));
         if (botMessage.getDraftBet() != null) {
             builder.setDraftBet(toProtoDraftBet(botMessage.getDraftBet()));
         }

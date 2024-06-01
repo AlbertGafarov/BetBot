@@ -16,7 +16,6 @@ public class GrpcDraftBetRequestHandler extends DrBetServiceGrpc.DrBetServiceImp
 
     private final DraftBetService draftBetService;
 
-
     @Override
     public void addDraftBet(DrBet.DraftBet request, StreamObserver<DrBet.ResponseDraftBet> responseObserver) {
         responseObserver.onNext(draftBetService.save(request));

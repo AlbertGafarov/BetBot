@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import ru.gafarov.bet.grpcInterface.BetServiceGrpc;
 import ru.gafarov.bet.grpcInterface.ProtoBet;
 import ru.gafarov.bet.grpcInterface.UserOuterClass;
+import ru.gafarov.betservice.service.ArgumentService;
 import ru.gafarov.betservice.service.BetService;
 import ru.gafarov.betservice.service.UserService;
 
@@ -17,6 +18,7 @@ public class GrpcBetRequestHandler extends BetServiceGrpc.BetServiceImplBase {
 
     private final UserService userService;
     private final BetService betService;
+    private final ArgumentService argumentService;
 
     @Override
     public void addBet(ProtoBet.Bet request, StreamObserver<ProtoBet.ResponseBet> responseObserver) {
@@ -27,12 +29,6 @@ public class GrpcBetRequestHandler extends BetServiceGrpc.BetServiceImplBase {
     @Override
     public void changeStatusBet(ProtoBet.ChangeStatusBetMessage request, StreamObserver<ProtoBet.ResponseMessage> responseObserver) {
         responseObserver.onNext(betService.changeBetStatus(request));
-        responseObserver.onCompleted();
-    }
-
-    @Override
-    public void changeChatStatus(UserOuterClass.User request, StreamObserver<ProtoBet.ResponseMessage> responseObserver) {
-        responseObserver.onNext(userService.changeChatStatus(request));
         responseObserver.onCompleted();
     }
 
@@ -51,6 +47,11 @@ public class GrpcBetRequestHandler extends BetServiceGrpc.BetServiceImplBase {
     @Override
     public void getBetsByTemplate(ProtoBet.Bet request, StreamObserver<ProtoBet.ResponseBet> responseObserver) {
         responseObserver.onNext(betService.getBets(request));
+        responseObserver.onCompleted();
+    }
+    @Override
+    public void addArgument(ProtoBet.Argument argument, StreamObserver<ProtoBet.ResponseMessage> responseObserver) {
+        responseObserver.onNext(argumentService.save(argument));
         responseObserver.onCompleted();
     }
 }

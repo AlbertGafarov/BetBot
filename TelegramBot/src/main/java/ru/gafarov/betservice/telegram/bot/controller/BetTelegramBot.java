@@ -9,9 +9,9 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.commands.scope.BotCommandScopeDefault;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.gafarov.betservice.telegram.bot.actions.Action;
+import ru.gafarov.betservice.telegram.bot.actions.DialogAction;
 import ru.gafarov.betservice.telegram.bot.components.BetCommands;
 import ru.gafarov.betservice.telegram.bot.config.ConfigMap;
-import ru.gafarov.betservice.telegram.bot.service.draftBet.DraftBetService;
 
 import javax.annotation.PostConstruct;
 import java.util.Arrays;
@@ -25,7 +25,7 @@ public class BetTelegramBot extends TelegramLongPollingBot {
 
     private final ConfigMap configMap;
     private final BetCommands betCommands;
-    private final DraftBetService draftBetService;
+    private final DialogAction dialogAction;
 
     @Override
     public void onUpdateReceived(Update update) {
@@ -38,7 +38,7 @@ public class BetTelegramBot extends TelegramLongPollingBot {
                 log.debug("Команда {} найдена", "/" + command[1]);
                 actions.get(command[1]).handle(update);
             } else {
-                draftBetService.createDraft(update);
+                dialogAction.readMessageAndAction(update);
             }
 
         } else if (update.hasCallbackQuery()) {

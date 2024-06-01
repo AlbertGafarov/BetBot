@@ -8,7 +8,8 @@ import ru.gafarov.bet.grpcInterface.BotMessageOuterClass.BotMessageType;
 import ru.gafarov.bet.grpcInterface.ProtoBet.*;
 import ru.gafarov.bet.grpcInterface.UserOuterClass.User;
 import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
-import ru.gafarov.betservice.telegram.bot.components.Buttons;
+import ru.gafarov.betservice.telegram.bot.components.buttons.BetButtons;
+import ru.gafarov.betservice.telegram.bot.components.buttons.Buttons;
 import ru.gafarov.betservice.telegram.bot.prettyPrint.PrettyPrinter;
 import ru.gafarov.betservice.telegram.bot.service.BetService;
 import ru.gafarov.betservice.telegram.bot.service.BotService;
@@ -48,7 +49,7 @@ public class NewStatusBetAction implements Action {
 
             BetSendMessage msgBetToOpponent = new BetSendMessage(bet.getOpponent().getChatId());
             msgBetToOpponent.setText(prettyPrinter.printBet(bet));
-            msgBetToOpponent.setReplyMarkup(Buttons.nextStatusesButtons(bet.getOpponentNextStatusesList(), bet.getId()));
+            msgBetToOpponent.setReplyMarkup(BetButtons.getBetButtons(bet, false));
             msgBetToOpponent.setDelTime(60_000);
             botService.sendAndSaveBet(msgBetToOpponent, bet.getOpponent(), BotMessageType.BET, bet);
 
@@ -63,7 +64,7 @@ public class NewStatusBetAction implements Action {
 
             BetSendMessage msgBetToInitiator = new BetSendMessage(bet.getInitiator().getChatId());
             msgBetToInitiator.setText(prettyPrinter.printBet(bet));
-            msgBetToInitiator.setReplyMarkup(Buttons.nextStatusesButtons(bet.getInitiatorNextStatusesList(), bet.getId()));
+            msgBetToInitiator.setReplyMarkup(BetButtons.getBetButtons(bet, true));
             msgBetToInitiator.setDelTime(60_000);
             botService.sendAndSaveBet(msgBetToInitiator, bet.getInitiator(), BotMessageType.BET, bet);
         }

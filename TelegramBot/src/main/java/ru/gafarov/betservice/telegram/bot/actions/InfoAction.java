@@ -9,7 +9,7 @@ import ru.gafarov.bet.grpcInterface.BotMessageOuterClass.BotMessageType;
 import ru.gafarov.bet.grpcInterface.Info.InfoType;
 import ru.gafarov.bet.grpcInterface.UserOuterClass.User;
 import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
-import ru.gafarov.betservice.telegram.bot.components.Buttons;
+import ru.gafarov.betservice.telegram.bot.components.buttons.Buttons;
 import ru.gafarov.betservice.telegram.bot.service.BotService;
 import ru.gafarov.betservice.telegram.bot.service.InfoService;
 import ru.gafarov.betservice.telegram.bot.service.UserService;

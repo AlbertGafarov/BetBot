@@ -8,8 +8,9 @@ import ru.gafarov.bet.grpcInterface.ProtoBet.Bets;
 import ru.gafarov.bet.grpcInterface.ProtoBet.ResponseMessage;
 import ru.gafarov.bet.grpcInterface.Rs.Status;
 import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
-import ru.gafarov.betservice.telegram.bot.components.Buttons;
+import ru.gafarov.betservice.telegram.bot.components.buttons.BetButtons;
 import ru.gafarov.betservice.telegram.bot.prettyPrint.PrettyPrinter;
+import ru.gafarov.betservice.telegram.bot.service.BotService;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,7 +28,7 @@ public class BetNotifier {
                     BetSendMessage sendMessage = new BetSendMessage(b.getInitiator().getChatId());
                     sendMessage.setUser(b.getInitiator());
                     sendMessage.setText("<b>Наступила дата окончания:</b>\n" + prettyPrinter.printBet(b));
-                    sendMessage.setReplyMarkup(Buttons.nextStatusesButtons(b.getInitiatorNextStatusesList(), b.getId()));
+                    sendMessage.setReplyMarkup(BetButtons.getBetButtons(b, true));
                     sendMessage.setBotMessageType(BotMessageType.BET_TIME_IS_UP);
                     return sendMessage;
                 }
@@ -37,7 +38,7 @@ public class BetNotifier {
                     BetSendMessage sendMessage = new BetSendMessage(b.getOpponent().getChatId());
                     sendMessage.setUser(b.getOpponent());
                     sendMessage.setText("<b>Наступила дата окончания:</b>\n" + prettyPrinter.printBet(b));
-                    sendMessage.setReplyMarkup(Buttons.nextStatusesButtons(b.getOpponentNextStatusesList(), b.getId()));
+                    sendMessage.setReplyMarkup(BetButtons.getBetButtons(b, false));
                     sendMessage.setBotMessageType(BotMessageType.BET_TIME_IS_UP);
                     return sendMessage;
                 }

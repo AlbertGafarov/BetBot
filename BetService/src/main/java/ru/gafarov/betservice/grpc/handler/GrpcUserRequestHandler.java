@@ -4,6 +4,7 @@ import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
 import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.stereotype.Component;
+import ru.gafarov.bet.grpcInterface.ProtoBet;
 import ru.gafarov.bet.grpcInterface.UserOuterClass;
 import ru.gafarov.bet.grpcInterface.UserServiceGrpc;
 import ru.gafarov.betservice.service.UserService;
@@ -24,6 +25,12 @@ public class GrpcUserRequestHandler extends UserServiceGrpc.UserServiceImplBase 
     @Override
     public void getUser(UserOuterClass.User request, StreamObserver<UserOuterClass.ResponseUser> responseObserver) {
         responseObserver.onNext(userService.getProtoUser(request));
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void changeChatStatus(UserOuterClass.User request, StreamObserver<UserOuterClass.ResponseUser> responseObserver) {
+        responseObserver.onNext(userService.changeChatStatus(request));
         responseObserver.onCompleted();
     }
 

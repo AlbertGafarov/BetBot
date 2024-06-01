@@ -3,7 +3,6 @@ package ru.gafarov.betservice.entity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import ru.gafarov.bet.grpcInterface.UserOuterClass;
 
 import javax.persistence.*;
 
@@ -23,7 +22,6 @@ public class User extends BaseEntity {
     @Column(name = "chat_id")
     private long chatId;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "chat_status")
-    private UserOuterClass.ChatStatus chatStatus;
+    @OneToOne(mappedBy = "user", fetch = FetchType.EAGER, orphanRemoval = true)
+    private DialogStatus dialogStatus;
 }
