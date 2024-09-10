@@ -30,8 +30,10 @@ public class UserService {
         ResponseUser responseMessage = grpcUserStub.getUser(User.newBuilder().setChatId(chatId).build());
         if (responseMessage.hasUser()) {
             return responseMessage.getUser();
-        }
+        } else if(Status.NOT_FOUND.equals(responseMessage.getStatus())) {
         return null;
+        }
+        throw new IllegalStateException("Получена неожиданная ошибка при поиске пользователя");
     }
 
     public User getUserById(long id) {

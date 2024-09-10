@@ -19,16 +19,16 @@ hibernate:
   show_sql: 'true'
 spring:
   liquibase:
-    url: jdbc:postgresql://localhost:5432/AG3D
+    url: jdbc:postgresql://localhost:5432/ag3d
     change-log: classpath:liquibase/db.changelog-master.xml
     default-schema: betbot
-    password: '123'
-    user: postgres
+    password: 'bet_admin'
+    user: bet_admin
   datasource:
-    password: '123456'
     driver-class-name: org.postgresql.Driver
-    username: messenger
-    url: jdbc:postgresql://localhost:5432/AG3D?currentSchema=betbot
+    username: bet_user
+    password: 'bet_user'
+    url: jdbc:postgresql://localhost:5432/ag3d?currentSchema=betbot
 
   jpa:
     show-sql: 'false'

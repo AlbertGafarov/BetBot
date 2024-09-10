@@ -1009,4 +1009,20 @@
     <changeSet id="1.0.94" author="albert.gafarov">
         <dropColumn tableName="users" columnName="chat_status"/>
     </changeSet>
+    <changeSet id="1.0.95" author="albert.gafarov">
+        <createTable tableName="message_with_key">
+            <column name="user_id" type="integer">
+                <constraints primaryKey="true"
+                             nullable="false"
+                             unique="true"
+                             foreignKeyName="message_with_key_user_fk"
+                             referencedTableName="users"
+                             referencedColumnNames="id"/>
+            </column>
+            <column name="tg_message_id" type="integer"/>
+            <column name="updated" type="timestamp" defaultValueDate="current_timestamp">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
 </databaseChangeLog>

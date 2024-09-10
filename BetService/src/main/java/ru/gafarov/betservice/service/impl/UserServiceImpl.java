@@ -53,6 +53,7 @@ public class UserServiceImpl implements UserService {
         dialogStatus.setUser(user);
         dialogStatusRepository.save(dialogStatus);
         return UserOuterClass.ResponseUser.newBuilder().setUser(UserOuterClass.User.newBuilder(protoUser).setCode(code)
+                .setId(user.getId())
                 .build()).build();
     }
 
