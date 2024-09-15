@@ -21,6 +21,7 @@ enum ChatStatus {
   WAIT_FINISH_DATE = 4;
   WAIT_APPROVE = 6;
   WAIT_ARGUMENT = 7;
+  WAIT_SECRET_KEY = 8;
 }
 
 message DialogStatus {
@@ -35,8 +36,14 @@ message ResponseUser {
   repeated User users = 3;
 }
 
+message MessageWithKey {
+  User user = 1;
+  int32 tgMessageId = 2;
+}
+
 service UserService {
   rpc addUser(User) returns (ResponseUser);
   rpc getUser(User) returns (ResponseUser);
   rpc changeChatStatus(User) returns (ResponseUser);
+  rpc saveMessageWithKey(MessageWithKey) returns (ResponseUser);
 }

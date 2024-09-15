@@ -33,7 +33,8 @@ public class BetTelegramBot extends TelegramLongPollingBot {
         if (update.hasMessage()) {
 
             String[] command = update.getMessage().getText().split("/");
-            log.info("Получено сообщение от {}. Разбито на части: {}", update.getMessage().getFrom().getId(), Arrays.toString(command));
+            log.info("Получено сообщение {} от {}. Разбито на части: {}", update.getUpdateId()
+                    , update.getMessage().getFrom().getId(), Arrays.toString(command));
             if (command.length > 1 && actions.containsKey(command[1])) {
                 log.debug("Команда {} найдена", "/" + command[1]);
                 actions.get(command[1]).handle(update);
@@ -43,7 +44,8 @@ public class BetTelegramBot extends TelegramLongPollingBot {
 
         } else if (update.hasCallbackQuery()) {
             String[] command = update.getCallbackQuery().getData().split("/");
-            log.info("Получена команда от {}. Разбита на части: {}", update.getCallbackQuery().getFrom().getId(), Arrays.toString(command));
+            log.info("Получена команда от {}. Разбита на части: {}", update.getCallbackQuery().getFrom().getId()
+                    , Arrays.toString(command));
             if (command.length > 1 && actions.containsKey(command[1])) {
                 log.debug("Команда {} найдена", "/" + command[1]);
                 actions.get(command[1]).callback(update);

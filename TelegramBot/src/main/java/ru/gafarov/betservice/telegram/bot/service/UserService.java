@@ -4,16 +4,17 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.stereotype.Service;
+import org.telegram.telegrambots.meta.api.methods.ForwardMessage;
+import org.telegram.telegrambots.meta.api.objects.Update;
+import ru.gafarov.bet.grpcInterface.*;
 import ru.gafarov.bet.grpcInterface.DrBet.DraftBet;
 import ru.gafarov.bet.grpcInterface.DrBet.ResponseDraftBet;
-import ru.gafarov.bet.grpcInterface.DrBetServiceGrpc;
 import ru.gafarov.bet.grpcInterface.Friend.Subscribe;
-import ru.gafarov.bet.grpcInterface.FriendServiceGrpc;
 import ru.gafarov.bet.grpcInterface.Rs.Status;
 import ru.gafarov.bet.grpcInterface.UserOuterClass.ChatStatus;
 import ru.gafarov.bet.grpcInterface.UserOuterClass.ResponseUser;
 import ru.gafarov.bet.grpcInterface.UserOuterClass.User;
-import ru.gafarov.bet.grpcInterface.UserServiceGrpc;
+import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +26,8 @@ public class UserService {
     private final FriendServiceGrpc.FriendServiceBlockingStub grpcFriendStub;
     private final UserServiceGrpc.UserServiceBlockingStub grpcUserStub;
     private final DrBetServiceGrpc.DrBetServiceBlockingStub grpcDrBetStub;
+    private final BotService botService;
+    private final BotMessageService botMessageService;
 
     public User getUser(long chatId) {
         ResponseUser responseMessage = grpcUserStub.getUser(User.newBuilder().setChatId(chatId).build());
@@ -46,6 +49,7 @@ public class UserService {
 
     public void setChatStatus(User protoUser, ChatStatus chatStatus) {
         setChatStatus(protoUser, chatStatus, null);
+        log.info("Для пользователя {} установлен статус {}", protoUser.getChatId(), chatStatus);
     }
 
     public void setChatStatus(User protoUser, ChatStatus chatStatus, Long betId) {
@@ -113,5 +117,22 @@ public class UserService {
         }
         log.error("Получена ошибка при попытке получения списка друзей");
         return null;
+    }
+
+    public void saveMessageWithKey(User user, Update update) {
+        ForwardMessage forwardMessage = new ForwardMessage();
+        forwardMessage.setChatId(user.getChatId());
+        forwardMessage.setMessageId(update.getMessage().getMessageId());
+        forwardMessage.setFromChatId(user.getChatId());
+        Integer id = botService.forward(forwardMessage);
+        UserOuterClass.MessageWithKey messageWithKey = UserOuterClass.MessageWithKey.newBuilder()
+                .setUser(user)
+                .setTgMessageId(id).build();
+        grpcUserStub.saveMessageWithKey(messageWithKey);
+        BetSendMessage sendInfoMessage = new BetSendMessage(user.getChatId());
+        sendInfoMessage.setText("Секретный ключ получен. Мы не сохраняем его у себя, поэтому запомните его или не удаляйте из этого чата");
+        sendInfoMessage.setDelTime(60_000);
+        botMessageService.deleteByBotMessageType(user, BotMessageOuterClass.BotMessageType.ENTER_SECRET_KEY);
+        botService.sendAndSave(sendInfoMessage, user, BotMessageOuterClass.BotMessageType.SECRET_KEY_SAVED, true);
     }
 }

@@ -1,5 +1,6 @@
 package ru.gafarov.betservice.telegram.bot.service;
 
+import org.telegram.telegrambots.meta.api.methods.ForwardMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -54,4 +55,6 @@ public interface BotService {
     void edit(EditMessageText editMessageText);
 
     void edit(EditMessageReplyMarkup editMessageReplyMarkup);
+
+    Integer forward(ForwardMessage forwardMessage);
 }

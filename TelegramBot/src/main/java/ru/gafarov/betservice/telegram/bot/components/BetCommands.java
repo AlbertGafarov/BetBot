@@ -28,6 +28,7 @@ public class BetCommands {
     private final Action infoAction;
     private final Action argumentAction;
     private final Action cancelAction;
+    private final Action setSecretKeyAction;
     @Getter
     private final Map<String, String> botCommands = new HashMap<>(){{
         put("/info", "Информация о боте");
@@ -38,6 +39,7 @@ public class BetCommands {
         put("/bets", "Мои споры");
         put("/reference", "Моя ссылка");
         put("/friends", "Мои друзья");
+        put("/setsecretkey", "Указать ключ шифрования");
     }};
 
     public List<BotCommand> getBotCommandList(){
@@ -60,6 +62,7 @@ public class BetCommands {
             put("close", closeAction);
             put("argument", argumentAction);
             put("cancel", cancelAction);
+            put("setsecretkey", setSecretKeyAction);
         }};
     }
 }

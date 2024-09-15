@@ -63,6 +63,8 @@ enum BotMessageType {
   INFO_HOW_CREATE_BET = 28;
   INFO_ABOUT_PERSONAL_DATA = 29;
   ADD_ARGUMENT = 33;
+  ENTER_SECRET_KEY = 34;
+  SECRET_KEY_SAVED = 35;
 }
 
 service BotMessageService {

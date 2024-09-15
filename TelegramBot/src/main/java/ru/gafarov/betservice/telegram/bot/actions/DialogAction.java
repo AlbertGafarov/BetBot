@@ -67,6 +67,9 @@ public class DialogAction {
         } else if (ChatStatus.WAIT_ARGUMENT.equals(userChatStatus)) {
             betService.addArgument(user, text);
             userService.setChatStatus(user, ChatStatus.START);
+        } else if (ChatStatus.WAIT_SECRET_KEY.equals(userChatStatus)) {
+            userService.saveMessageWithKey(user, update);
+            userService.setChatStatus(user, ChatStatus.START);
         }
         botService.delete(update);
     }

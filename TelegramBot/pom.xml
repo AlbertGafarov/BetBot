@@ -24,11 +24,14 @@
         <spring.boot.version>2.4.2</spring.boot.version>
     </properties>
     <dependencies>
+        <!-- https://mvnrepository.com/artifact/org.telegram/telegrambots -->
         <dependency>
             <groupId>org.telegram</groupId>
             <artifactId>telegrambots</artifactId>
+<!--            <version>6.9.7.1</version>-->
             <version>6.5.0</version>
         </dependency>
+
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
