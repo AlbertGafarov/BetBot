@@ -26,7 +26,11 @@ public class ArgumentServiceImpl implements ArgumentService {
     public ProtoBet.ResponseMessage save(ProtoBet.Argument protoArgument) {
         Bet bet = betService.getBet(protoArgument.getAuthor().getId(), protoArgument.getAuthor().getDialogStatus().getBetId());
         Argument argument = ArgumentConverter.toArgument(protoArgument, bet);
-        if (true // Надо шифровать аргумент
+        if (true // TODO: Надо уметь отключать и включать шифрование по дополнительному меню Шифрование:
+            // [ввести ключ шифрования/ заменить ключ шифрования], отключить шифрование/включить шифрование.
+                // если у обоих выключено шифрование, то не шифровать вообще,
+            // если у одного включено, а у второго выключено, то шифровать
+            // если шифровать парный ключ стандартным ключом то спаливается парный ключ - это надо решить.
         ) {
             User author;
             User receiver;
