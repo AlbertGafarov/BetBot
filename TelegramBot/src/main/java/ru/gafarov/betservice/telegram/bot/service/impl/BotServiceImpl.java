@@ -9,12 +9,13 @@ import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.gafarov.bet.grpcInterface.BotMessageOuterClass.BotMessage;
 import ru.gafarov.bet.grpcInterface.BotMessageOuterClass.BotMessageType;
 import ru.gafarov.bet.grpcInterface.DrBet.DraftBet;
-import ru.gafarov.bet.grpcInterface.ProtoBet.*;
+import ru.gafarov.bet.grpcInterface.ProtoBet.Bet;
 import ru.gafarov.bet.grpcInterface.UserOuterClass.User;
 import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
 import ru.gafarov.betservice.telegram.bot.controller.BetTelegramBot;
@@ -176,5 +177,20 @@ public class BotServiceImpl implements BotService {
             log.error(e.getLocalizedMessage());
             return null;
         }
+    }
+
+    @Override
+    public String getTextFromTgMessageById(long chatId, int tgMessageId) {
+        ForwardMessage forwardMessage = new ForwardMessage(String.valueOf(chatId), String.valueOf(chatId), tgMessageId);
+        String secret;
+        try {
+            Message message = bot.execute(forwardMessage);
+            secret = message.getText();
+            DeleteMessage deleteMessage = new DeleteMessage(String.valueOf(chatId), message.getMessageId());
+            bot.execute(deleteMessage);
+        } catch (TelegramApiException e) {
+            throw new RuntimeException(e);
+        }
+        return secret;
     }
 }

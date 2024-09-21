@@ -20,7 +20,7 @@ public class MessageWithKey {
     private Long userId;
 
     @Column(name = "tg_message_id")
-    private Long tgMessageId; // Номер сообщения в чате, в котором хранится секретный код
+    private Integer tgMessageId; // Номер сообщения в чате, в котором хранится секретный код
 
     @LastModifiedDate
     @Column(name = "updated")

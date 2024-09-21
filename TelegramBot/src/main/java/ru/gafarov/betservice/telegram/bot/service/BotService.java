@@ -4,10 +4,7 @@ import org.telegram.telegrambots.meta.api.methods.ForwardMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import ru.gafarov.bet.grpcInterface.BotMessageOuterClass;
-import ru.gafarov.bet.grpcInterface.DrBet;
-import ru.gafarov.bet.grpcInterface.ProtoBet;
-import ru.gafarov.bet.grpcInterface.UserOuterClass;
+import ru.gafarov.bet.grpcInterface.*;
 import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
 
 import java.util.Collection;
@@ -57,4 +54,6 @@ public interface BotService {
     void edit(EditMessageReplyMarkup editMessageReplyMarkup);
 
     Integer forward(ForwardMessage forwardMessage);
+
+    String getTextFromTgMessageById(long chatId, int tgMessageId);
 }

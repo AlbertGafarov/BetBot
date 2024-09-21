@@ -26,6 +26,7 @@ public class UserService {
     private final FriendServiceGrpc.FriendServiceBlockingStub grpcFriendStub;
     private final UserServiceGrpc.UserServiceBlockingStub grpcUserStub;
     private final DrBetServiceGrpc.DrBetServiceBlockingStub grpcDrBetStub;
+    private final SecretKeyServiceGrpc.SecretKeyServiceBlockingStub grpcSecretKeyStub;
     private final BotService botService;
     private final BotMessageService botMessageService;
 
@@ -125,10 +126,13 @@ public class UserService {
         forwardMessage.setMessageId(update.getMessage().getMessageId());
         forwardMessage.setFromChatId(user.getChatId());
         Integer id = botService.forward(forwardMessage);
-        UserOuterClass.MessageWithKey messageWithKey = UserOuterClass.MessageWithKey.newBuilder()
+        SecretKey.MessageWithKey messageWithKey = SecretKey.MessageWithKey.newBuilder()
                 .setUser(user)
                 .setTgMessageId(id).build();
-        grpcUserStub.saveMessageWithKey(messageWithKey);
+        Rs.Response response = grpcSecretKeyStub.saveMessageWithKey(messageWithKey);
+        if (!Status.SUCCESS.equals(response.getStatus())) {
+            log.error("Получена ошибка при попытке сохранить номер сообщения");
+        }
         BetSendMessage sendInfoMessage = new BetSendMessage(user.getChatId());
         sendInfoMessage.setText("Секретный ключ получен. Мы не сохраняем его у себя, поэтому запомните его или не удаляйте из этого чата");
         sendInfoMessage.setDelTime(60_000);
