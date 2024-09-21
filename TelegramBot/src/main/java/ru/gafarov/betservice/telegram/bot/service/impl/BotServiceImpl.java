@@ -170,9 +170,9 @@ public class BotServiceImpl implements BotService {
     }
 
     @Override
-    public Integer forward(ForwardMessage forwardMessage) {
+    public Message forward(ForwardMessage forwardMessage) {
         try {
-            return bot.execute(forwardMessage).getMessageId();
+            return bot.execute(forwardMessage);
         } catch (TelegramApiException e) {
             log.error(e.getLocalizedMessage());
             return null;

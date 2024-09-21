@@ -13,10 +13,12 @@ import ru.gafarov.betservice.service.MessageWithKeyService;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class MessageWithKeyServiceImpl implements MessageWithKeyService {
+    private final static String STANDARD_KEY = "0123456789";
     private final MessageWithKeyRepository messageWithKeyRepository;
     private final SecretKeyServiceGrpc.SecretKeyServiceBlockingStub grpcStub;
     private final Map<Long, String> secretMap = new HashMap<>();
@@ -33,18 +35,23 @@ public class MessageWithKeyServiceImpl implements MessageWithKeyService {
 
     @Override
     public void addSecret(Long userId, String secret) {
+        //TODO: Надо перешифровывать новым ключом парные ключи всех подписок
         secretMap.put(userId, secret);
     }
 
     @Override
     public String getSecret(User user) {
-        return secretMap.computeIfAbsent(user.getChatId(), id -> {
-            MessageWithKey messageWithKey = messageWithKeyRepository.getByUserId(user.getId());
-            SecretKey.ResponseSecretKey message = grpcStub.getSecretMessage(SecretKey.MessageWithKey.newBuilder()
-                    .setTgMessageId(messageWithKey.getTgMessageId())
-                    .setUser(UserConverter.toProtoUser(user))
-                    .build());
-            return message.getMessagwWithKey().getSecretKey();
+        return secretMap.computeIfAbsent(user.getId(), id -> {
+            Optional<MessageWithKey> messageWithKeyOptional = messageWithKeyRepository.getByUserId(user.getId());
+            if (messageWithKeyOptional.isEmpty()) {
+                return STANDARD_KEY;
+            } else {
+                SecretKey.ResponseSecretKey message = grpcStub.getSecretMessage(SecretKey.MessageWithKey.newBuilder()
+                        .setTgMessageId(messageWithKeyOptional.get().getTgMessageId())
+                        .setUser(UserConverter.toProtoUser(user))
+                        .build());
+                return message.getMessagwWithKey().getSecretKey();
+            }
         });
     }
 }

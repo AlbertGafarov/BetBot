@@ -1025,4 +1025,14 @@
             </column>
         </createTable>
     </changeSet>
+    <changeSet id="1.0.96" author="albert.gafarov">
+        <addColumn tableName="subscribe">
+            <column name="secret_key" type="varchar(256)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="1.0.97" author="albert.gafarov">
+        <addColumn tableName="argument">
+            <column name="encrypted" type="boolean" defaultValue="false"/>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

@@ -7,11 +7,13 @@ import ru.gafarov.bet.grpcInterface.Friend;
 import ru.gafarov.bet.grpcInterface.Rs;
 import ru.gafarov.betservice.entity.Bet;
 import ru.gafarov.betservice.entity.Subscribe;
+import ru.gafarov.betservice.entity.User;
 import ru.gafarov.betservice.model.Status;
 import ru.gafarov.betservice.repository.SubscribeRepository;
 import ru.gafarov.betservice.service.SubscribeService;
 
 import java.time.LocalDateTime;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Slf4j
@@ -98,5 +100,17 @@ public class SubscribeServiceImpl implements SubscribeService {
             e.printStackTrace();
             return Rs.Response.newBuilder().setStatus(Rs.Status.ERROR).build();
         }
+    }
+
+    @Override
+    public Subscribe getSubscribe(User subscriber, User subscribed) {
+        Optional<Subscribe> subscribe = subscribeRepository
+                .findBySubscriberIdAndSubscribedId(subscriber.getId(), subscribed.getId());
+        return subscribe.get();
+    }
+
+    @Override
+    public void update(Subscribe subscribe) {
+        subscribeRepository.save(subscribe);
     }
 }

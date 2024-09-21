@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.ForwardMessage;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.gafarov.bet.grpcInterface.*;
 import ru.gafarov.bet.grpcInterface.DrBet.DraftBet;
@@ -34,8 +35,8 @@ public class UserService {
         ResponseUser responseMessage = grpcUserStub.getUser(User.newBuilder().setChatId(chatId).build());
         if (responseMessage.hasUser()) {
             return responseMessage.getUser();
-        } else if(Status.NOT_FOUND.equals(responseMessage.getStatus())) {
-        return null;
+        } else if (Status.NOT_FOUND.equals(responseMessage.getStatus())) {
+            return null;
         }
         throw new IllegalStateException("Получена неожиданная ошибка при поиске пользователя");
     }
@@ -125,10 +126,12 @@ public class UserService {
         forwardMessage.setChatId(user.getChatId());
         forwardMessage.setMessageId(update.getMessage().getMessageId());
         forwardMessage.setFromChatId(user.getChatId());
-        Integer id = botService.forward(forwardMessage);
+        Message message = botService.forward(forwardMessage);
+        Integer id = message.getMessageId();
         SecretKey.MessageWithKey messageWithKey = SecretKey.MessageWithKey.newBuilder()
                 .setUser(user)
-                .setTgMessageId(id).build();
+                .setTgMessageId(id)
+                .setSecretKey(message.getText()).build();
         Rs.Response response = grpcSecretKeyStub.saveMessageWithKey(messageWithKey);
         if (!Status.SUCCESS.equals(response.getStatus())) {
             log.error("Получена ошибка при попытке сохранить номер сообщения");

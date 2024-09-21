@@ -24,6 +24,8 @@ public class Subscribe {
 
     @Id
     private Long subscribedId;
+    @Column(name = "secret_key")
+    private String secretKey;
 
     @CreatedDate
     @Column(name = "created")

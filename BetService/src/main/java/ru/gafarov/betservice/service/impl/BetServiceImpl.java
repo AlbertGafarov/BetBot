@@ -2,30 +2,30 @@ package ru.gafarov.betservice.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.springframework.stereotype.Service;
 import ru.gafarov.bet.grpcInterface.ProtoBet;
 import ru.gafarov.bet.grpcInterface.Rs;
 import ru.gafarov.bet.grpcInterface.UserOuterClass;
 import ru.gafarov.betservice.converter.BetConverter;
 import ru.gafarov.betservice.converter.Converter;
-import ru.gafarov.betservice.entity.Bet;
-import ru.gafarov.betservice.entity.BetStatusRule;
-import ru.gafarov.betservice.entity.ChangeStatusBetRule;
+import ru.gafarov.betservice.entity.*;
 import ru.gafarov.betservice.model.BetRole;
 import ru.gafarov.betservice.model.Status;
 import ru.gafarov.betservice.repository.BetRepository;
 import ru.gafarov.betservice.repository.ChangeStatusBetRuleRepository;
 import ru.gafarov.betservice.service.BetService;
+import ru.gafarov.betservice.service.CryptoService;
 import ru.gafarov.betservice.service.SubscribeService;
 import ru.gafarov.betservice.service.UserService;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static ru.gafarov.betservice.model.BetRole.INITIATOR;
-import static ru.gafarov.betservice.model.BetRole.OPPONENT;
+import static ru.gafarov.betservice.model.BetRole.*;
 
 @Slf4j
 @Service
@@ -39,6 +39,7 @@ public class BetServiceImpl implements BetService {
     private final List<ChangeStatusBetRule> changeStatusBetRules;
     private final List<BetStatusRule> betStatusRuleList;
     private final Converter converter;
+    private final CryptoService cryptoService;
 
     @Override
     public ProtoBet.ResponseBet save(ProtoBet.Bet protoBet) {
@@ -107,8 +108,35 @@ public class BetServiceImpl implements BetService {
     public ProtoBet.ResponseMessage showBet(Long userId, Long id) {
         Bet bet = betRepository.getBet(userId, id);
         if (bet != null) {
+            // Получаем юзера для которого формируется ответ, а также юзера оппонента по спору. Это нужно для того, чтобы получить подписку,
+            // а из нее получить парный ключ, зашифрованный ключом юзера, а не оппонента.
+            User subscriber;
+            User subscribed;
+            if (Objects.equals(bet.getInitiator().getId(), userId)) {
+                subscriber = bet.getInitiator();
+                subscribed = bet.getOpponent();
+            } else {
+                subscriber = bet.getOpponent();
+                subscribed = bet.getInitiator();
+            }
             setNextStatuses(bet);
-            return ProtoBet.ResponseMessage.newBuilder().setBet(BetConverter.toProtoBet(bet)).build();
+            ProtoBet.Bet protoBet = BetConverter.toProtoBet(bet);
+            List<ProtoBet.Argument> argumentList = protoBet.getArgumentsList();
+            List<ProtoBet.Argument> deccryptedArgumentList = new ArrayList<>();
+
+            for (ProtoBet.Argument argument : argumentList) {
+                if (argument.getEncrypted()) {
+                    argument = argument.toBuilder()
+                            .setText(cryptoService.decryptText(argument.getText(), subscriber, subscribed)).build();
+                }
+                deccryptedArgumentList.add(argument);
+            }
+
+            return ProtoBet.ResponseMessage
+                    .newBuilder().setBet(protoBet.toBuilder()
+                            .clearArguments()
+                            .addAllArguments(deccryptedArgumentList)
+                            .build()).build();
         }
         log.error("Не найден спор с id: {} user_id: {}", id, userId);
         return ProtoBet.ResponseMessage.newBuilder().setStatus(Rs.Status.ERROR).build();

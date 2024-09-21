@@ -9,14 +9,12 @@ import ru.gafarov.bet.grpcInterface.ProtoBet;
 import ru.gafarov.bet.grpcInterface.UserOuterClass;
 import ru.gafarov.betservice.service.ArgumentService;
 import ru.gafarov.betservice.service.BetService;
-import ru.gafarov.betservice.service.UserService;
 
 @Component
 @GrpcService
 @RequiredArgsConstructor
 public class GrpcBetRequestHandler extends BetServiceGrpc.BetServiceImplBase {
 
-    private final UserService userService;
     private final BetService betService;
     private final ArgumentService argumentService;
 

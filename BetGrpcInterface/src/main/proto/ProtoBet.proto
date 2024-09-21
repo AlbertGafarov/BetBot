@@ -71,7 +71,8 @@ message Argument {
   Bet bet = 1;
   string text = 2;
   User author = 3;
-  google.protobuf.Timestamp timestamp = 4;
+  bool encrypted = 4;
+  google.protobuf.Timestamp timestamp = 5;
 }
 
 service BetService {

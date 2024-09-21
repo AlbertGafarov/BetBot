@@ -46,6 +46,7 @@ public class ArgumentConverter {
                 .setTimestamp(DateTimeConverter.toTimestamp(argument.getCreated()))
                 .setAuthor(UserConverter.toProtoUser(author))
                 .setText(argument.getText())
+                .setEncrypted(argument.isEncrypted())
                 .build();
     }
 }

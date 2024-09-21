@@ -12,7 +12,7 @@ import ru.gafarov.betservice.model.BetRole;
 import ru.gafarov.betservice.repository.ArgumentRepository;
 import ru.gafarov.betservice.service.ArgumentService;
 import ru.gafarov.betservice.service.BetService;
-import ru.gafarov.betservice.service.MessageWithKeyService;
+import ru.gafarov.betservice.service.CryptoService;
 
 @Service
 @RequiredArgsConstructor
@@ -20,21 +20,28 @@ public class ArgumentServiceImpl implements ArgumentService {
 
     private final ArgumentRepository argumentRepository;
     private final BetService betService;
-    private final MessageWithKeyService messageWithKeyService;
+    private final CryptoService cryptoService;
 
     @Override
     public ProtoBet.ResponseMessage save(ProtoBet.Argument protoArgument) {
         Bet bet = betService.getBet(protoArgument.getAuthor().getId(), protoArgument.getAuthor().getDialogStatus().getBetId());
         Argument argument = ArgumentConverter.toArgument(protoArgument, bet);
-        User user = argument.getBetRole().equals(BetRole.INITIATOR) ? argument.getBet().getInitiator() : argument.getBet().getOpponent();
-        System.out.println("1 " + user);
-        try {
-
-        argument.setText(messageWithKeyService.getSecret(user) + argument.getText());
-        } catch (NullPointerException e) {
-            e.printStackTrace();
+        if (true // Надо шифровать аргумент
+        ) {
+            User author;
+            User receiver;
+            if (argument.getBetRole().equals(BetRole.INITIATOR)) {
+                author = argument.getBet().getInitiator();
+                receiver = argument.getBet().getOpponent();
+            } else {
+                author = argument.getBet().getOpponent();
+                receiver = argument.getBet().getInitiator();
+            }
+            argument.setText(cryptoService.encryptText(argument.getText(), author, receiver));
+            argument.setEncrypted(true);
         }
         Argument result = argumentRepository.save(argument);
+
         if (result.getId() != 0) {
             return betService.showBet(protoArgument.getAuthor().getId(), bet.getId());
         } else {
