@@ -2,6 +2,7 @@ package ru.gafarov.betservice.grpc.handler;
 
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.stereotype.Component;
 import ru.gafarov.bet.grpcInterface.BetServiceGrpc;
@@ -36,6 +37,7 @@ public class GrpcBetRequestHandler extends BetServiceGrpc.BetServiceImplBase {
         responseObserver.onCompleted();
     }
 
+    @SneakyThrows
     @Override
     public void getBet(ProtoBet.Bet request, StreamObserver<ProtoBet.ResponseMessage> responseObserver) {
         responseObserver.onNext(betService.showBet(request));
@@ -47,6 +49,8 @@ public class GrpcBetRequestHandler extends BetServiceGrpc.BetServiceImplBase {
         responseObserver.onNext(betService.getBets(request));
         responseObserver.onCompleted();
     }
+
+    @SneakyThrows
     @Override
     public void addArgument(ProtoBet.Argument argument, StreamObserver<ProtoBet.ResponseMessage> responseObserver) {
         responseObserver.onNext(argumentService.save(argument));

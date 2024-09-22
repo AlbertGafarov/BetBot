@@ -2,30 +2,38 @@ package ru.gafarov.betservice.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 import org.springframework.stereotype.Service;
 import ru.gafarov.bet.grpcInterface.ProtoBet;
 import ru.gafarov.bet.grpcInterface.Rs;
 import ru.gafarov.bet.grpcInterface.UserOuterClass;
 import ru.gafarov.betservice.converter.BetConverter;
 import ru.gafarov.betservice.converter.Converter;
-import ru.gafarov.betservice.entity.*;
+import ru.gafarov.betservice.entity.Bet;
+import ru.gafarov.betservice.entity.BetStatusRule;
+import ru.gafarov.betservice.entity.ChangeStatusBetRule;
+import ru.gafarov.betservice.entity.User;
 import ru.gafarov.betservice.model.BetRole;
 import ru.gafarov.betservice.model.Status;
 import ru.gafarov.betservice.repository.BetRepository;
 import ru.gafarov.betservice.repository.ChangeStatusBetRuleRepository;
 import ru.gafarov.betservice.service.BetService;
-import ru.gafarov.betservice.service.CryptoService;
+import ru.gafarov.betservice.service.MessageWithKeyService;
 import ru.gafarov.betservice.service.SubscribeService;
 import ru.gafarov.betservice.service.UserService;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static ru.gafarov.betservice.model.BetRole.*;
+import static ru.gafarov.betservice.model.BetRole.INITIATOR;
+import static ru.gafarov.betservice.model.BetRole.OPPONENT;
 
 @Slf4j
 @Service
@@ -39,7 +47,7 @@ public class BetServiceImpl implements BetService {
     private final List<ChangeStatusBetRule> changeStatusBetRules;
     private final List<BetStatusRule> betStatusRuleList;
     private final Converter converter;
-    private final CryptoService cryptoService;
+    private final MessageWithKeyService messageWithKeyService;
 
     @Override
     public ProtoBet.ResponseBet save(ProtoBet.Bet protoBet) {
@@ -105,7 +113,7 @@ public class BetServiceImpl implements BetService {
     }
 
     @Override
-    public ProtoBet.ResponseMessage showBet(Long userId, Long id) {
+    public ProtoBet.ResponseMessage showBet(Long userId, Long id) throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         Bet bet = betRepository.getBet(userId, id);
         if (bet != null) {
             // Получаем юзера для которого формируется ответ, а также юзера оппонента по спору. Это нужно для того, чтобы получить подписку,
@@ -126,8 +134,8 @@ public class BetServiceImpl implements BetService {
 
             for (ProtoBet.Argument argument : argumentList) {
                 if (argument.getEncrypted()) {
-                    argument = argument.toBuilder()
-                            .setText(cryptoService.decryptText(argument.getText(), subscriber, subscribed)).build();
+                    argument = argument.toBuilder().setText(CryptoUtils.decryptText(argument.getText()
+                                    , messageWithKeyService.getPairSecret(subscriber, subscribed))).build();
                 }
                 deccryptedArgumentList.add(argument);
             }
@@ -143,7 +151,7 @@ public class BetServiceImpl implements BetService {
     }
 
     @Override
-    public ProtoBet.ResponseMessage showBet(ProtoBet.Bet protoBet) {
+    public ProtoBet.ResponseMessage showBet(ProtoBet.Bet protoBet) throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         return showBet(protoBet.getInitiator().getId(), protoBet.getId());
     }
 

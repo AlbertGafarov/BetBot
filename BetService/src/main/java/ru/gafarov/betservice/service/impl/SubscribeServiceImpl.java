@@ -13,7 +13,7 @@ import ru.gafarov.betservice.repository.SubscribeRepository;
 import ru.gafarov.betservice.service.SubscribeService;
 
 import java.time.LocalDateTime;
-import java.util.NoSuchElementException;
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -112,5 +112,10 @@ public class SubscribeServiceImpl implements SubscribeService {
     @Override
     public void update(Subscribe subscribe) {
         subscribeRepository.save(subscribe);
+    }
+
+    @Override
+    public List<Subscribe> getSubscribes(Long id) {
+        return subscribeRepository.findAllBySubscriberId(id);
     }
 }

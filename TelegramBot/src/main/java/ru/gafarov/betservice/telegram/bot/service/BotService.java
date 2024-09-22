@@ -27,7 +27,7 @@ public interface BotService {
      * @param user           пользователь, которому оправлено сообщение
      * @param botMessageType тип сообщения пользователю
      **/
-    void sendAndSave(BetSendMessage sendMessage, UserOuterClass.User user, BotMessageOuterClass.BotMessageType botMessageType);
+    int sendAndSave(BetSendMessage sendMessage, UserOuterClass.User user, BotMessageOuterClass.BotMessageType botMessageType);
 
     /**
      * Отправить сообщение и сохранить информацию о нем в БД

@@ -22,4 +22,10 @@ public class GrpcSecretKeyRequestHandler extends SecretKeyServiceGrpc.SecretKeyS
         responseObserver.onNext(secretKeyService.getSecretMessage(request));
         responseObserver.onCompleted();
     }
+    // Сохранить автосгенерированный код в переписке с юзером
+    @Override
+    public void sendAutoGenerateKeyToUser(SecretKey.MessageWithKey request, StreamObserver<SecretKey.ResponseSecretKey> responseObserver) {
+        responseObserver.onNext(secretKeyService.sendAutoGenerateKeyToUser(request));
+        responseObserver.onCompleted();
+    }
 }

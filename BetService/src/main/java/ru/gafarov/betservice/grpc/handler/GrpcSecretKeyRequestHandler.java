@@ -2,6 +2,7 @@ package ru.gafarov.betservice.grpc.handler;
 
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.stereotype.Component;
 import ru.gafarov.bet.grpcInterface.Rs;
@@ -18,6 +19,7 @@ public class GrpcSecretKeyRequestHandler extends SecretKeyServiceGrpc.SecretKeyS
 
     // Сохранить номер сообщения с секретным кодом
     @Override
+    @SneakyThrows
     public void saveMessageWithKey(SecretKey.MessageWithKey request, StreamObserver<Rs.Response> responseObserver) {
         responseObserver.onNext(messageWithKeyService.saveMessageWithKey(request));
         responseObserver.onCompleted();

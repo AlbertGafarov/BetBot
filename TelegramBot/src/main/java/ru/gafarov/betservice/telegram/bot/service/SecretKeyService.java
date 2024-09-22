@@ -2,8 +2,10 @@ package ru.gafarov.betservice.telegram.bot.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.gafarov.bet.grpcInterface.BotMessageOuterClass;
 import ru.gafarov.bet.grpcInterface.SecretKey;
 import ru.gafarov.bet.grpcInterface.UserOuterClass;
+import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
 
 @Service
 @RequiredArgsConstructor
@@ -22,5 +24,13 @@ public class SecretKeyService {
                         .build())
                 .setStatusValue(0)
                 .build();
+    }
+
+    public SecretKey.ResponseSecretKey sendAutoGenerateKeyToUser(SecretKey.MessageWithKey messageWithKey) {
+        BetSendMessage betSendMessage = new BetSendMessage(messageWithKey.getUser().getChatId());
+        betSendMessage.setText(messageWithKey.getSecretKey());
+        int tgMessageId = botService.sendAndSave(betSendMessage, messageWithKey.getUser(), BotMessageOuterClass.BotMessageType.SECRET_KEY);
+        return SecretKey.ResponseSecretKey.newBuilder()
+                .setStatusValue(1).setMessagwWithKey(messageWithKey.toBuilder().setTgMessageId(tgMessageId).build()).build();
     }
 }

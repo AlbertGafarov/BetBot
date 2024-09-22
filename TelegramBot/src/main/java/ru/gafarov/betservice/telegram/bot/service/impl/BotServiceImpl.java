@@ -63,8 +63,8 @@ public class BotServiceImpl implements BotService {
     }
 
     @Override
-    public void sendAndSave(BetSendMessage sendMessage, User user, BotMessageType botMessageType) {
-        sendAndSave(sendMessage, user, botMessageType, null, null, null);
+    public int sendAndSave(BetSendMessage sendMessage, User user, BotMessageType botMessageType) {
+        return sendAndSave(sendMessage, user, botMessageType, null, null, null);
     }
 
     @Override
@@ -92,7 +92,7 @@ public class BotServiceImpl implements BotService {
         sendAndSave(sendMessage, user, botMessageType, null, null, friend);
     }
 
-    private void sendAndSave(BetSendMessage sendMessage, User user, BotMessageType botMessageType, DraftBet draftBet
+    private int sendAndSave(BetSendMessage sendMessage, User user, BotMessageType botMessageType, DraftBet draftBet
             , Bet bet, User friend) {
         sendMessage.setParseMode(ParseMode.HTML);
         try {
@@ -116,8 +116,9 @@ public class BotServiceImpl implements BotService {
                 deleteMessage.setChatId(sendMessage.getChatId());
                 deleteMessageService.deleteAsync(deleteMessage, sendMessage.getDelTime());
             }
+        return id;
         } catch (TelegramApiException e) {
-            log.error(e.getLocalizedMessage());
+            throw new RuntimeException(e);
         }
     }
 

@@ -120,6 +120,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public User getUser(Long id) {
+        return userRepository.findById(id).get();
+    }
+
+    @Override
     public UserOuterClass.ResponseUser findFriend(Friend.Subscribe subscribe) {
         Optional<User> optional = userRepository.findFriend(subscribe.getSubscriber().getId()
                 , subscribe.getSubscribed().getId()

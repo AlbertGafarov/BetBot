@@ -12,7 +12,13 @@ import ru.gafarov.betservice.model.BetRole;
 import ru.gafarov.betservice.repository.ArgumentRepository;
 import ru.gafarov.betservice.service.ArgumentService;
 import ru.gafarov.betservice.service.BetService;
-import ru.gafarov.betservice.service.CryptoService;
+import ru.gafarov.betservice.service.MessageWithKeyService;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 
 @Service
 @RequiredArgsConstructor
@@ -20,10 +26,10 @@ public class ArgumentServiceImpl implements ArgumentService {
 
     private final ArgumentRepository argumentRepository;
     private final BetService betService;
-    private final CryptoService cryptoService;
+    private final MessageWithKeyService messageWithKeyService;
 
     @Override
-    public ProtoBet.ResponseMessage save(ProtoBet.Argument protoArgument) {
+    public ProtoBet.ResponseMessage save(ProtoBet.Argument protoArgument) throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         Bet bet = betService.getBet(protoArgument.getAuthor().getId(), protoArgument.getAuthor().getDialogStatus().getBetId());
         Argument argument = ArgumentConverter.toArgument(protoArgument, bet);
         if (true // TODO: Надо уметь отключать и включать шифрование по дополнительному меню Шифрование:
@@ -41,7 +47,7 @@ public class ArgumentServiceImpl implements ArgumentService {
                 author = argument.getBet().getOpponent();
                 receiver = argument.getBet().getInitiator();
             }
-            argument.setText(cryptoService.encryptText(argument.getText(), author, receiver));
+            argument.setText(CryptoUtils.encryptText(argument.getText(), messageWithKeyService.getPairSecret(author, receiver)));
             argument.setEncrypted(true);
         }
         Argument result = argumentRepository.save(argument);

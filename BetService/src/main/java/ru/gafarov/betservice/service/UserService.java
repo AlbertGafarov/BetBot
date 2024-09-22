@@ -12,4 +12,6 @@ public interface UserService {
     UserOuterClass.ResponseUser getProtoUser(UserOuterClass.User protoUser);
     UserOuterClass.ResponseUser changeChatStatus(UserOuterClass.User request);
     UserOuterClass.ResponseUser getSubscribes(UserOuterClass.User protoUser);
+
+    User getUser(Long id);
 }
