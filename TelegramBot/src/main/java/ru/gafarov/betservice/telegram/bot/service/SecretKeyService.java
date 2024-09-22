@@ -18,19 +18,22 @@ public class SecretKeyService {
         String secret = botService.getTextFromTgMessageById(user.getChatId(), messageWithKey.getTgMessageId());
 
         return SecretKey.ResponseSecretKey.newBuilder()
-                .setMessagwWithKey(SecretKey.MessageWithKey.newBuilder()
-                        .setSecretKey(secret)
-                        .setUser(user)
-                        .build())
+                .setMessageWithKey(SecretKey.MessageWithKey.newBuilder()
+                        .setSecretKey(secret).setUser(user).build())
                 .setStatusValue(0)
                 .build();
     }
 
     public SecretKey.ResponseSecretKey sendAutoGenerateKeyToUser(SecretKey.MessageWithKey messageWithKey) {
+        BetSendMessage infoMessage = new BetSendMessage(messageWithKey.getUser().getChatId());
+        infoMessage.setText("Для Вас сгенерирован секретный ключ. Это потребовалось сделать, т.к. Ваш оппонент использует шифрование.");
+        botService.sendAndSave(infoMessage, messageWithKey.getUser(), BotMessageOuterClass.BotMessageType.SECRET_KEY_SAVED);
+
         BetSendMessage betSendMessage = new BetSendMessage(messageWithKey.getUser().getChatId());
         betSendMessage.setText(messageWithKey.getSecretKey());
         int tgMessageId = botService.sendAndSave(betSendMessage, messageWithKey.getUser(), BotMessageOuterClass.BotMessageType.SECRET_KEY);
+
         return SecretKey.ResponseSecretKey.newBuilder()
-                .setStatusValue(1).setMessagwWithKey(messageWithKey.toBuilder().setTgMessageId(tgMessageId).build()).build();
+                .setStatusValue(1).setMessageWithKey(messageWithKey.toBuilder().setTgMessageId(tgMessageId).build()).build();
     }
 }

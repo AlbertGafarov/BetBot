@@ -1,5 +1,6 @@
 package ru.gafarov.betservice.service.impl;
 
+import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 
 import javax.crypto.BadPaddingException;
@@ -32,17 +33,16 @@ public class CryptoUtils {
     }
 
 
-    public String encrypt(String value, String secret) throws NoSuchAlgorithmException, NoSuchPaddingException
+    public String encrypt(@NonNull String value, @NonNull String secret) throws NoSuchAlgorithmException, NoSuchPaddingException
             , InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
         Cipher cipher = getCipher(secret, Cipher.ENCRYPT_MODE);
 
         return encoder.encodeToString(cipher.doFinal(value.getBytes()));
     }
 
-    public String decrypt(String value, String secret) throws NoSuchAlgorithmException, NoSuchPaddingException
+    public String decrypt(@NonNull String value, @NonNull String secret) throws NoSuchAlgorithmException, NoSuchPaddingException
             , InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
         Cipher cipher = getCipher(secret, Cipher.DECRYPT_MODE);
-
         return new String(cipher.doFinal(decoder.decode(value)));
     }
 

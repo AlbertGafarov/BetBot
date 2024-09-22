@@ -39,7 +39,7 @@ public class BetCommands {
         put("/bets", "Мои споры");
         put("/reference", "Моя ссылка");
         put("/friends", "Мои друзья");
-        put("/setsecretkey", "Указать ключ шифрования");
+        put("/setsecretkey", "Указать новый или изменить ключ шифрования");
     }};
 
     public List<BotCommand> getBotCommandList(){

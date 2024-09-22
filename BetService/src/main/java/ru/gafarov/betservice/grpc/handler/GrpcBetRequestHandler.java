@@ -37,7 +37,6 @@ public class GrpcBetRequestHandler extends BetServiceGrpc.BetServiceImplBase {
         responseObserver.onCompleted();
     }
 
-    @SneakyThrows
     @Override
     public void getBet(ProtoBet.Bet request, StreamObserver<ProtoBet.ResponseMessage> responseObserver) {
         responseObserver.onNext(betService.showBet(request));

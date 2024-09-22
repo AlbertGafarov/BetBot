@@ -1,10 +1,12 @@
 package ru.gafarov.betservice.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.gafarov.bet.grpcInterface.Rs;
 import ru.gafarov.bet.grpcInterface.SecretKey;
 import ru.gafarov.bet.grpcInterface.SecretKeyServiceGrpc;
+import ru.gafarov.betservice.converter.MessageWithKeyConverter;
 import ru.gafarov.betservice.converter.UserConverter;
 import ru.gafarov.betservice.entity.MessageWithKey;
 import ru.gafarov.betservice.entity.Subscribe;
@@ -23,6 +25,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MessageWithKeyServiceImpl implements MessageWithKeyService {
@@ -33,30 +36,38 @@ public class MessageWithKeyServiceImpl implements MessageWithKeyService {
     private final UserService userService;
 
     @Override
-    public Rs.Response saveMessageWithKey(SecretKey.MessageWithKey messageWithKeyProto) throws NoSuchPaddingException
-            , IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+    public Rs.Response saveMessageWithKey(SecretKey.MessageWithKey messageWithKeyProto) {
         User user = UserConverter.toUser(messageWithKeyProto.getUser());
 
-        // Сохранить номер сообщения с ключом
-        MessageWithKey messageWithKey = new MessageWithKey();
-        messageWithKey.setTgMessageId(messageWithKeyProto.getTgMessageId());
-        messageWithKey.setUserId(user.getId());
-        messageWithKeyRepository.save(messageWithKey);
 
         // Перешифровать все парные ключи
         List<Subscribe> subscribes = subscribeService.getSubscribes(user.getId());
         for (Subscribe subscribe : subscribes) {
             String pairKey;
-            if (subscribe.getSecretKey()!= null) {
-                pairKey = CryptoUtils.decrypt(subscribe.getSecretKey(), getSecret(user));
+            if (subscribe.getSecretKey() != null) {
+                try {
+                    pairKey = CryptoUtils.decrypt(subscribe.getSecretKey(), getSecret(user));
+                } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException |
+                         IllegalBlockSizeException | BadPaddingException e) {
+                    log.error("Получена ошибка при попытке дешифровать парный ключ старым ключом");
+                    throw new RuntimeException(e);
+                }
             } else {
                 // Или создать новые парные ключи
                 pairKey = createPairSecret(messageWithKeyProto.getSecretKey(), userService.getUser(subscribe.getSubscribedId()));
             }
-            // Зашифровать парный ключ новым секретом
-            subscribe.setSecretKey(CryptoUtils.encrypt(pairKey, messageWithKeyProto.getSecretKey()));
-            subscribeService.update(subscribe);
+            try {
+                // Зашифровать парный ключ новым секретом
+                subscribe.setSecretKey(CryptoUtils.encrypt(pairKey, messageWithKeyProto.getSecretKey()));
+                subscribeService.update(subscribe);
+            } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException |
+                     IllegalBlockSizeException | BadPaddingException e) {
+                log.error("Получена ошибка при попытке зашифровать парный ключ новым ключом");
+                throw new RuntimeException(e);
+            }
         }
+        // Сохранить номер сообщения с ключом
+        messageWithKeyRepository.save(MessageWithKeyConverter.toMessageWithKey(messageWithKeyProto));
         // Сохранить секрет в мапе с секретами
         putSecret(user.getId(), messageWithKeyProto.getSecretKey());
         return Rs.Response.newBuilder().setStatus(Rs.Status.SUCCESS).build();
@@ -72,7 +83,7 @@ public class MessageWithKeyServiceImpl implements MessageWithKeyService {
         // Получить секрет из мапы ...
         return secretMap.computeIfAbsent(user.getId(), id -> {
             // ... или если в мапе нет, то получить из переписки с пользователем ...
-            Optional<MessageWithKey> messageWithKeyOptional = messageWithKeyRepository.getByUserId(user.getId());
+            Optional<MessageWithKey> messageWithKeyOptional = messageWithKeyRepository.getByUserId(id);
             if (messageWithKeyOptional.isEmpty()) {
                 // ... или если секрет не был создан ранее, то создать новый ...
                 String autoGenerateSecretKey = UUID.randomUUID().toString().replace("-", "").substring(12);
@@ -80,24 +91,20 @@ public class MessageWithKeyServiceImpl implements MessageWithKeyService {
                         .setSecretKey(autoGenerateSecretKey)
                         .setUser(UserConverter.toProtoUser(user))
                         .build();
-                // ... И отправить его пользователю, чтобы сохранить
-                //TODO: вроде все сделано осталось протетсировать
+                // ... И отправить его пользователю
                 SecretKey.ResponseSecretKey response = grpcStub.sendAutoGenerateKeyToUser(messageWithKey);
-                try {
-                    saveMessageWithKey(response.getMessagwWithKey());
-                } catch (NoSuchPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException |
-                         BadPaddingException | InvalidKeyException e) {
-                    throw new RuntimeException(e);
-                }
+                // ... И сохраняем номер сообщения с секретом в БД
+                messageWithKeyRepository.save(MessageWithKeyConverter.toMessageWithKey(response.getMessageWithKey()));
                 return autoGenerateSecretKey;
             } else {
+                // Если секрет был создан ранее, получаем его из переписки по номеру сообщения из бд
                 SecretKey.ResponseSecretKey message = grpcStub.getSecretMessage(SecretKey.MessageWithKey.newBuilder()
                         .setTgMessageId(messageWithKeyOptional.get().getTgMessageId())
                         .setUser(UserConverter.toProtoUser(user))
                         .build());
-                return message.getMessagwWithKey().getSecretKey();
+                return message.getMessageWithKey().getSecretKey();
             }
-        });
+        }); // И добавляем полученный секрет в мапу
     }
 
 

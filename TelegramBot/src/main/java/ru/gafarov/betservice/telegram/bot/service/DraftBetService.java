@@ -19,7 +19,6 @@ import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
 import ru.gafarov.betservice.telegram.bot.components.buttons.BetButtons;
 import ru.gafarov.betservice.telegram.bot.components.buttons.Buttons;
 import ru.gafarov.betservice.telegram.bot.prettyPrint.PrettyPrinter;
-import ru.gafarov.betservice.telegram.bot.service.BotMessageService;
 
 
 @Slf4j
@@ -51,7 +50,6 @@ public class DraftBetService {
             editMessageText.setMessageId(botMessageService.getId(botMessageBuilder
                     .setType(BotMessageType.ENTER_FINISH_DATE).setDraftBet(draftBet).build()));
             editMessageText.setText("Введите количество дней до завершения спора: " + setDaysToFinish);
-
             botService.edit(editMessageText);
 
             replyMessage.setText("Новый спор:\n" + prettyPrinter.printDraftBet(draftBet) + "\nПодтверждаете?");

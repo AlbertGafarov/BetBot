@@ -12,7 +12,7 @@ import java.security.NoSuchAlgorithmException;
 
 public interface MessageWithKeyService {
 
-    Rs.Response saveMessageWithKey(SecretKey.MessageWithKey messageWithKey) throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException;
+    Rs.Response saveMessageWithKey(SecretKey.MessageWithKey messageWithKey);
 
     String getSecret(User user);
     void putSecret(Long userId, String secret);

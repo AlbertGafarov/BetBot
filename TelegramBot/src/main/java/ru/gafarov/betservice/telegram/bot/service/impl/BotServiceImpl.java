@@ -96,6 +96,7 @@ public class BotServiceImpl implements BotService {
             , Bet bet, User friend) {
         sendMessage.setParseMode(ParseMode.HTML);
         try {
+            sendMessage.setUser(null);
             int id = bot.execute(sendMessage).getMessageId();
             BotMessage.Builder builder = BotMessage.newBuilder().setTgMessageId(id)
                     .setType(botMessageType).setUser(user);

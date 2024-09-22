@@ -26,6 +26,7 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -116,43 +117,55 @@ public class BetServiceImpl implements BetService {
     public ProtoBet.ResponseMessage showBet(Long userId, Long id) throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         Bet bet = betRepository.getBet(userId, id);
         if (bet != null) {
-            // Получаем юзера для которого формируется ответ, а также юзера оппонента по спору. Это нужно для того, чтобы получить подписку,
-            // а из нее получить парный ключ, зашифрованный ключом юзера, а не оппонента.
-            User subscriber;
-            User subscribed;
-            if (Objects.equals(bet.getInitiator().getId(), userId)) {
-                subscriber = bet.getInitiator();
-                subscribed = bet.getOpponent();
-            } else {
-                subscriber = bet.getOpponent();
-                subscribed = bet.getInitiator();
-            }
-            setNextStatuses(bet);
-            ProtoBet.Bet protoBet = BetConverter.toProtoBet(bet);
-            List<ProtoBet.Argument> argumentList = protoBet.getArgumentsList();
-            List<ProtoBet.Argument> deccryptedArgumentList = new ArrayList<>();
-
-            for (ProtoBet.Argument argument : argumentList) {
-                if (argument.getEncrypted()) {
-                    argument = argument.toBuilder().setText(CryptoUtils.decryptText(argument.getText()
-                                    , messageWithKeyService.getPairSecret(subscriber, subscribed))).build();
-                }
-                deccryptedArgumentList.add(argument);
-            }
-
-            return ProtoBet.ResponseMessage
-                    .newBuilder().setBet(protoBet.toBuilder()
-                            .clearArguments()
-                            .addAllArguments(deccryptedArgumentList)
-                            .build()).build();
+            ProtoBet.Bet protoBet = getDecryptedProtoBet(userId, bet);
+            return ProtoBet.ResponseMessage.newBuilder().setBet(protoBet).build();
         }
         log.error("Не найден спор с id: {} user_id: {}", id, userId);
         return ProtoBet.ResponseMessage.newBuilder().setStatus(Rs.Status.ERROR).build();
     }
 
     @Override
-    public ProtoBet.ResponseMessage showBet(ProtoBet.Bet protoBet) throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
-        return showBet(protoBet.getInitiator().getId(), protoBet.getId());
+    public List<Bet> getExpiredBets() {
+        return betRepository.getExpiredBets(LocalDateTime.now());
+    }
+
+    @Override
+    public ProtoBet.Bet getDecryptedProtoBet(Long userId, Bet bet) throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        // Получаем юзера для которого формируется ответ, а также юзера оппонента по спору. Это нужно для того, чтобы получить подписку,
+        // а из нее получить парный ключ, зашифрованный ключом юзера, а не оппонента.
+        User subscriber;
+        User subscribed;
+        if (Objects.equals(bet.getInitiator().getId(), userId)) {
+            subscriber = bet.getInitiator();
+            subscribed = bet.getOpponent();
+        } else {
+            subscriber = bet.getOpponent();
+            subscribed = bet.getInitiator();
+        }
+        setNextStatuses(bet);
+        ProtoBet.Bet protoBet = BetConverter.toProtoBet(bet);
+        List<ProtoBet.Argument> argumentList = protoBet.getArgumentsList();
+        List<ProtoBet.Argument> deccryptedArgumentList = new ArrayList<>();
+
+        for (ProtoBet.Argument argument : argumentList) {
+            if (argument.getEncrypted()) {
+                argument = argument.toBuilder().setText(CryptoUtils.decryptText(argument.getText()
+                        , messageWithKeyService.getPairSecret(subscriber, subscribed))).build();
+            }
+            deccryptedArgumentList.add(argument);
+        }
+        protoBet = protoBet.toBuilder().clearArguments().addAllArguments(deccryptedArgumentList).build();
+        return protoBet;
+    }
+
+    @Override
+    public ProtoBet.ResponseMessage showBet(ProtoBet.Bet protoBet) {
+        try {
+            return showBet(protoBet.getInitiator().getId(), protoBet.getId());
+        } catch (NoSuchPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException | BadPaddingException |
+                 InvalidKeyException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

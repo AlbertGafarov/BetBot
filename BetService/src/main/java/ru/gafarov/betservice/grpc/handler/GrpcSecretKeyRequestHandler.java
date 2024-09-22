@@ -19,7 +19,6 @@ public class GrpcSecretKeyRequestHandler extends SecretKeyServiceGrpc.SecretKeyS
 
     // Сохранить номер сообщения с секретным кодом
     @Override
-    @SneakyThrows
     public void saveMessageWithKey(SecretKey.MessageWithKey request, StreamObserver<Rs.Response> responseObserver) {
         responseObserver.onNext(messageWithKeyService.saveMessageWithKey(request));
         responseObserver.onCompleted();

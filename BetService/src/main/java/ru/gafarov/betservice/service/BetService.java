@@ -10,13 +10,16 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 
 @Transactional
 public interface BetService {
 
     ProtoBet.ResponseBet save(ProtoBet.Bet protoBet);
 
-    ProtoBet.ResponseMessage showBet(ProtoBet.Bet protoBet) throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException;
+    ProtoBet.Bet getDecryptedProtoBet(Long userId, Bet bet) throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException;
+
+    ProtoBet.ResponseMessage showBet(ProtoBet.Bet protoBet);
 
     ProtoBet.ResponseMessage changeBetStatus(ProtoBet.ChangeStatusBetMessage protoChangeStatusBetMessage);
 
@@ -27,4 +30,6 @@ public interface BetService {
     Bet getBet(long userId, long betId);
 
     ProtoBet.ResponseMessage showBet(Long userId, Long id) throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException;
+
+    List<Bet> getExpiredBets();
 }
