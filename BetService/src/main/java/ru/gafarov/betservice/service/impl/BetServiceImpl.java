@@ -100,7 +100,7 @@ public class BetServiceImpl implements BetService {
         }).collect(Collectors.toList());
         return ProtoBet.ResponseMessage.newBuilder().setStatus(Rs.Status.SUCCESS).addAllBets(protoActiveBet).build();
     }
-
+    //TODO: ошибка: не отображается суть спора
     @Override
     public ProtoBet.ResponseBet getBets(ProtoBet.Bet protoBet) {
 
