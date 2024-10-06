@@ -59,7 +59,7 @@ public class DraftBetServiceImpl implements DraftBetService {
             return DrBet.ResponseDraftBet.newBuilder().setStatus(Rs.Status.ERROR).build();
         }
     }
-
+    //TODO: Добавить шифрование сути спора
     @Override
     public DrBet.ResponseDraftBet setDefinition(DrBet.DraftBet protoDraftBet) {
         LocalDateTime localDateTime = LocalDateTime.now();

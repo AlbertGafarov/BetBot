@@ -7,6 +7,7 @@ enum InfoType {
   HOW_ADD_FRIEND = 3;
   HOW_CREATE_BET = 4;
   ABOUT_PERSONAL_DATA = 5;
+  MENU_SECRET = 6;
 }
 
 message RequestInfo {

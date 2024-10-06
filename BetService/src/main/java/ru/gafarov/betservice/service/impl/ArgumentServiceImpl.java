@@ -13,6 +13,7 @@ import ru.gafarov.betservice.repository.ArgumentRepository;
 import ru.gafarov.betservice.service.ArgumentService;
 import ru.gafarov.betservice.service.BetService;
 import ru.gafarov.betservice.service.MessageWithKeyService;
+import ru.gafarov.betservice.utils.CryptoUtils;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -28,24 +29,23 @@ public class ArgumentServiceImpl implements ArgumentService {
     private final BetService betService;
     private final MessageWithKeyService messageWithKeyService;
 
+    /**
+     * Аргумент в споре будет сохранен в БД в зашифрованном виде при условии, что хотя бы у одного из оппонентов включено шифрование в данный момент
+     */
     @Override
     public ProtoBet.ResponseMessage save(ProtoBet.Argument protoArgument) throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         Bet bet = betService.getBet(protoArgument.getAuthor().getId(), protoArgument.getAuthor().getDialogStatus().getBetId());
         Argument argument = ArgumentConverter.toArgument(protoArgument, bet);
-        if (true // TODO: Надо уметь отключать и включать шифрование по дополнительному меню Шифрование:
-            // [ввести ключ шифрования/ заменить ключ шифрования], отключить шифрование/включить шифрование.
-                // если у обоих выключено шифрование, то не шифровать вообще,
-            // если у одного включено, а у второго выключено, то шифровать
-            // если шифровать парный ключ стандартным ключом то спаливается парный ключ - это надо решить.
-        ) {
+        /* Аргумент в споре будет сохранен в БД при условии, что хотя бы у одного из оппонентов включено шифрование в данный момент*/
+        if (bet.getInitiator().isEncryptionEnabled() || bet.getOpponent().isEncryptionEnabled()) {
             User author;
             User receiver;
             if (argument.getBetRole().equals(BetRole.INITIATOR)) {
-                author = argument.getBet().getInitiator();
-                receiver = argument.getBet().getOpponent();
+                author = bet.getInitiator();
+                receiver = bet.getOpponent();
             } else {
-                author = argument.getBet().getOpponent();
-                receiver = argument.getBet().getInitiator();
+                author = bet.getOpponent();
+                receiver = bet.getInitiator();
             }
             argument.setText(CryptoUtils.encryptText(argument.getText(), messageWithKeyService.getPairSecret(author, receiver)));
             argument.setEncrypted(true);

@@ -10,6 +10,7 @@ message User {
   int32 code = 3;
   int64 chatId = 4;
   DialogStatus dialogStatus = 5;
+  bool encryptionEnabled = 6;
 }
 
 enum ChatStatus {
@@ -40,4 +41,5 @@ service UserService {
   rpc addUser(User) returns (ResponseUser);
   rpc getUser(User) returns (ResponseUser);
   rpc changeChatStatus(User) returns (ResponseUser);
+  rpc setEncryptionStatus(User) returns (ResponseUser);
 }

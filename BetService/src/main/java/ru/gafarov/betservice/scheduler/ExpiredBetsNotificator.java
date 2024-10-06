@@ -14,12 +14,8 @@ import ru.gafarov.betservice.model.Status;
 import ru.gafarov.betservice.repository.ChangeStatusBetRuleRepository;
 import ru.gafarov.betservice.repository.NotifyExpiredBetRepository;
 import ru.gafarov.betservice.service.BetService;
+import ru.gafarov.betservice.transformer.BetTransformer;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,6 +32,7 @@ public class ExpiredBetsNotificator {
     private final BetServiceGrpc.BetServiceBlockingStub grpcStub;
     private final ChangeStatusBetRuleRepository ruleRepository;
     private final NotifyExpiredBetRepository notifyExpiredBetRepository;
+    private final BetTransformer betTransformer;
 
     @Scheduled(cron = "0 */10 * ? * *")
     public void checkExpiredBets() {
@@ -51,12 +48,7 @@ public class ExpiredBetsNotificator {
                             , b.getInitiatorBetStatus().toString()
                             , b.getOpponentBetStatus().toString()
                             , b.getFinishDate()));
-                    try {
-                        return betService.getDecryptedProtoBet(b.getInitiator().getId(), b);
-                    } catch (NoSuchPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException |
-                             BadPaddingException | InvalidKeyException e) {
-                        throw new RuntimeException(e);
-                    }
+                    return betTransformer.getDecryptedProtoBet(b.getInitiator().getId(), b);
                 }).collect(Collectors.toList());
 
         log.info("Найдено {}", betList.size());

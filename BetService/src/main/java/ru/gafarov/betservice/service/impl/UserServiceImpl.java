@@ -121,7 +121,15 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User getUser(Long id) {
-        return userRepository.findById(id).get();
+        return userRepository.findById(id).orElseThrow();
+    }
+
+    @Override
+    public UserOuterClass.ResponseUser changeEncryptedStatus(UserOuterClass.User protoUser) {
+        User user = getUser(protoUser.getId());
+        user.setEncryptionEnabled(protoUser.getEncryptionEnabled());
+        user = userRepository.save(user);
+        return UserOuterClass.ResponseUser.newBuilder().setUser(UserConverter.toProtoUser(user)).setStatus(Rs.Status.SUCCESS).build();
     }
 
     @Override

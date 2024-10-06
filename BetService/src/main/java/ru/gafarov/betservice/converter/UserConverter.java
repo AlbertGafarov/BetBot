@@ -14,7 +14,8 @@ public class UserConverter {
                 .setId(user.getId())
                 .setUsername(user.getUsername())
                 .setCode(user.getCode())
-                .setChatId(user.getChatId());
+                .setChatId(user.getChatId())
+                .setEncryptionEnabled(user.isEncryptionEnabled());
         if (user.getDialogStatus()!= null) {
                 builder.setDialogStatus(DialogStatusConverter.toProtoDialogStatus(user.getDialogStatus()));
         }
@@ -27,6 +28,7 @@ public class UserConverter {
         user.setCode(protoUser.getCode());
         user.setUsername(protoUser.getUsername());
         user.setChatId(protoUser.getChatId());
+        user.setEncryptionEnabled(protoUser.getEncryptionEnabled());
         return user;
     }
 }

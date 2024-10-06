@@ -2,9 +2,7 @@ package ru.gafarov.betservice.telegram.bot.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.gafarov.bet.grpcInterface.BotMessageOuterClass;
-import ru.gafarov.bet.grpcInterface.SecretKey;
-import ru.gafarov.bet.grpcInterface.UserOuterClass;
+import ru.gafarov.bet.grpcInterface.*;
 import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
 
 @Service
@@ -12,6 +10,7 @@ import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
 public class SecretKeyService {
 
     private final BotService botService;
+    private final SecretKeyServiceGrpc.SecretKeyServiceBlockingStub grpcSecretKeyStub;
 
     public SecretKey.ResponseSecretKey getSecretMessage(SecretKey.MessageWithKey messageWithKey) {
         UserOuterClass.User user = messageWithKey.getUser();
@@ -35,5 +34,10 @@ public class SecretKeyService {
 
         return SecretKey.ResponseSecretKey.newBuilder()
                 .setStatusValue(1).setMessageWithKey(messageWithKey.toBuilder().setTgMessageId(tgMessageId).build()).build();
+    }
+
+    public SecretKey.MessageWithKey getSecretMessage(UserOuterClass.User user) {
+        SecretKey.ResponseSecretKey response = grpcSecretKeyStub.hasSecretMessage(user);
+        return response.getMessageWithKey();
     }
 }

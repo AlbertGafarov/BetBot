@@ -1,4 +1,4 @@
-package ru.gafarov.betservice.service.impl;
+package ru.gafarov.betservice.utils;
 
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
@@ -20,30 +20,35 @@ public class CryptoUtils {
     private final Base64.Encoder encoder = Base64.getEncoder();
 
 
-    public String encryptText(String text, String pairSecret) throws NoSuchPaddingException
-            , IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+    public String encryptText(String text, String pairSecret) {
         return encrypt(text, pairSecret);
 
     }
 
-    public String decryptText(String text, String pairSecret) throws NoSuchPaddingException
-            , IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+    public String decryptText(String text, String pairSecret) {
         return decrypt(text, pairSecret);
 
     }
 
 
-    public String encrypt(@NonNull String value, @NonNull String secret) throws NoSuchAlgorithmException, NoSuchPaddingException
-            , InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-        Cipher cipher = getCipher(secret, Cipher.ENCRYPT_MODE);
-
-        return encoder.encodeToString(cipher.doFinal(value.getBytes()));
+    public String encrypt(@NonNull String value, @NonNull String secret) {
+        try {
+            Cipher cipher = getCipher(secret, Cipher.ENCRYPT_MODE);
+            return encoder.encodeToString(cipher.doFinal(value.getBytes()));
+        } catch (NoSuchPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException | BadPaddingException |
+                 InvalidKeyException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    public String decrypt(@NonNull String value, @NonNull String secret) throws NoSuchAlgorithmException, NoSuchPaddingException
-            , InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-        Cipher cipher = getCipher(secret, Cipher.DECRYPT_MODE);
-        return new String(cipher.doFinal(decoder.decode(value)));
+    public String decrypt(@NonNull String value, @NonNull String secret) {
+        try {
+            Cipher cipher = getCipher(secret, Cipher.DECRYPT_MODE);
+            return new String(cipher.doFinal(decoder.decode(value)));
+        } catch (IllegalBlockSizeException | BadPaddingException | NoSuchPaddingException | NoSuchAlgorithmException |
+                 InvalidKeyException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private static Cipher getCipher(String secret, int encryptMode) throws NoSuchAlgorithmException, NoSuchPaddingException

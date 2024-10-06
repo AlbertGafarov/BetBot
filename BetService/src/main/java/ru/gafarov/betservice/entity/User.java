@@ -22,6 +22,9 @@ public class User extends BaseEntity {
     @Column(name = "chat_id")
     private long chatId;
 
+    @Column(name = "encryption_enabled")
+    private boolean encryptionEnabled;
+
     @OneToOne(mappedBy = "user", fetch = FetchType.EAGER, orphanRemoval = true)
     private DialogStatus dialogStatus;
 }

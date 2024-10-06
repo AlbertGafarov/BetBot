@@ -66,6 +66,7 @@ enum BotMessageType {
   ENTER_SECRET_KEY = 34;
   SECRET_KEY_SAVED = 35;
   SECRET_KEY = 36;
+  SECRET_MENU = 37;
 }
 
 service BotMessageService {

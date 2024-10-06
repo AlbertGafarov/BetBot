@@ -32,4 +32,10 @@ public class GrpcUserRequestHandler extends UserServiceGrpc.UserServiceImplBase 
         responseObserver.onNext(userService.changeChatStatus(request));
         responseObserver.onCompleted();
     }
+
+    @Override
+    public void setEncryptionStatus(UserOuterClass.User user, StreamObserver<UserOuterClass.ResponseUser> responseObserver) {
+        responseObserver.onNext(userService.changeEncryptedStatus(user));
+        responseObserver.onCompleted();
+    }
 }

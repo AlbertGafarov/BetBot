@@ -119,6 +119,7 @@ public class BotServiceImpl implements BotService {
             }
         return id;
         } catch (TelegramApiException e) {
+            log.error("chatId: {}", sendMessage.getChatId());
             throw new RuntimeException(e);
         }
     }

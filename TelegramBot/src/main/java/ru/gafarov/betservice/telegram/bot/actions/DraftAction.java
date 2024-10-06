@@ -71,93 +71,100 @@ public class DraftAction implements Action {
         BetSendMessage replyMessage = new BetSendMessage(chatId); // Ответное сообщение
 
         // /draftBet/{id}/approve/(ok|cancel)
-        if ("approve".equals(command[3])) {
-            draftBetService.approveOrCancelDraft(update);
+        switch (command[3]) {
+            case "approve":
+                draftBetService.approveOrCancelDraft(update);
 
-            // /draftBet/{id}/setOpponent/{opponent_id}
-        } else if ("setOpponent".equals(command[3])) {
-            User opponent = userService.getUserById(Long.parseLong(command[4]));
-            DraftBet draftBet = draftBetService.getByIdAndUser(Long.parseLong(command[2]), user)
-                    .toBuilder()
-                    .setOpponentName(opponent.getUsername())
-                    .setOpponentCode(opponent.getCode())
-                    .build();
-            draftBetService.setOpponentCodeAndName(draftBet);
-            userService.setChatStatus(user, ChatStatus.WAIT_DEFINITION);
+                // /draftBet/{id}/setOpponent/{opponent_id}
+                break;
+            case "setOpponent": {
+                User opponent = userService.getUserById(Long.parseLong(command[4]));
+                DraftBet draftBet = draftBetService.getByIdAndUser(Long.parseLong(command[2]), user)
+                        .toBuilder()
+                        .setOpponentName(opponent.getUsername())
+                        .setOpponentCode(opponent.getCode())
+                        .build();
+                draftBetService.setOpponentCodeAndName(draftBet);
+                userService.setChatStatus(user, ChatStatus.WAIT_DEFINITION);
 
-            //Деактивируем кнопки и редактируем сообщение
-            int messageId = update.getCallbackQuery().getMessage().getMessageId();
-            BetEditMessageText editMessageText = new BetEditMessageText(chatId, messageId);
-            editMessageText.setText("Выбра(н/на): " + opponent.getUsername() + " " + opponent.getCode());
-            botService.edit(editMessageText);
+                //Деактивируем кнопки и редактируем сообщение
+                int messageId = update.getCallbackQuery().getMessage().getMessageId();
+                BetEditMessageText editMessageText = new BetEditMessageText(chatId, messageId);
+                editMessageText.setText("Выбра(н/на): " + opponent.getUsername() + " " + opponent.getCode());
+                botService.edit(editMessageText);
 
-            replyMessage.setText("Введите суть спора");
-            int tgMessageId = botService.sendTimeIsUpMessage(replyMessage);
-            botMessageService.save(botMessageBuilder.setType(BotMessageType.ENTER_DEFINITION)
-                    .setDraftBet(draftBet).setTgMessageId(tgMessageId).build());
+                replyMessage.setText("Введите суть спора");
+                int tgMessageId = botService.sendTimeIsUpMessage(replyMessage);
+                botMessageService.save(botMessageBuilder.setType(BotMessageType.ENTER_DEFINITION)
+                        .setDraftBet(draftBet).setTgMessageId(tgMessageId).build());
 
-            // /draftBet/{id}/showMyFriends
-        } else if ("showMyFriends".equals(command[3])) {
-
-            BetSendMessage sendMessage = new BetSendMessage(chatId);
-
-            List<User> friends = userService.getSubscribes(user);
-            if (friends != null) {
-                List<List<InlineKeyboardButton>> rowsInLine = friends.stream().limit(100).map(a ->
-                        (List<InlineKeyboardButton>) new ArrayList<InlineKeyboardButton>() {{
-                            InlineKeyboardButton friend = new InlineKeyboardButton(a.getUsername() + " " + a.getCode());
-                            friend.setCallbackData("/draftBet/" + command[2] + "/setOpponent/" + a.getId());
-                            add(friend);
-                        }}).collect(Collectors.toList());
-
-                InlineKeyboardMarkup friendButtons = new InlineKeyboardMarkup();
-                friendButtons.setKeyboard(rowsInLine);
-                sendMessage.setText("Выберите оппонента из списка");
-                sendMessage.setReplyMarkup(friendButtons);
-
-                //Деактивируем кнопку
-                EditMessageReplyMarkup editMessageReplyMarkup = new EditMessageReplyMarkup();
-                editMessageReplyMarkup.setChatId(chatId);
-                editMessageReplyMarkup.setMessageId(botMessageService.getId(botMessageBuilder.setType(BotMessageType.ENTER_USERNAME)
-                        .setDraftBet(DraftBet.newBuilder().setId(Integer.parseInt(command[2])).build()).build()));
-                editMessageReplyMarkup.setReplyMarkup(null);
-                botService.edit(editMessageReplyMarkup);
-
-                int tgMessageId = botService.sendTimeIsUpMessage(sendMessage);
-                // Сохраняем id сообщения в БД
-                botMessageService.save(botMessageBuilder
-                        .setType(BotMessageType.CHOOSE_OPPONENT)
-                        .setDraftBet(DraftBet.newBuilder().setId(Integer.parseInt(command[2])).build())
-                        .setTgMessageId(tgMessageId)
-                        .build());
-
-            } else {
-                sendMessage.setText("У Вас пока нет друзей. Введите username перового друга:");
-                sendMessage.setDelTime(10000);
-
-                int tgMessageId = botService.sendAndDelete(sendMessage);
-                // Сохраняем id сообщения в БД
-                botMessageService.save(botMessageBuilder
-                        .setType(BotMessageType.ENTER_USERNAME)
-                        .setDraftBet(DraftBet.newBuilder().setId(Integer.parseInt(command[2])).build())
-                        .setTgMessageId(tgMessageId)
-                        .build());
+                // /draftBet/{id}/showMyFriends
+                break;
             }
-            // /draftBet/{id}/withoutWager
-        } else if ("withoutWager".equals(command[3])) {
-            DraftBet draftBet = DraftBet.newBuilder().setId(Long.parseLong(command[2])).build();
-            userService.setChatStatus(user, ChatStatus.WAIT_FINISH_DATE);
+            case "showMyFriends":
 
-            // Заполняем поле WAIT_WAGER
-            EditMessageText editMessageText = new EditMessageText();
-            editMessageText.setChatId(chatId);
-            editMessageText.setMessageId(botMessageService.getId(botMessageBuilder
-                    .setType(BotMessageType.ENTER_WAGER).setDraftBet(draftBet).build()));
-            editMessageText.setText("Введите вознаграждение: без вознаграждения");
-            botService.edit(editMessageText);
+                BetSendMessage sendMessage = new BetSendMessage(chatId);
 
-            replyMessage.setText("Введите количество дней до завершения спора");
-            botService.sendAndSave(replyMessage, user, BotMessageType.ENTER_FINISH_DATE, draftBet);
+                List<User> friends = userService.getSubscribes(user);
+                if (friends != null) {
+                    List<List<InlineKeyboardButton>> rowsInLine = friends.stream().limit(100).map(a ->
+                            (List<InlineKeyboardButton>) new ArrayList<InlineKeyboardButton>() {{
+                                InlineKeyboardButton friend = new InlineKeyboardButton(a.getUsername() + " " + a.getCode());
+                                friend.setCallbackData("/draftBet/" + command[2] + "/setOpponent/" + a.getId());
+                                add(friend);
+                            }}).collect(Collectors.toList());
+
+                    InlineKeyboardMarkup friendButtons = new InlineKeyboardMarkup();
+                    friendButtons.setKeyboard(rowsInLine);
+                    sendMessage.setText("Выберите оппонента из списка");
+                    sendMessage.setReplyMarkup(friendButtons);
+
+                    //Деактивируем кнопку
+                    EditMessageReplyMarkup editMessageReplyMarkup = new EditMessageReplyMarkup();
+                    editMessageReplyMarkup.setChatId(chatId);
+                    editMessageReplyMarkup.setMessageId(botMessageService.getId(botMessageBuilder.setType(BotMessageType.ENTER_USERNAME)
+                            .setDraftBet(DraftBet.newBuilder().setId(Integer.parseInt(command[2])).build()).build()));
+                    editMessageReplyMarkup.setReplyMarkup(null);
+                    botService.edit(editMessageReplyMarkup);
+
+                    int tgMessageId = botService.sendTimeIsUpMessage(sendMessage);
+                    // Сохраняем id сообщения в БД
+                    botMessageService.save(botMessageBuilder
+                            .setType(BotMessageType.CHOOSE_OPPONENT)
+                            .setDraftBet(DraftBet.newBuilder().setId(Integer.parseInt(command[2])).build())
+                            .setTgMessageId(tgMessageId)
+                            .build());
+
+                } else {
+                    sendMessage.setText("У Вас пока нет друзей. Введите username перового друга:");
+                    sendMessage.setDelTime(10000);
+
+                    int tgMessageId = botService.sendAndDelete(sendMessage);
+                    // Сохраняем id сообщения в БД
+                    botMessageService.save(botMessageBuilder
+                            .setType(BotMessageType.ENTER_USERNAME)
+                            .setDraftBet(DraftBet.newBuilder().setId(Integer.parseInt(command[2])).build())
+                            .setTgMessageId(tgMessageId)
+                            .build());
+                }
+                // /draftBet/{id}/withoutWager
+                break;
+            case "withoutWager": {
+                DraftBet draftBet = DraftBet.newBuilder().setId(Long.parseLong(command[2])).build();
+                userService.setChatStatus(user, ChatStatus.WAIT_FINISH_DATE);
+
+                // Заполняем поле WAIT_WAGER
+                EditMessageText editMessageText = new EditMessageText();
+                editMessageText.setChatId(chatId);
+                editMessageText.setMessageId(botMessageService.getId(botMessageBuilder
+                        .setType(BotMessageType.ENTER_WAGER).setDraftBet(draftBet).build()));
+                editMessageText.setText("Введите вознаграждение: без вознаграждения");
+                botService.edit(editMessageText);
+
+                replyMessage.setText("Введите количество дней до завершения спора");
+                botService.sendAndSave(replyMessage, user, BotMessageType.ENTER_FINISH_DATE, draftBet);
+                break;
+            }
         }
     }
 }

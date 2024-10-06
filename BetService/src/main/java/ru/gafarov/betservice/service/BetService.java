@@ -17,8 +17,6 @@ public interface BetService {
 
     ProtoBet.ResponseBet save(ProtoBet.Bet protoBet);
 
-    ProtoBet.Bet getDecryptedProtoBet(Long userId, Bet bet) throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException;
-
     ProtoBet.ResponseMessage showBet(ProtoBet.Bet protoBet);
 
     ProtoBet.ResponseMessage changeBetStatus(ProtoBet.ChangeStatusBetMessage protoChangeStatusBetMessage);

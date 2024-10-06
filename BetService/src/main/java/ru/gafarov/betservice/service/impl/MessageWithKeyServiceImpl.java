@@ -2,10 +2,12 @@ package ru.gafarov.betservice.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.springframework.stereotype.Service;
 import ru.gafarov.bet.grpcInterface.Rs;
 import ru.gafarov.bet.grpcInterface.SecretKey;
 import ru.gafarov.bet.grpcInterface.SecretKeyServiceGrpc;
+import ru.gafarov.bet.grpcInterface.UserOuterClass;
 import ru.gafarov.betservice.converter.MessageWithKeyConverter;
 import ru.gafarov.betservice.converter.UserConverter;
 import ru.gafarov.betservice.entity.MessageWithKey;
@@ -15,12 +17,8 @@ import ru.gafarov.betservice.repository.MessageWithKeyRepository;
 import ru.gafarov.betservice.service.MessageWithKeyService;
 import ru.gafarov.betservice.service.SubscribeService;
 import ru.gafarov.betservice.service.UserService;
+import ru.gafarov.betservice.utils.CryptoUtils;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -45,26 +43,14 @@ public class MessageWithKeyServiceImpl implements MessageWithKeyService {
         for (Subscribe subscribe : subscribes) {
             String pairKey;
             if (subscribe.getSecretKey() != null) {
-                try {
-                    pairKey = CryptoUtils.decrypt(subscribe.getSecretKey(), getSecret(user));
-                } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException |
-                         IllegalBlockSizeException | BadPaddingException e) {
-                    log.error("Получена ошибка при попытке дешифровать парный ключ старым ключом");
-                    throw new RuntimeException(e);
-                }
+                pairKey = CryptoUtils.decrypt(subscribe.getSecretKey(), getSecret(user));
             } else {
                 // Или создать новые парные ключи
                 pairKey = createPairSecret(messageWithKeyProto.getSecretKey(), userService.getUser(subscribe.getSubscribedId()));
             }
-            try {
-                // Зашифровать парный ключ новым секретом
-                subscribe.setSecretKey(CryptoUtils.encrypt(pairKey, messageWithKeyProto.getSecretKey()));
-                subscribeService.update(subscribe);
-            } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException |
-                     IllegalBlockSizeException | BadPaddingException e) {
-                log.error("Получена ошибка при попытке зашифровать парный ключ новым ключом");
-                throw new RuntimeException(e);
-            }
+            // Зашифровать парный ключ новым секретом
+            subscribe.setSecretKey(CryptoUtils.encrypt(pairKey, messageWithKeyProto.getSecretKey()));
+            subscribeService.update(subscribe);
         }
         // Сохранить номер сообщения с ключом
         messageWithKeyRepository.save(MessageWithKeyConverter.toMessageWithKey(messageWithKeyProto));
@@ -107,9 +93,8 @@ public class MessageWithKeyServiceImpl implements MessageWithKeyService {
         }); // И добавляем полученный секрет в мапу
     }
 
-
-    public String getPairSecret(User subscriber, User subscribed) throws NoSuchAlgorithmException, NoSuchPaddingException
-            , InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    @Override
+    public String getPairSecret(User subscriber, User subscribed) {
         Subscribe subscribe = subscribeService.getSubscribe(subscriber, subscribed);
         String subscriberSecretKey = getSecret(subscriber);
         String pairSecret;
@@ -122,6 +107,24 @@ public class MessageWithKeyServiceImpl implements MessageWithKeyService {
             pairSecret = CryptoUtils.decrypt(secretKey, subscriberSecretKey);
         }
         return pairSecret;
+    }
+
+    @Override
+    public SecretKey.ResponseSecretKey getSecretMessage(UserOuterClass.User protoUser) {
+        Optional<MessageWithKey> messageWithKeyOptional = messageWithKeyRepository.getByUserId(protoUser.getId());
+        val builder = SecretKey.ResponseSecretKey.newBuilder();
+        // Если в БД есть номер сообщения с секретом, то вернуть сообщение с секретом
+        if (messageWithKeyOptional.isPresent()) {
+            MessageWithKey messageWithKey = messageWithKeyOptional.get();
+            SecretKey.MessageWithKey messageWithKeyProto = SecretKey.MessageWithKey.newBuilder()
+                    .setTgMessageId(messageWithKey.getTgMessageId())
+                    // Причем вернуть секрет из мапы, а если там нет, то получить из переписки, и записать в мапу
+                    .setSecretKey(getSecret(UserConverter.toUser(protoUser)))
+                    .build();
+            return builder.setStatus(Rs.Status.SUCCESS).setMessageWithKey(messageWithKeyProto).build();
+        } else {
+            return builder.setStatus(Rs.Status.NOT_FOUND).build();
+        }
     }
 
     public String createPairSecret(String subscriberSecretKey, User subscribed) {

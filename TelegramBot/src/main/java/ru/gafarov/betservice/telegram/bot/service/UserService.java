@@ -142,4 +142,14 @@ public class UserService {
         botMessageService.deleteByBotMessageType(user, BotMessageOuterClass.BotMessageType.ENTER_SECRET_KEY);
         botService.sendAndSave(sendInfoMessage, user, BotMessageOuterClass.BotMessageType.SECRET_KEY_SAVED, true);
     }
+
+    public User setEncryptionStatus(User user, boolean encryptionStatus) {
+        user = user.toBuilder().setEncryptionEnabled(encryptionStatus).build();
+        ResponseUser response = grpcUserStub.setEncryptionStatus(user);
+        user = response.getUser();
+        if (!Status.SUCCESS.equals(response.getStatus())) {
+            log.error("Получена ошибка при попытке изменить статус шифрования");
+        }
+        return user;
+    }
 }

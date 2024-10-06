@@ -12,6 +12,8 @@ management:
 service:
   host: localhost
   port: 5455
+  logging:
+    - BetService
 
 hibernate:
   use_sql_comments: 'true'
