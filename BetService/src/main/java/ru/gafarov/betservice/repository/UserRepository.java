@@ -81,6 +81,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
             "    from betbot.bets where (initiator_id = ?2 and opponent_id = ?1\n" +
             "            or initiator_id = ?1 and opponent_id = ?2)\n" +
             "      and bet_status = 'ACTIVE' and status != 'DELETED'),\n" +
+            //"  -- Наших предложенных споров\n" +
+            "  offeredBetCount as (\n" +
+            "    select count(*) as offered_bet_count\n" +
+            "    from betbot.bets where (initiator_id = ?2 and opponent_id = ?1\n" +
+            "            or initiator_id = ?1 and opponent_id = ?2)\n" +
+            "      and bet_status = 'OFFER' and status != 'DELETED'),\n" +
             //"  -- Всего побед среди наших\n" +
             "  win_cnt as (\n" +
             "    select CAST(count(*) as real) as win_cnt from betbot.bets\n" +
@@ -101,8 +107,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
             "    CASE WHEN our_not_cancel_bets > 0 THEN CAST(win_cnt*100/our_not_cancel_bets as real) ELSE 0 END as winpercent,\n" +
             "    CASE WHEN our_not_cancel_bets > 0 THEN CAST(standoff_cnt*100/our_not_cancel_bets as real) ELSE 0 END as standoffpercent,\n" +
             "    CAST(closedbetcount.closed_bet_count as integer) as closedBetCount,\n" +
-            "    CAST(activebetcount.active_bet_count as integer) as activeBetCount\n" +
-            "from win_total_cnt, win_cnt, not_cancel_bets, standoff_total_cnt, closedBetCount, activeBetCount, subscribed, standoff_cnt, ourNotCancelBets"
+            "    CAST(activebetcount.active_bet_count as integer) as activeBetCount,\n" +
+            "    CAST(offeredBetCount.offered_bet_count as integer) as offeredBetCount\n" +
+            "from win_total_cnt, win_cnt, not_cancel_bets, standoff_total_cnt, closedBetCount, activeBetCount, offeredBetCount, subscribed, standoff_cnt, ourNotCancelBets"
             , nativeQuery = true)
     Optional<FriendInfo> getFriendInfo(long user_id, long friend_id);
 }

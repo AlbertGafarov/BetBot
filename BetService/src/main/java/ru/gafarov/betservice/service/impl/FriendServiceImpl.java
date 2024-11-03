@@ -25,9 +25,14 @@ public class FriendServiceImpl implements FriendService {
         Optional<FriendInfo> optional = userRepository.getFriendInfo(subscribe.getSubscriber().getId(), subscribe.getSubscribed().getId());
         if (optional.isPresent()) {
             FriendInfo friendInfo = optional.get();
+
+            log.debug("Информация о друге: \nАктивных споров: {}\nПредложенных споров: {}", friendInfo.getActiveBetCount()
+                    , friendInfo.getOfferedBetCount());
+
             return Friend.ResponseFriendInfo.newBuilder()
                     .setFriendInfo(Friend.FriendInfo.newBuilder()
                             .setUser(UserConverter.toProtoUser(userService.getUser(subscribe.getSubscribed())))
+                            .setOfferedBetCount(friendInfo.getOfferedBetCount())
                             .setActiveBetCount(friendInfo.getActiveBetCount())
                             .setClosedBetCount(friendInfo.getClosedBetCount())
                             .setWinPercent(friendInfo.getWinPercent())

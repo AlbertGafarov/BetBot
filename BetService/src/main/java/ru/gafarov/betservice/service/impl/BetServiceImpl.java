@@ -66,6 +66,7 @@ public class BetServiceImpl implements BetService {
             String pairSecret = messageWithKeyService.getPairSecret(bet.getInitiator(), bet.getOpponent());
             bet.setWager(CryptoUtils.encrypt(protoBet.getWager(), pairSecret));
             bet.setDefinition(CryptoUtils.encrypt(protoBet.getDefinition(), pairSecret));
+            bet.setEncrypted(true);
         } else {
             bet.setWager(protoBet.getWager());
             bet.setDefinition(protoBet.getDefinition());
@@ -100,19 +101,26 @@ public class BetServiceImpl implements BetService {
         }).collect(Collectors.toList());
         return ProtoBet.ResponseMessage.newBuilder().setStatus(Rs.Status.SUCCESS).addAllBets(protoActiveBet).build();
     }
-    //TODO: ошибка: не отображается суть спора
+
     @Override
     public ProtoBet.ResponseBet getBets(ProtoBet.Bet protoBet) {
+
+        log.debug("Шаблон для поиска споров\ninitiator: {}\nopponent: {}\nstatus: {}"
+                , protoBet.getInitiator().getId(), protoBet.getOpponent().getId(), protoBet.getBetStatus());
 
         List<Bet> bets = betRepository.getBets(protoBet.getInitiator().getId()
                 , protoBet.getOpponent().getId()
                 , protoBet.getBetStatus().toString());
+
+        log.debug("Список споров, удовлетворяющих шаблону: {}", bets.stream().map(a ->
+                        "\nid: " + a.getId() + " isEncrypted: " + a.isEncrypted())
+                .collect(Collectors.joining(" ")));
+
         if (bets.isEmpty()) {
             return ProtoBet.ResponseBet.newBuilder().setStatus(Rs.Status.NOT_FOUND).build();
         } else {
             return ProtoBet.ResponseBet.newBuilder().setStatus(Rs.Status.SUCCESS)
                     .addAllBets(bets.stream().map(bet -> {
-                        betTransformer.setNextStatuses(bet);
                         // здесь мы используем id инициатора, потому что знаем, что при заполнении шаблона спора пользователь,
                         // который получает список, записывается в качестве инициатора
                         return betTransformer.getDecryptedProtoBet(protoBet.getInitiator().getId(), bet);
@@ -215,7 +223,6 @@ public class BetServiceImpl implements BetService {
                 .setMessageForOpponent("Спор с id: " + protoBet.getId() + " не найден")
                 .build();
     }
-
 
     private void setBetStatus(Bet bet) {
         Optional<BetStatusRule> optional = betStatusRuleList.stream()

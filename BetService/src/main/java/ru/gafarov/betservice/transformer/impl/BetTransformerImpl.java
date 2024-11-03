@@ -1,6 +1,7 @@
 package ru.gafarov.betservice.transformer.impl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.gafarov.bet.grpcInterface.ProtoBet;
 import ru.gafarov.betservice.converter.ArgumentConverter;
@@ -20,6 +21,7 @@ import java.util.Objects;
 import static ru.gafarov.betservice.model.BetRole.INITIATOR;
 import static ru.gafarov.betservice.model.BetRole.OPPONENT;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class BetTransformerImpl implements BetTransformer {
@@ -43,6 +45,7 @@ public class BetTransformerImpl implements BetTransformer {
         setNextStatuses(bet);
         ProtoBet.Bet.Builder builder = BetConverter.toProtoBetBuilder(bet);
         if (bet.isEncrypted()) {
+            log.debug("isEncrypted");
             pairSecret = messageWithKeyService.getPairSecret(subscriber, subscribed);
             builder.setDefinition(CryptoUtils.decryptText(bet.getDefinition(), pairSecret));
             if (bet.getWager() != null) {

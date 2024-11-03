@@ -9,4 +9,5 @@ public interface FriendInfo {
     Double getWinPercent();
     Double getStandoffPercent();
     Integer getActiveBetCount();
+    Integer getOfferedBetCount();
 }
