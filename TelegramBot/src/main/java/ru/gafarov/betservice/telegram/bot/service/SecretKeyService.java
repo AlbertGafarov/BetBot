@@ -50,6 +50,10 @@ public class SecretKeyService {
     public SecretKey.MessageWithKey getSecretMessage(UserOuterClass.User user) {
         log.debug("Получаем секрет из памяти, user: {}", user.getChatId());
         SecretKey.ResponseSecretKey response = grpcSecretKeyStub.hasSecretMessage(user);
-        return response.getMessageWithKey();
+        if(response.hasMessageWithKey()) {
+            return response.getMessageWithKey();
+        } else {
+            return null;
+        }
     }
 }
