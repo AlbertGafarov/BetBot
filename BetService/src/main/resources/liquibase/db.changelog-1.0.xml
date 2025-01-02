@@ -1037,7 +1037,7 @@
         </addColumn>
     </changeSet>
     <changeSet id="1.0.98" author="albert.gafarov">
-        <sql>insert into info (type, text) values ('MENU_SECRET', '&lt;b>Шифрование&lt;/b>')</sql>
+        <sql>insert into betbot.info (type, text) values ('MENU_SECRET', '&lt;b>Шифрование&lt;/b>')</sql>
     </changeSet>
     <changeSet id="1.0.99" author="albert.gafarov">
         <addColumn tableName="users">
