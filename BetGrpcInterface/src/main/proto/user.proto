@@ -1,7 +1,6 @@
 syntax = "proto3";
 package ru.gafarov.bet.grpcInterface;
 
-import "google/protobuf/timestamp.proto";
 import "rs.proto";
 
 message User {
@@ -23,6 +22,7 @@ enum ChatStatus {
   WAIT_APPROVE = 6;
   WAIT_ARGUMENT = 7;
   WAIT_SECRET_KEY = 8;
+  WAIT_RESTORE_SECRET_KEY = 9;
 }
 
 message DialogStatus {

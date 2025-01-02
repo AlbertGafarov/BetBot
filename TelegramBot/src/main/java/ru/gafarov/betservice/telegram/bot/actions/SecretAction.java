@@ -16,6 +16,8 @@ import ru.gafarov.betservice.telegram.bot.service.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import static ru.gafarov.betservice.telegram.bot.components.buttons.Buttons.closeButton;
+
 @Component
 @RequiredArgsConstructor
 public class SecretAction implements Action {
@@ -38,16 +40,14 @@ public class SecretAction implements Action {
     private void showSecretMenu(Update update, long chatId, User user) {
         BetSendMessage sendMessage = infoService.getInfo(InfoType.MENU_SECRET, chatId);
         SecretKey.MessageWithKey messageWithKey = secretKeyService.getSecretMessage(user);
-        InlineKeyboardButton setSecretKeyButton = new InlineKeyboardButton(
-                (messageWithKey != null ? "Изменить" : "Установить") + " ключ шифрования");
-        setSecretKeyButton.setCallbackData("/secret/key/set");
+        InlineKeyboardButton setSecretKeyButton = getInlineKeyboardButton(messageWithKey);
 
         List<List<InlineKeyboardButton>> buttons = new ArrayList<>();
 
         if (user.getEncryptionEnabled()) {
             buttons.add(List.of(setSecretKeyButton));
 
-            if (messageWithKey != null) {
+            if (messageWithKey != null && !messageWithKey.getSecretKey().isEmpty()) {
                 InlineKeyboardButton showSecretKeyButton = new InlineKeyboardButton("Показать ключ шифрования");
                 showSecretKeyButton.setCallbackData("/secret/key/show/" + messageWithKey.getSecretKey());
                 buttons.add(List.of(showSecretKeyButton));
@@ -73,6 +73,21 @@ public class SecretAction implements Action {
         botService.sendAndSave(sendMessage, user, BotMessageType.SECRET_MENU, true);
     }
 
+    private static InlineKeyboardButton getInlineKeyboardButton(SecretKey.MessageWithKey messageWithKey) {
+        InlineKeyboardButton setSecretKeyButton;
+        if (messageWithKey == null) {
+            setSecretKeyButton = new InlineKeyboardButton("Установить ключ шифрования");
+            setSecretKeyButton.setCallbackData("/secret/key/set");
+        } else if (messageWithKey.getSecretKey().isEmpty()) {
+            setSecretKeyButton = new InlineKeyboardButton("Необходимо ввести, ранее указанный,\n ключ шифрования");
+            setSecretKeyButton.setCallbackData("/secret/key/restore");
+        } else {
+            setSecretKeyButton = new InlineKeyboardButton("Изменить ключ шифрования");
+            setSecretKeyButton.setCallbackData("/secret/key/set");
+        }
+        return setSecretKeyButton;
+    }
+
     @Override
     public void callback(Update update) {
         long chatId = update.getCallbackQuery().getFrom().getId();
@@ -90,6 +105,7 @@ public class SecretAction implements Action {
                         userService.setChatStatus(user, UserOuterClass.ChatStatus.WAIT_SECRET_KEY);
                         BetSendMessage sendInfoMessage = new BetSendMessage(chatId);
                         sendInfoMessage.setText("Введите секретный ключ");
+                        sendInfoMessage.setReplyMarkup(closeButton());
                         botService.sendAndSave(sendInfoMessage, user, BotMessageType.ENTER_SECRET_KEY, true);
                         botService.delete(update);
                         break;
@@ -98,6 +114,14 @@ public class SecretAction implements Action {
                         message.setText("Ваш ключ шифрования: <tg-spoiler>" + command[4] + "</tg-spoiler>");
                         botService.sendAndSave(message, user, BotMessageType.SECRET_KEY, true);
                         break;
+                    case "restore":
+                        userService.setChatStatus(user, UserOuterClass.ChatStatus.WAIT_RESTORE_SECRET_KEY);
+                        BetSendMessage sendMessage = new BetSendMessage(chatId);
+                        sendMessage.setText("Введите Ваш секретный ключ. Мы не сможем его восстановить, " +
+                                "если Вы его не помните, потому что мы не храним Ваши пароли");
+                        sendMessage.setReplyMarkup(closeButton());
+                        botService.sendAndSave(sendMessage, user, BotMessageType.ENTER_SECRET_KEY, true);
+                        botService.delete(update);
                 }
                 break;
             case "encryption":

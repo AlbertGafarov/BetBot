@@ -11,7 +11,7 @@ import ru.gafarov.betservice.telegram.bot.service.AuthorizationService;
 import ru.gafarov.betservice.telegram.bot.service.BotService;
 import ru.gafarov.betservice.telegram.bot.service.UserService;
 
-@Component
+//@Component
 @RequiredArgsConstructor
 public class SetSecretKeyAction implements Action {
 

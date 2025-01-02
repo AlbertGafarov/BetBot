@@ -5,6 +5,7 @@ import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageRe
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.gafarov.bet.grpcInterface.*;
 import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
 
@@ -56,5 +57,5 @@ public interface BotService {
 
     Message forward(ForwardMessage forwardMessage);
 
-    String getTextFromTgMessageById(long chatId, int tgMessageId);
+    String getTextFromTgMessageById(long chatId, int tgMessageId) throws TelegramApiException;
 }

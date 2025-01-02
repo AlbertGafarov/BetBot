@@ -3,6 +3,7 @@ logging:
     org.hibernate.type.descriptor.sql: warn
     ru.gafarov.betservice.service.impl.BetServiceImpl: debug
     ru.gafarov.betservice.service.impl.FriendServiceImpl: debug
+    ru.gafarov.betservice.service.impl.MessageWithKeyServiceImpl: debug
     ru.gafarov.betservice.transformer.impl.BetTransformerImpl: debug
 server:
   port: 8080

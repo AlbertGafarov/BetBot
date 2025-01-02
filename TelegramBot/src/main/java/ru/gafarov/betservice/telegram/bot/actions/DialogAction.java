@@ -65,11 +65,16 @@ public class DialogAction {
             draftBetService.setFinishDateToDraftBet(user, text, editMessageText, botMessageBuilder, replyMessage);
             userService.setChatStatus(user, ChatStatus.WAIT_APPROVE);
         } else if (ChatStatus.WAIT_ARGUMENT.equals(userChatStatus)) {
+
             betService.addArgument(user, text);
             userService.setChatStatus(user, ChatStatus.START);
         } else if (ChatStatus.WAIT_SECRET_KEY.equals(userChatStatus)) {
+
             userService.saveMessageWithKey(user, update);
             userService.setChatStatus(user, ChatStatus.START);
+        } else if (ChatStatus.WAIT_RESTORE_SECRET_KEY.equals(userChatStatus)) {
+
+            userService.reSaveMessageWithKey(user, update);
         }
         botService.delete(update);
     }

@@ -23,6 +23,12 @@ public class GrpcSecretKeyRequestHandler extends SecretKeyServiceGrpc.SecretKeyS
         responseObserver.onNext(messageWithKeyService.saveMessageWithKey(messageWithKey));
         responseObserver.onCompleted();
     }
+    // Восстановить номер сообщения с секретным кодом
+    @Override
+    public void reSaveMessageWithKey(SecretKey.MessageWithKey messageWithKey, StreamObserver<Rs.Response> responseObserver) {
+        responseObserver.onNext(messageWithKeyService.reSaveMessageWithKey(messageWithKey));
+        responseObserver.onCompleted();
+    }
 
     @Override
     public void hasSecretMessage(UserOuterClass.User user, StreamObserver<SecretKey.ResponseSecretKey> responseObserver) {

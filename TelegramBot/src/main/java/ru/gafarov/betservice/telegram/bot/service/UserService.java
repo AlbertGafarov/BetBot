@@ -19,6 +19,9 @@ import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
+
+import static ru.gafarov.betservice.telegram.bot.components.buttons.Buttons.closeButton;
 
 @Slf4j
 @Service
@@ -122,6 +125,16 @@ public class UserService {
     }
 
     public void saveMessageWithKey(User user, Update update) {
+        Pattern pattern = Pattern.compile("[\\d\\D]{3,24}");
+        if (!pattern.matcher(update.getMessage().getText().trim()).matches()) {
+            log.error("Введено недопустимое значение для секрета. Доступны только латинские буквы и цифры от 3-х до 24-х символов");
+            BetSendMessage sendInfoMessage = new BetSendMessage(user.getChatId());
+            sendInfoMessage.setText("Получена ошибка. Попробуйте еще раз");
+            sendInfoMessage.setReplyMarkup(closeButton());
+            botMessageService.deleteByBotMessageType(user, BotMessageOuterClass.BotMessageType.ENTER_SECRET_KEY);
+            botService.sendAndSave(sendInfoMessage, user, BotMessageOuterClass.BotMessageType.ERROR_SECRET_KEY, true);
+            return;
+        }
         ForwardMessage forwardMessage = new ForwardMessage();
         forwardMessage.setChatId(user.getChatId());
         forwardMessage.setMessageId(update.getMessage().getMessageId());
@@ -131,16 +144,22 @@ public class UserService {
         SecretKey.MessageWithKey messageWithKey = SecretKey.MessageWithKey.newBuilder()
                 .setUser(user)
                 .setTgMessageId(id)
-                .setSecretKey(message.getText()).build();
+                .setSecretKey(message.getText().trim()).build();
         Rs.Response response = grpcSecretKeyStub.saveMessageWithKey(messageWithKey);
-        if (!Status.SUCCESS.equals(response.getStatus())) {
+        if (Status.SUCCESS.equals(response.getStatus())) {
+            BetSendMessage sendInfoMessage = new BetSendMessage(user.getChatId());
+            sendInfoMessage.setText("Секретный ключ получен. Мы не сохраняем его у себя, поэтому запомните его или не удаляйте из этого чата");
+            sendInfoMessage.setDelTime(60_000);
+            botMessageService.deleteByBotMessageType(user, BotMessageOuterClass.BotMessageType.ENTER_SECRET_KEY);
+            botService.sendAndSave(sendInfoMessage, user, BotMessageOuterClass.BotMessageType.SECRET_KEY_SAVED, true);
+        } else {
             log.error("Получена ошибка при попытке сохранить номер сообщения");
+            BetSendMessage sendInfoMessage = new BetSendMessage(user.getChatId());
+            sendInfoMessage.setText("Получена ошибка. Попробуйте еще раз");
+            sendInfoMessage.setReplyMarkup(closeButton());
+            botMessageService.deleteByBotMessageType(user, BotMessageOuterClass.BotMessageType.ENTER_SECRET_KEY);
+            botService.sendAndSave(sendInfoMessage, user, BotMessageOuterClass.BotMessageType.ERROR_SECRET_KEY, true);
         }
-        BetSendMessage sendInfoMessage = new BetSendMessage(user.getChatId());
-        sendInfoMessage.setText("Секретный ключ получен. Мы не сохраняем его у себя, поэтому запомните его или не удаляйте из этого чата");
-        sendInfoMessage.setDelTime(60_000);
-        botMessageService.deleteByBotMessageType(user, BotMessageOuterClass.BotMessageType.ENTER_SECRET_KEY);
-        botService.sendAndSave(sendInfoMessage, user, BotMessageOuterClass.BotMessageType.SECRET_KEY_SAVED, true);
     }
 
     public User setEncryptionStatus(User user, boolean encryptionStatus) {
@@ -151,5 +170,34 @@ public class UserService {
             log.error("Получена ошибка при попытке изменить статус шифрования");
         }
         return user;
+    }
+
+    public void reSaveMessageWithKey(User user, Update update) {
+        ForwardMessage forwardMessage = new ForwardMessage();
+        forwardMessage.setChatId(user.getChatId());
+        forwardMessage.setMessageId(update.getMessage().getMessageId());
+        forwardMessage.setFromChatId(user.getChatId());
+        Message message = botService.forward(forwardMessage);
+        Integer id = message.getMessageId();
+        SecretKey.MessageWithKey messageWithKey = SecretKey.MessageWithKey.newBuilder()
+                .setUser(user)
+                .setTgMessageId(id)
+                .setSecretKey(message.getText()).build();
+        Rs.Response response = grpcSecretKeyStub.reSaveMessageWithKey(messageWithKey);
+        if (Status.SUCCESS.equals(response.getStatus())) {
+            BetSendMessage sendInfoMessage = new BetSendMessage(user.getChatId());
+            sendInfoMessage.setText("Секретный ключ получен. Мы не сохраняем его у себя, поэтому запомните его или не удаляйте из этого чата");
+            sendInfoMessage.setDelTime(60_000);
+            botMessageService.deleteByBotMessageType(user, BotMessageOuterClass.BotMessageType.ENTER_SECRET_KEY);
+            botService.sendAndSave(sendInfoMessage, user, BotMessageOuterClass.BotMessageType.SECRET_KEY_SAVED, true);
+            setChatStatus(user, ChatStatus.START);
+        } else {
+            log.error("Код не совпадает с ранее введенным кодом, chatId: {}", user.getChatId());
+            BetSendMessage sendInfoMessage = new BetSendMessage(user.getChatId());
+            sendInfoMessage.setText("Введен неверный код. Попробуйте еще раз");
+            sendInfoMessage.setReplyMarkup(closeButton());
+            botMessageService.deleteByBotMessageType(user, BotMessageOuterClass.BotMessageType.ENTER_SECRET_KEY);
+            botService.sendAndSave(sendInfoMessage, user, BotMessageOuterClass.BotMessageType.ERROR_SECRET_KEY, true);
+        }
     }
 }

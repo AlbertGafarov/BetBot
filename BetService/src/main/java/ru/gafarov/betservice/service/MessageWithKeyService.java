@@ -11,6 +11,11 @@ public interface MessageWithKeyService {
 
     String getSecret(User user);
 
+    /**
+     * Метод принимает от пользователя секрет, в случае, если переписка удалена
+     */
+    Rs.Response reSaveMessageWithKey(SecretKey.MessageWithKey messageWithKeyProto);
+
     void putSecret(Long userId, String secret);
 
     String getPairSecret(User author, User receiver);

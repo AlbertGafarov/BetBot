@@ -183,17 +183,14 @@ public class BotServiceImpl implements BotService {
     }
 
     @Override
-    public String getTextFromTgMessageById(long chatId, int tgMessageId) {
+    public String getTextFromTgMessageById(long chatId, int tgMessageId) throws TelegramApiException {
         ForwardMessage forwardMessage = new ForwardMessage(String.valueOf(chatId), String.valueOf(chatId), tgMessageId);
         String secret;
-        try {
             Message message = bot.execute(forwardMessage);
             secret = message.getText();
             DeleteMessage deleteMessage = new DeleteMessage(String.valueOf(chatId), message.getMessageId());
             bot.execute(deleteMessage);
-        } catch (TelegramApiException e) {
-            throw new RuntimeException(e);
-        }
+
         return secret;
     }
 }

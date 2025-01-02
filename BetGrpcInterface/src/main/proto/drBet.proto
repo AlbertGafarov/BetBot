@@ -2,7 +2,6 @@ syntax = "proto3";
 package ru.gafarov.bet.grpcInterface;
 
 import "google/protobuf/timestamp.proto";
-import "ProtoBet.proto";
 import "user.proto";
 import "rs.proto";
 

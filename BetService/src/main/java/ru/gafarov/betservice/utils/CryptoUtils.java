@@ -25,12 +25,6 @@ public class CryptoUtils {
 
     }
 
-    public String decryptText(String text, String pairSecret) {
-        return decrypt(text, pairSecret);
-
-    }
-
-
     public String encrypt(@NonNull String value, @NonNull String secret) {
         try {
             Cipher cipher = getCipher(secret, Cipher.ENCRYPT_MODE);
@@ -51,6 +45,13 @@ public class CryptoUtils {
         }
     }
 
+    public String decryptText(@NonNull String value, String secret) {
+        if (secret == null) {
+            return value;
+        }
+        return decrypt(value, secret);
+    }
+
     private static Cipher getCipher(String secret, int encryptMode) throws NoSuchAlgorithmException, NoSuchPaddingException
             , InvalidKeyException {
         byte[] key = secret.getBytes();
@@ -63,5 +64,4 @@ public class CryptoUtils {
         cipher.init(encryptMode, secretKey);
         return cipher;
     }
-
 }

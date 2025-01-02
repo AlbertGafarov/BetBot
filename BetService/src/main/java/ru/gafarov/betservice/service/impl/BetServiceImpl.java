@@ -86,7 +86,8 @@ public class BetServiceImpl implements BetService {
                 , bet.getInitiatorBetStatus().toString()
                 , bet.getOpponentBetStatus().toString()
                 , bet.getFinishDate()));
-        protoBet = BetConverter.toProtoBetBuilder(bet).build();
+
+        protoBet = betTransformer.getDecryptedProtoBet(protoBet.getInitiator().getId(), bet);
         return ProtoBet.ResponseBet.newBuilder().setStatus(Rs.Status.SUCCESS)
                 .setBet(protoBet)
                 .build();
@@ -164,14 +165,15 @@ public class BetServiceImpl implements BetService {
 
         ProtoBet.Bet protoBet = protoChangeStatusBetMessage.getBet();
         log.debug("Спор, статус которого надо изменить {}", protoBet);
-        log.debug("Пользователь который меняет статус спора {}", protoChangeStatusBetMessage.getUser());
+        UserOuterClass.User changerUser = protoChangeStatusBetMessage.getUser();
+        log.debug("Пользователь который меняет статус спора {}", changerUser);
         ProtoBet.UserBetStatus newBetStatus = protoChangeStatusBetMessage.getNewStatus();
         log.debug("Новый статус спора {}", newBetStatus);
         Optional<Bet> optionalBet = betRepository.findById(protoBet.getId());
         if (optionalBet.isPresent()) {
             log.debug("Спор c id: {} найден в БД", protoBet.getId());
             Bet bet = optionalBet.get();
-            BetRole userBetRole = bet.getInitiator().getUsername().equals(protoChangeStatusBetMessage.getUser().getUsername()) ? INITIATOR : OPPONENT;
+            BetRole userBetRole = bet.getInitiator().getUsername().equals(changerUser.getUsername()) ? INITIATOR : OPPONENT;
             ProtoBet.UserBetStatus userStatus = userBetRole.equals(INITIATOR) ? bet.getInitiatorBetStatus() : bet.getOpponentBetStatus();
             log.debug("Статус меняет {}: текущий: {}, новый: {}", userBetRole, userStatus, newBetStatus);
             ChangeStatusBetRule changeStatusBetWish = new ChangeStatusBetRule(userStatus, newBetStatus, userBetRole);
@@ -204,7 +206,7 @@ public class BetServiceImpl implements BetService {
                     return ProtoBet.ResponseMessage.newBuilder().setStatus(Rs.Status.SUCCESS)
                             .setMessageForOpponent(rule.getMessageForOpponent())
                             .setMessageForInitiator(rule.getMessageForInitiator())
-                            .setBet(BetConverter.toProtoBetBuilder(bet)).build();
+                            .setBet(betTransformer.getDecryptedProtoBet(changerUser.getId(), bet)).build();
                 } else {
                     log.warn("Изменение невозможно и не будет выполнено");
                     return ProtoBet.ResponseMessage.newBuilder().setStatus(Rs.Status.NOT_SUCCESS)
