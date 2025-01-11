@@ -38,7 +38,6 @@ public class MessageWithKeyServiceImpl implements MessageWithKeyService {
     public Rs.Response saveMessageWithKey(SecretKey.MessageWithKey messageWithKeyProto) {
         User user = UserConverter.toUser(messageWithKeyProto.getUser());
 
-
         // Перешифровать все парные ключи
         List<Subscribe> subscribes = subscribeService.getSubscribes(user.getId());
         for (Subscribe subscribe : subscribes) {

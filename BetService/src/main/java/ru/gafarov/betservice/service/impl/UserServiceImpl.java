@@ -47,11 +47,7 @@ public class UserServiceImpl implements UserService {
         user.setUpdated(LocalDateTime.now());
         user.setStatus(Status.ACTIVE);
 
-        DialogStatus dialogStatus = new DialogStatus();
-        dialogStatus.setChatStatus(UserOuterClass.ChatStatus.START);
         user = userRepository.save(user);
-        dialogStatus.setUser(user);
-        dialogStatusRepository.save(dialogStatus);
         return UserOuterClass.ResponseUser.newBuilder().setUser(UserOuterClass.User.newBuilder(protoUser).setCode(code)
                 .setId(user.getId())
                 .build()).build();
