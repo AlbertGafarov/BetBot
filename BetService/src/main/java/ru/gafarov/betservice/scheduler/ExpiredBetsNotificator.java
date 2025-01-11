@@ -7,14 +7,14 @@ import org.springframework.stereotype.Service;
 import ru.gafarov.bet.grpcInterface.BetServiceGrpc;
 import ru.gafarov.bet.grpcInterface.ProtoBet;
 import ru.gafarov.bet.grpcInterface.Rs;
-import ru.gafarov.betservice.converter.BetConverter;
 import ru.gafarov.betservice.entity.Bet;
 import ru.gafarov.betservice.entity.NotifyExpiredStatus;
 import ru.gafarov.betservice.enums.NotifyStatus;
 import ru.gafarov.betservice.model.Status;
-import ru.gafarov.betservice.repository.BetRepository;
 import ru.gafarov.betservice.repository.ChangeStatusBetRuleRepository;
 import ru.gafarov.betservice.repository.NotifyExpiredBetRepository;
+import ru.gafarov.betservice.service.BetService;
+import ru.gafarov.betservice.transformer.BetTransformer;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -28,15 +28,16 @@ import static ru.gafarov.betservice.model.BetRole.OPPONENT;
 @RequiredArgsConstructor
 public class ExpiredBetsNotificator {
 
-    private final BetRepository betRepository;
+    private final BetService betService;
     private final BetServiceGrpc.BetServiceBlockingStub grpcStub;
     private final ChangeStatusBetRuleRepository ruleRepository;
     private final NotifyExpiredBetRepository notifyExpiredBetRepository;
+    private final BetTransformer betTransformer;
 
     @Scheduled(cron = "0 */10 * ? * *")
     public void checkExpiredBets() {
         log.info("Запущена проверка истекших споров");
-        List<Bet> betList = betRepository.getExpiredBets(LocalDateTime.now());
+        List<Bet> betList = betService.getExpiredBets();
         List<ProtoBet.Bet> protoBetList = betList.stream()
                 .map(b -> {
                     b.setNextOpponentBetStatusList(ruleRepository.getNextStatuses(OPPONENT.toString()
@@ -47,7 +48,7 @@ public class ExpiredBetsNotificator {
                             , b.getInitiatorBetStatus().toString()
                             , b.getOpponentBetStatus().toString()
                             , b.getFinishDate()));
-                    return BetConverter.toProtoBet(b);
+                    return betTransformer.getDecryptedProtoBet(b.getInitiator().getId(), b);
                 }).collect(Collectors.toList());
 
         log.info("Найдено {}", betList.size());

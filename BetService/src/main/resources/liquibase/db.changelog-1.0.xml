@@ -964,7 +964,7 @@
             </column>
             <column name="bet_id" type="integer">
                 <constraints foreignKeyName="argument_bets_fk" referencedTableName="bets" referencedColumnNames="id"
-                nullable="false"/>
+                             nullable="false"/>
             </column>
             <column name="bet_role" type="varchar(128)">
                 <constraints nullable="false"/>
@@ -987,26 +987,69 @@
         </createIndex>
     </changeSet>
     <changeSet id="1.0.93" author="albert.gafarov">
-    <createTable tableName="dialog_status">
-        <column name="id" type="serial">
-            <constraints primaryKey="true" nullable="false"/>
-        </column>
-        <column name = "user_id" type="integer">
-            <constraints foreignKeyName="dialog_status_users_fk" referencedTableName="users"
-                         referencedColumnNames="id" nullable="false" unique="true"/>
-        </column>
-        <column name="chat_status" type="varchar(128)">
-            <constraints nullable="false"/>
-        </column>
-        <column name="bet_id" type="integer">
-            <constraints foreignKeyName="dialog_status_bets_fk" referencedTableName="bets" referencedColumnNames="id"/>
-        </column>
-        <column name="updated" type="timestamp" defaultValueDate="current_timestamp">
-            <constraints nullable="false"/>
-        </column>
-    </createTable>
+        <createTable tableName="dialog_status">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="integer">
+                <constraints foreignKeyName="dialog_status_users_fk" referencedTableName="users"
+                             referencedColumnNames="id" nullable="false" unique="true"/>
+            </column>
+            <column name="chat_status" type="varchar(128)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="bet_id" type="integer">
+                <constraints foreignKeyName="dialog_status_bets_fk" referencedTableName="bets"
+                             referencedColumnNames="id"/>
+            </column>
+            <column name="updated" type="timestamp" defaultValueDate="current_timestamp">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
     </changeSet>
     <changeSet id="1.0.94" author="albert.gafarov">
         <dropColumn tableName="users" columnName="chat_status"/>
+    </changeSet>
+    <changeSet id="1.0.95" author="albert.gafarov">
+        <createTable tableName="message_with_key">
+            <column name="user_id" type="integer">
+                <constraints primaryKey="true"
+                             nullable="false"
+                             unique="true"
+                             foreignKeyName="message_with_key_user_fk"
+                             referencedTableName="users"
+                             referencedColumnNames="id"/>
+            </column>
+            <column name="tg_message_id" type="integer"/>
+            <column name="updated" type="timestamp" defaultValueDate="current_timestamp">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="1.0.96" author="albert.gafarov">
+        <addColumn tableName="subscribe">
+            <column name="secret_key" type="varchar(256)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="1.0.97" author="albert.gafarov">
+        <addColumn tableName="argument">
+            <column name="encrypted" type="boolean" defaultValue="false"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="1.0.98" author="albert.gafarov">
+        <sql>insert into betbot.info (type, text) values ('MENU_SECRET', '&lt;b>Шифрование&lt;/b>')</sql>
+    </changeSet>
+    <changeSet id="1.0.99" author="albert.gafarov">
+        <addColumn tableName="users">
+            <column name="encryption_enabled" type="boolean" defaultValue="false"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="1.0.100" author="albert.gafarov">
+        <addColumn tableName="bets">
+            <column name="encrypted" type="boolean" defaultValue="false"/>
+        </addColumn>
+        <update tableName="bets">
+            <column name="encrypted" value="false"/>
+        </update>
     </changeSet>
 </databaseChangeLog>

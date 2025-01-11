@@ -64,4 +64,7 @@ public class Bet extends BaseEntity {
 
     @Transient
     private List<ProtoBet.UserBetStatus> nextInitiatorBetStatusList;
+
+    @Column(name = "encrypted")
+    private boolean encrypted;
 }

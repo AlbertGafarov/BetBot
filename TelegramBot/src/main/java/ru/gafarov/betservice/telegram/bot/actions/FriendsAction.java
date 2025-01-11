@@ -82,7 +82,7 @@ public class FriendsAction implements Action {
             InlineKeyboardButton showActiveBetsButton = new InlineKeyboardButton("Активные споры " + friendInfo.getActiveBetCount());
             showActiveBetsButton.setCallbackData("/bets/" + BetStatus.ACTIVE + "/with/" + friend.getId());
 
-            InlineKeyboardButton showOfferedBetsButton = new InlineKeyboardButton("Предложенные споры");
+            InlineKeyboardButton showOfferedBetsButton = new InlineKeyboardButton("Предложенные споры " + friendInfo.getOfferedBetCount());
             showOfferedBetsButton.setCallbackData("/bets/" + BetStatus.OFFER + "/with/" + friend.getId());
 
             InlineKeyboardButton disagreementBetsButton = new InlineKeyboardButton("Споры с неочевидным результатом");

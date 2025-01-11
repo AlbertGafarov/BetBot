@@ -8,10 +8,7 @@ import ru.gafarov.bet.grpcInterface.BotMessageOuterClass.BotMessageType;
 import ru.gafarov.bet.grpcInterface.Rs.Status;
 import ru.gafarov.bet.grpcInterface.UserOuterClass.User;
 import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
-import ru.gafarov.betservice.telegram.bot.service.BotMessageService;
-import ru.gafarov.betservice.telegram.bot.service.BotService;
-import ru.gafarov.betservice.telegram.bot.service.SubscribeService;
-import ru.gafarov.betservice.telegram.bot.service.UserService;
+import ru.gafarov.betservice.telegram.bot.service.*;
 
 @Component
 @RequiredArgsConstructor
@@ -21,6 +18,7 @@ public class AddMeAction implements Action {
     private final UserService userService;
     private final BotMessageService botMessageService;
     private final SubscribeService subscribeService;
+    private final AuthorizationService authorizationService;
 
     @Override
     // /addMe/{username}/{code}/{info text}
@@ -28,6 +26,9 @@ public class AddMeAction implements Action {
 
         long chatId = update.getMessage().getChatId();
         User user = userService.getUser(chatId);
+        if (user == null) {
+            user = authorizationService.addNewUser(update, chatId);
+        }
         String[] command = update.getMessage().getText().split("/");
         User opponent = userService.getUser(command[2], Integer.parseInt(command[3]));
 

@@ -1,6 +1,6 @@
 package ru.gafarov.betservice.service.impl;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.gafarov.bet.grpcInterface.Friend;
@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
@@ -53,6 +53,7 @@ public class UserServiceImpl implements UserService {
         dialogStatus.setUser(user);
         dialogStatusRepository.save(dialogStatus);
         return UserOuterClass.ResponseUser.newBuilder().setUser(UserOuterClass.User.newBuilder(protoUser).setCode(code)
+                .setId(user.getId())
                 .build()).build();
     }
 
@@ -116,6 +117,19 @@ public class UserServiceImpl implements UserService {
         return UserOuterClass.ResponseUser.newBuilder()
                 .addAllUsers(friends.stream().map(UserConverter::toProtoUser).collect(Collectors.toList()))
                 .setStatus(Rs.Status.SUCCESS).build();
+    }
+
+    @Override
+    public User getUser(Long id) {
+        return userRepository.findById(id).orElseThrow();
+    }
+
+    @Override
+    public UserOuterClass.ResponseUser changeEncryptedStatus(UserOuterClass.User protoUser) {
+        User user = getUser(protoUser.getId());
+        user.setEncryptionEnabled(protoUser.getEncryptionEnabled());
+        user = userRepository.save(user);
+        return UserOuterClass.ResponseUser.newBuilder().setUser(UserConverter.toProtoUser(user)).setStatus(Rs.Status.SUCCESS).build();
     }
 
     @Override

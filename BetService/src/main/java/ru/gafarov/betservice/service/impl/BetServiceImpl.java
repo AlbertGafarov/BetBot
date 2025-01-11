@@ -16,9 +16,18 @@ import ru.gafarov.betservice.model.Status;
 import ru.gafarov.betservice.repository.BetRepository;
 import ru.gafarov.betservice.repository.ChangeStatusBetRuleRepository;
 import ru.gafarov.betservice.service.BetService;
+import ru.gafarov.betservice.service.MessageWithKeyService;
 import ru.gafarov.betservice.service.SubscribeService;
 import ru.gafarov.betservice.service.UserService;
+import ru.gafarov.betservice.transformer.BetTransformer;
+import ru.gafarov.betservice.utils.CryptoUtils;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -39,6 +48,8 @@ public class BetServiceImpl implements BetService {
     private final List<ChangeStatusBetRule> changeStatusBetRules;
     private final List<BetStatusRule> betStatusRuleList;
     private final Converter converter;
+    private final BetTransformer betTransformer;
+    private final MessageWithKeyService messageWithKeyService;
 
     @Override
     public ProtoBet.ResponseBet save(ProtoBet.Bet protoBet) {
@@ -50,8 +61,16 @@ public class BetServiceImpl implements BetService {
         bet.setBetStatus(ProtoBet.BetStatus.OFFER);
         bet.setInitiatorBetStatus(ProtoBet.UserBetStatus.OFFERED);
         bet.setOpponentBetStatus(ProtoBet.UserBetStatus.OFFERED);
-        bet.setWager(protoBet.getWager());
-        bet.setDefinition(protoBet.getDefinition());
+        //Если хотя бы у одного из участников включено шифрование, то необходимо зашифровать спор
+        if (protoBet.getInitiator().getEncryptionEnabled() || protoBet.getOpponent().getEncryptionEnabled()) {
+            String pairSecret = messageWithKeyService.getPairSecret(bet.getInitiator(), bet.getOpponent());
+            bet.setWager(CryptoUtils.encrypt(protoBet.getWager(), pairSecret));
+            bet.setDefinition(CryptoUtils.encrypt(protoBet.getDefinition(), pairSecret));
+            bet.setEncrypted(true);
+        } else {
+            bet.setWager(protoBet.getWager());
+            bet.setDefinition(protoBet.getDefinition());
+        }
         bet.setInverseDefinition(protoBet.getInverseDefinition());
         bet.setFinishDate(converter.toLocalDateTime(protoBet.getFinishDate()));
         bet = betRepository.save(bet);
@@ -67,16 +86,19 @@ public class BetServiceImpl implements BetService {
                 , bet.getInitiatorBetStatus().toString()
                 , bet.getOpponentBetStatus().toString()
                 , bet.getFinishDate()));
-        protoBet = BetConverter.toProtoBet(bet);
-        return ProtoBet.ResponseBet.newBuilder().setStatus(Rs.Status.SUCCESS).setBet(protoBet).build();
+
+        protoBet = betTransformer.getDecryptedProtoBet(protoBet.getInitiator().getId(), bet);
+        return ProtoBet.ResponseBet.newBuilder().setStatus(Rs.Status.SUCCESS)
+                .setBet(protoBet)
+                .build();
     }
 
     public ProtoBet.ResponseMessage getActiveBets(UserOuterClass.User protoUser) {
         long userId = userService.getUser(protoUser).getId();
         List<Bet> activeBets = betRepository.getActiveBets(userId);
         List<ProtoBet.Bet> protoActiveBet = activeBets.stream().map(a -> {
-            setNextStatuses(a);
-            return BetConverter.toProtoBet(a);
+            betTransformer.setNextStatuses(a);
+            return betTransformer.getDecryptedProtoBet(protoUser.getId(), a);
         }).collect(Collectors.toList());
         return ProtoBet.ResponseMessage.newBuilder().setStatus(Rs.Status.SUCCESS).addAllBets(protoActiveBet).build();
     }
@@ -84,16 +106,25 @@ public class BetServiceImpl implements BetService {
     @Override
     public ProtoBet.ResponseBet getBets(ProtoBet.Bet protoBet) {
 
+        log.debug("Шаблон для поиска споров\ninitiator: {}\nopponent: {}\nstatus: {}"
+                , protoBet.getInitiator().getId(), protoBet.getOpponent().getId(), protoBet.getBetStatus());
+
         List<Bet> bets = betRepository.getBets(protoBet.getInitiator().getId()
                 , protoBet.getOpponent().getId()
                 , protoBet.getBetStatus().toString());
+
+        log.debug("Список споров, удовлетворяющих шаблону: {}", bets.stream().map(a ->
+                        "\nid: " + a.getId() + " isEncrypted: " + a.isEncrypted())
+                .collect(Collectors.joining(" ")));
+
         if (bets.isEmpty()) {
             return ProtoBet.ResponseBet.newBuilder().setStatus(Rs.Status.NOT_FOUND).build();
         } else {
             return ProtoBet.ResponseBet.newBuilder().setStatus(Rs.Status.SUCCESS)
                     .addAllBets(bets.stream().map(bet -> {
-                        setNextStatuses(bet);
-                        return BetConverter.toProtoBet(bet);
+                        // здесь мы используем id инициатора, потому что знаем, что при заполнении шаблона спора пользователь,
+                        // который получает список, записывается в качестве инициатора
+                        return betTransformer.getDecryptedProtoBet(protoBet.getInitiator().getId(), bet);
                     }).collect(Collectors.toList())).build();
         }
     }
@@ -104,19 +135,29 @@ public class BetServiceImpl implements BetService {
     }
 
     @Override
-    public ProtoBet.ResponseMessage showBet(Long userId, Long id) {
+    public ProtoBet.ResponseMessage showBet(Long userId, Long id) throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         Bet bet = betRepository.getBet(userId, id);
         if (bet != null) {
-            setNextStatuses(bet);
-            return ProtoBet.ResponseMessage.newBuilder().setBet(BetConverter.toProtoBet(bet)).build();
+            ProtoBet.Bet protoBet = betTransformer.getDecryptedProtoBet(userId, bet);
+            return ProtoBet.ResponseMessage.newBuilder().setBet(protoBet).build();
         }
         log.error("Не найден спор с id: {} user_id: {}", id, userId);
         return ProtoBet.ResponseMessage.newBuilder().setStatus(Rs.Status.ERROR).build();
     }
 
     @Override
+    public List<Bet> getExpiredBets() {
+        return betRepository.getExpiredBets(LocalDateTime.now());
+    }
+
+    @Override
     public ProtoBet.ResponseMessage showBet(ProtoBet.Bet protoBet) {
-        return showBet(protoBet.getInitiator().getId(), protoBet.getId());
+        try {
+            return showBet(protoBet.getInitiator().getId(), protoBet.getId());
+        } catch (NoSuchPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException | BadPaddingException |
+                 InvalidKeyException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -124,14 +165,15 @@ public class BetServiceImpl implements BetService {
 
         ProtoBet.Bet protoBet = protoChangeStatusBetMessage.getBet();
         log.debug("Спор, статус которого надо изменить {}", protoBet);
-        log.debug("Пользователь который меняет статус спора {}", protoChangeStatusBetMessage.getUser());
+        UserOuterClass.User changerUser = protoChangeStatusBetMessage.getUser();
+        log.debug("Пользователь который меняет статус спора {}", changerUser);
         ProtoBet.UserBetStatus newBetStatus = protoChangeStatusBetMessage.getNewStatus();
         log.debug("Новый статус спора {}", newBetStatus);
         Optional<Bet> optionalBet = betRepository.findById(protoBet.getId());
         if (optionalBet.isPresent()) {
             log.debug("Спор c id: {} найден в БД", protoBet.getId());
             Bet bet = optionalBet.get();
-            BetRole userBetRole = bet.getInitiator().getUsername().equals(protoChangeStatusBetMessage.getUser().getUsername()) ? INITIATOR : OPPONENT;
+            BetRole userBetRole = bet.getInitiator().getUsername().equals(changerUser.getUsername()) ? INITIATOR : OPPONENT;
             ProtoBet.UserBetStatus userStatus = userBetRole.equals(INITIATOR) ? bet.getInitiatorBetStatus() : bet.getOpponentBetStatus();
             log.debug("Статус меняет {}: текущий: {}, новый: {}", userBetRole, userStatus, newBetStatus);
             ChangeStatusBetRule changeStatusBetWish = new ChangeStatusBetRule(userStatus, newBetStatus, userBetRole);
@@ -160,15 +202,15 @@ public class BetServiceImpl implements BetService {
                     bet = betRepository.save(bet);
                     // Добавляем списки возможных следующих статусов
                     setBetStatus(bet);
-                    setNextStatuses(bet);
+                    betTransformer.setNextStatuses(bet);
                     return ProtoBet.ResponseMessage.newBuilder().setStatus(Rs.Status.SUCCESS)
                             .setMessageForOpponent(rule.getMessageForOpponent())
                             .setMessageForInitiator(rule.getMessageForInitiator())
-                            .setBet(BetConverter.toProtoBet(bet)).build();
+                            .setBet(betTransformer.getDecryptedProtoBet(changerUser.getId(), bet)).build();
                 } else {
                     log.warn("Изменение невозможно и не будет выполнено");
                     return ProtoBet.ResponseMessage.newBuilder().setStatus(Rs.Status.NOT_SUCCESS)
-                            .setBet(BetConverter.toProtoBet(bet))
+                            .setBet(BetConverter.toProtoBetBuilder(bet))
                             .setMessageForOpponent(Objects.requireNonNullElse(rule.getMessageForOpponent(), ""))
                             .setMessageForInitiator(Objects.requireNonNullElse(rule.getMessageForInitiator(), ""))
                             .build();
@@ -182,28 +224,6 @@ public class BetServiceImpl implements BetService {
         return ProtoBet.ResponseMessage.newBuilder().setStatus(Rs.Status.ERROR)
                 .setMessageForOpponent("Спор с id: " + protoBet.getId() + " не найден")
                 .build();
-    }
-
-    private void setNextStatuses(Bet bet) {
-        bet.setNextInitiatorBetStatusList(statusBetRepository.getNextStatuses(INITIATOR.toString()
-                , bet.getInitiatorBetStatus().toString()
-                , bet.getOpponentBetStatus().toString()
-                , bet.getFinishDate()));
-        bet.setNextOpponentBetStatusList(statusBetRepository.getNextStatuses(OPPONENT.toString()
-                , bet.getOpponentBetStatus().toString()
-                , bet.getInitiatorBetStatus().toString()
-                , bet.getFinishDate()));
-        // Если спор без вознаграждения, то статусы оплаты и ожидания оплаты не отображаются
-        if (bet.getWager().isEmpty()) {
-            if (bet.getNextInitiatorBetStatusList().equals(List.of(ProtoBet.UserBetStatus.WAGERPAID)) ||
-                    bet.getNextInitiatorBetStatusList().equals(List.of(ProtoBet.UserBetStatus.WAGERRECIEVED))) {
-                bet.getNextInitiatorBetStatusList().clear();
-            }
-            if (bet.getNextOpponentBetStatusList().equals(List.of(ProtoBet.UserBetStatus.WAGERPAID)) ||
-                    bet.getNextOpponentBetStatusList().equals(List.of(ProtoBet.UserBetStatus.WAGERRECIEVED))) {
-                bet.getNextOpponentBetStatusList().clear();
-            }
-        }
     }
 
     private void setBetStatus(Bet bet) {

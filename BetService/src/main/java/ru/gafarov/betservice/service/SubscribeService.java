@@ -3,6 +3,10 @@ package ru.gafarov.betservice.service;
 import ru.gafarov.bet.grpcInterface.Friend;
 import ru.gafarov.bet.grpcInterface.Rs;
 import ru.gafarov.betservice.entity.Bet;
+import ru.gafarov.betservice.entity.Subscribe;
+import ru.gafarov.betservice.entity.User;
+
+import java.util.List;
 
 public interface SubscribeService {
     void checkAndPutForInitiator(Bet bet);
@@ -16,4 +20,9 @@ public interface SubscribeService {
     Rs.Response addSubscribe(Friend.Subscribe request);
 
     Rs.Response delete(Friend.Subscribe request);
+    Subscribe getSubscribe(User subscriber, User subscribed);
+
+    void update(Subscribe subscribe);
+
+    List<Subscribe> getSubscribes(Long id);
 }

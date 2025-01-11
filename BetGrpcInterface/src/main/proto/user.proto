@@ -1,7 +1,6 @@
 syntax = "proto3";
 package ru.gafarov.bet.grpcInterface;
 
-import "google/protobuf/timestamp.proto";
 import "rs.proto";
 
 message User {
@@ -10,6 +9,7 @@ message User {
   int32 code = 3;
   int64 chatId = 4;
   DialogStatus dialogStatus = 5;
+  bool encryptionEnabled = 6;
 }
 
 enum ChatStatus {
@@ -21,6 +21,8 @@ enum ChatStatus {
   WAIT_FINISH_DATE = 4;
   WAIT_APPROVE = 6;
   WAIT_ARGUMENT = 7;
+  WAIT_SECRET_KEY = 8;
+  WAIT_RESTORE_SECRET_KEY = 9;
 }
 
 message DialogStatus {
@@ -39,4 +41,5 @@ service UserService {
   rpc addUser(User) returns (ResponseUser);
   rpc getUser(User) returns (ResponseUser);
   rpc changeChatStatus(User) returns (ResponseUser);
+  rpc setEncryptionStatus(User) returns (ResponseUser);
 }

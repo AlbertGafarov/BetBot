@@ -1,7 +1,6 @@
 syntax = "proto3";
 package ru.gafarov.bet.grpcInterface;
 
-import "google/protobuf/timestamp.proto";
 import "ProtoBet.proto";
 import "user.proto";
 import "rs.proto";
@@ -63,6 +62,11 @@ enum BotMessageType {
   INFO_HOW_CREATE_BET = 28;
   INFO_ABOUT_PERSONAL_DATA = 29;
   ADD_ARGUMENT = 33;
+  ENTER_SECRET_KEY = 34;
+  SECRET_KEY_SAVED = 35;
+  SECRET_KEY = 36;
+  SECRET_MENU = 37;
+  ERROR_SECRET_KEY = 38;
 }
 
 service BotMessageService {

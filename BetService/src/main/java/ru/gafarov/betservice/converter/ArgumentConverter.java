@@ -8,9 +8,6 @@ import ru.gafarov.betservice.entity.User;
 import ru.gafarov.betservice.model.BetRole;
 import ru.gafarov.betservice.model.Status;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @UtilityClass
 public class ArgumentConverter {
 
@@ -27,15 +24,7 @@ public class ArgumentConverter {
         return argument;
     }
 
-    public List<ProtoBet.Argument> toProtoArguments(List<Argument> arguments) {
-        List<ProtoBet.Argument> protoArguments = new ArrayList<>();
-        for (Argument argument : arguments) {
-            protoArguments.add(toProtoArgument(argument));
-        }
-        return protoArguments;
-    }
-
-    public ProtoBet.Argument toProtoArgument(Argument argument) {
+    public ProtoBet.Argument.Builder toProtoArgumentBuilder(Argument argument) {
         User author;
         if (BetRole.INITIATOR.equals(argument.getBetRole())) {
             author = argument.getBet().getInitiator();
@@ -45,7 +34,6 @@ public class ArgumentConverter {
         return ProtoBet.Argument.newBuilder()
                 .setTimestamp(DateTimeConverter.toTimestamp(argument.getCreated()))
                 .setAuthor(UserConverter.toProtoUser(author))
-                .setText(argument.getText())
-                .build();
+                .setEncrypted(argument.isEncrypted());
     }
 }

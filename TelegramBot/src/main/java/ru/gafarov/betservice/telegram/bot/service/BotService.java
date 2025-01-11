@@ -1,12 +1,12 @@
 package ru.gafarov.betservice.telegram.bot.service;
 
+import org.telegram.telegrambots.meta.api.methods.ForwardMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import ru.gafarov.bet.grpcInterface.BotMessageOuterClass;
-import ru.gafarov.bet.grpcInterface.DrBet;
-import ru.gafarov.bet.grpcInterface.ProtoBet;
-import ru.gafarov.bet.grpcInterface.UserOuterClass;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import ru.gafarov.bet.grpcInterface.*;
 import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
 
 import java.util.Collection;
@@ -28,7 +28,7 @@ public interface BotService {
      * @param user           пользователь, которому оправлено сообщение
      * @param botMessageType тип сообщения пользователю
      **/
-    void sendAndSave(BetSendMessage sendMessage, UserOuterClass.User user, BotMessageOuterClass.BotMessageType botMessageType);
+    int sendAndSave(BetSendMessage sendMessage, UserOuterClass.User user, BotMessageOuterClass.BotMessageType botMessageType);
 
     /**
      * Отправить сообщение и сохранить информацию о нем в БД
@@ -54,4 +54,8 @@ public interface BotService {
     void edit(EditMessageText editMessageText);
 
     void edit(EditMessageReplyMarkup editMessageReplyMarkup);
+
+    Message forward(ForwardMessage forwardMessage);
+
+    String getTextFromTgMessageById(long chatId, int tgMessageId) throws TelegramApiException;
 }

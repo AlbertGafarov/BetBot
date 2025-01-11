@@ -4,16 +4,18 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.methods.ForwardMessage;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.gafarov.bet.grpcInterface.BotMessageOuterClass.BotMessage;
 import ru.gafarov.bet.grpcInterface.BotMessageOuterClass.BotMessageType;
 import ru.gafarov.bet.grpcInterface.DrBet.DraftBet;
-import ru.gafarov.bet.grpcInterface.ProtoBet.*;
+import ru.gafarov.bet.grpcInterface.ProtoBet.Bet;
 import ru.gafarov.bet.grpcInterface.UserOuterClass.User;
 import ru.gafarov.betservice.telegram.bot.components.BetSendMessage;
 import ru.gafarov.betservice.telegram.bot.controller.BetTelegramBot;
@@ -61,8 +63,8 @@ public class BotServiceImpl implements BotService {
     }
 
     @Override
-    public void sendAndSave(BetSendMessage sendMessage, User user, BotMessageType botMessageType) {
-        sendAndSave(sendMessage, user, botMessageType, null, null, null);
+    public int sendAndSave(BetSendMessage sendMessage, User user, BotMessageType botMessageType) {
+        return sendAndSave(sendMessage, user, botMessageType, null, null, null);
     }
 
     @Override
@@ -90,10 +92,11 @@ public class BotServiceImpl implements BotService {
         sendAndSave(sendMessage, user, botMessageType, null, null, friend);
     }
 
-    private void sendAndSave(BetSendMessage sendMessage, User user, BotMessageType botMessageType, DraftBet draftBet
+    private int sendAndSave(BetSendMessage sendMessage, User user, BotMessageType botMessageType, DraftBet draftBet
             , Bet bet, User friend) {
         sendMessage.setParseMode(ParseMode.HTML);
         try {
+            sendMessage.setUser(null);
             int id = bot.execute(sendMessage).getMessageId();
             BotMessage.Builder builder = BotMessage.newBuilder().setTgMessageId(id)
                     .setType(botMessageType).setUser(user);
@@ -114,8 +117,10 @@ public class BotServiceImpl implements BotService {
                 deleteMessage.setChatId(sendMessage.getChatId());
                 deleteMessageService.deleteAsync(deleteMessage, sendMessage.getDelTime());
             }
+        return id;
         } catch (TelegramApiException e) {
-            log.error(e.getLocalizedMessage());
+            log.error("chatId: {}", sendMessage.getChatId());
+            throw new RuntimeException(e);
         }
     }
 
@@ -165,5 +170,27 @@ public class BotServiceImpl implements BotService {
         } catch (TelegramApiException e) {
             log.error(e.getLocalizedMessage());
         }
+    }
+
+    @Override
+    public Message forward(ForwardMessage forwardMessage) {
+        try {
+            return bot.execute(forwardMessage);
+        } catch (TelegramApiException e) {
+            log.error(e.getLocalizedMessage());
+            return null;
+        }
+    }
+
+    @Override
+    public String getTextFromTgMessageById(long chatId, int tgMessageId) throws TelegramApiException {
+        ForwardMessage forwardMessage = new ForwardMessage(String.valueOf(chatId), String.valueOf(chatId), tgMessageId);
+        String secret;
+            Message message = bot.execute(forwardMessage);
+            secret = message.getText();
+            DeleteMessage deleteMessage = new DeleteMessage(String.valueOf(chatId), message.getMessageId());
+            bot.execute(deleteMessage);
+
+        return secret;
     }
 }

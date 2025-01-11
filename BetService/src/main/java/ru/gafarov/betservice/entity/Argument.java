@@ -13,7 +13,7 @@ import javax.persistence.*;
 @Entity
 @Table(name = "argument")
 @NoArgsConstructor
-public class Argument extends BaseEntity {
+public class    Argument extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "bet_id")
@@ -27,4 +27,7 @@ public class Argument extends BaseEntity {
     @Column(name = "bet_role")
     @Enumerated(EnumType.STRING)
     private BetRole betRole; // автор аргумента
+
+    @Column(name = "encrypted")
+    private boolean encrypted;
 }

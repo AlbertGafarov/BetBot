@@ -4,7 +4,6 @@ import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
 import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.stereotype.Component;
-import ru.gafarov.bet.grpcInterface.ProtoBet;
 import ru.gafarov.bet.grpcInterface.UserOuterClass;
 import ru.gafarov.bet.grpcInterface.UserServiceGrpc;
 import ru.gafarov.betservice.service.UserService;
@@ -34,4 +33,9 @@ public class GrpcUserRequestHandler extends UserServiceGrpc.UserServiceImplBase 
         responseObserver.onCompleted();
     }
 
+    @Override
+    public void setEncryptionStatus(UserOuterClass.User user, StreamObserver<UserOuterClass.ResponseUser> responseObserver) {
+        responseObserver.onNext(userService.changeEncryptedStatus(user));
+        responseObserver.onCompleted();
+    }
 }

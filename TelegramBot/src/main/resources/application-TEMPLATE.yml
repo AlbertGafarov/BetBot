@@ -13,8 +13,8 @@ service:
   host: localhost
   port: 5454
   bot:
-    name: AlbertGafarovBetBot
-    token:
+    name: BotName #
+    token: token #
 grpc:
   server:
     port: 5455

@@ -63,4 +63,12 @@ public class BotConfiguration {
 
         return DrBetServiceGrpc.newBlockingStub(managedChannel);
     }
+    @Bean
+    public SecretKeyServiceGrpc.SecretKeyServiceBlockingStub grpcSecretKeyStub(@Value("${service.host}") String host, @Value("${service.port}") int port) {
+        ManagedChannel managedChannel = ManagedChannelBuilder.forAddress(host, port)
+                .usePlaintext()
+                .build();
+
+        return SecretKeyServiceGrpc.newBlockingStub(managedChannel);
+    }
 }
