@@ -27,18 +27,19 @@ public class AuthorizationService {
 
     public void authorization(Update update) {
         long chatId = update.getMessage().getChatId();
+        User user;
         ResponseUser responseMessage = grpcUserStub.getUser(User.newBuilder().setChatId(chatId).build());
-        if (!responseMessage.hasUser()) {
-            addNewUser(update, chatId);
-        } else {
-
+        if (responseMessage.hasUser()) {
+            user = responseMessage.getUser();
             botMessageService.deleteWithoutDraft(DraftBet.newBuilder().build(), responseMessage.getUser());
+        } else {
+            user = addNewUser(update, chatId);
         }
         BetSendMessage sendMessage = new BetSendMessage(chatId);
-        sendMessage.setText("Привет <b>" + responseMessage.getUser().getUsername() + "</b>!\nInfo о боте: /info");
-        userService.setChatStatus(responseMessage.getUser(), ChatStatus.START);
+        sendMessage.setText("Привет <b>" + user.getUsername() + "</b>!\nInfo о боте: /info");
+        userService.setChatStatus(user, ChatStatus.START);
         sendMessage.setReplyMarkup(Buttons.codeButtons());
-        botService.sendAndSave(sendMessage, responseMessage.getUser(), BotMessageType.HELLO, true);
+        botService.sendAndSave(sendMessage, user, BotMessageType.HELLO, true);
     }
 
     public User addNewUser(Update update, long chatId) {
