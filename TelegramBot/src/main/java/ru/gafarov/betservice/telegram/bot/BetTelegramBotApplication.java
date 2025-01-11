@@ -1,7 +1,9 @@
 package ru.gafarov.betservice.telegram.bot;
 
-import org.springframework.boot.SpringApplication;
+import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.context.ApplicationPidFileWriter;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.scheduling.annotation.EnableAsync;
 import ru.gafarov.betservice.telegram.bot.config.ConfigMap;
@@ -13,6 +15,10 @@ public class BetTelegramBotApplication {
 
     public static void main(String[] args) {
         System.setProperty("user.timezone", "MSK");
-        SpringApplication.run(BetTelegramBotApplication.class, args);
+
+        SpringApplicationBuilder app = new SpringApplicationBuilder(BetTelegramBotApplication.class)
+                .web(WebApplicationType.NONE);
+        app.build().addListeners(new ApplicationPidFileWriter("/application/TelegramBot/shutdown.pid"));
+        app.run(args);
     }
 }
