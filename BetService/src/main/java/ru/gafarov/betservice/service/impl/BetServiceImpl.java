@@ -61,6 +61,10 @@ public class BetServiceImpl implements BetService {
         bet.setBetStatus(ProtoBet.BetStatus.OFFER);
         bet.setInitiatorBetStatus(ProtoBet.UserBetStatus.OFFERED);
         bet.setOpponentBetStatus(ProtoBet.UserBetStatus.OFFERED);
+
+        // Добавляем подписку, если ее нет
+        subscribeService.checkAndPutForInitiator(bet);
+
         //Если хотя бы у одного из участников включено шифрование, то необходимо зашифровать спор
         if (protoBet.getInitiator().getEncryptionEnabled() || protoBet.getOpponent().getEncryptionEnabled()) {
             String pairSecret = messageWithKeyService.getPairSecret(bet.getInitiator(), bet.getOpponent());
@@ -75,8 +79,6 @@ public class BetServiceImpl implements BetService {
         bet.setFinishDate(converter.toLocalDateTime(protoBet.getFinishDate()));
         bet = betRepository.save(bet);
 
-        // Добавляем подписку, если ее нет
-        subscribeService.checkAndPutForInitiator(bet);
 
         bet.setNextOpponentBetStatusList(statusBetRepository.getNextStatuses(OPPONENT.toString()
                 , bet.getOpponentBetStatus().toString()
